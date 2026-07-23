@@ -1,0 +1,267 @@
+<div class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <app-header
+    title="Meu Pedido"
+    [showBack]="true"
+    backRoute="/cliente/cardapio"
+  />
+
+  <!-- Loading -->
+  @if (loading()) {
+    <app-loading-spinner message="Buscando seu pedido..." />
+  }
+
+  <!-- Erro -->
+  @else if (error()) {
+    <div class="p-4">
+      <app-empty-state
+        icon="error"
+        title="Pedido não encontrado"
+        description="Não foi possível encontrar este pedido."
+      />
+      <div class="mt-4">
+        <button
+          (click)="voltarCardapio()"
+          class="btn-primary"
+          type="button"
+        >
+          Voltar ao Cardápio
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Pedido Encontrado -->
+  @else if (pedido(); as p) {
+    <div class="flex flex-col items-center px-4 py-8 animate-fade-in">
+      <!-- Status Visual -->
+      <div
+        class="w-32 h-32 rounded-full flex items-center justify-center mb-6
+               transition-all duration-500"
+        [class.bg-blue-100]="p.status === 'RECEBIDO'"
+        [class.bg-orange-100]="p.status === 'PREPARANDO'"
+        [class.bg-green-100]="p.status === 'PRONTO'"
+        [class.bg-gray-100]="p.status === 'ENTREGUE'"
+        [class.bg-red-100]="p.status === 'CANCELADO'"
+        [class.scale-110]="p.status === 'PRONTO'"
+        [class.animate-pulse]="p.status === 'PREPARANDO'"
+      >
+        <span class="text-5xl select-none">
+          {{ statusIcon }}
+        </span>
+      </div>
+
+      <!-- Número e Nome -->
+      <h1 class="text-2xl font-bold text-gray-800 mb-1">
+        Pedido #{{ p.numero }}
+      </h1>
+      <p class="text-gray-500 mb-2">{{ p.nomeCliente }}</p>
+
+      <!-- Badge Status -->
+      <app-status-badge
+        [status]="p.status"
+        [label]="statusMensagem"
+      />
+
+      <!-- Tipo do Pedido -->
+      <span class="text-xs text-gray-400 mt-2">
+        {{ p.tipo === 'LEVAR' ? '🏃 Para levar' : '🍽️ Comer aqui' }}
+      </span>
+
+      <!-- Barra de Progresso -->
+      @if (p.status !== 'CANCELADO' && p.status !== 'ENTREGUE') {
+        <div class="w-full max-w-sm mt-6">
+          <div class="flex justify-between text-xs text-gray-400 mb-1">
+            <span>Recebido</span>
+            <span>Preparando</span>
+            <span>Pronto</span>
+          </div>
+          <div class="bg-gray-200 rounded-full h-2 overflow-hidden">
+            <div
+              class="bg-primary-600 h-2 rounded-full transition-all duration-700 ease-out"
+              [style.width.%]="
+                p.status === 'RECEBIDO' ? 20 :
+                p.status === 'PREPARANDO' ? 60 :
+                p.status === 'PRONTO' ? 100 : 0
+              "
+            ></div>
+          </div>
+        </div>
+      }
+
+      <!-- Itens do Pedido -->
+      <div class="w-full max-w-sm mt-8">
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+            Itens do pedido
+          </h2>
+
+          <!-- Botão Editar (apenas se RECEBIDO) -->
+          @if (podeEditar) {
+            <button
+              (click)="abrirEdicao()"
+              class="text-sm text-primary-600 font-medium hover:text-primary-700
+                     transition-colors"
+              type="button"
+            >
+              Editar
+            </button>
+          }
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-card divide-y divide-gray-100 overflow-hidden">
+          @for (item of p.itens; track item.id) {
+            <div class="flex justify-between items-center p-4 hover:bg-gray-50 transition-colors">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <p class="font-medium text-gray-800">
+                    {{ item.quantidade }}x
+                  </p>
+                  <p class="font-medium text-gray-800 truncate">
+                    {{ item.nomeProduto }}
+                  </p>
+                </div>
+                @if (item.observacaoItem) {
+                  <p class="text-xs text-gray-400 mt-0.5 ml-7">
+                    "{{ item.observacaoItem }}"
+                  </p>
+                }
+              </div>
+              <div class="flex items-center gap-3 shrink-0">
+                <span class="text-sm text-gray-500">
+                  R$ {{ item.subtotal | number:'1.2-2' }}
+                </span>
+                <span
+                  class="text-xs px-2 py-0.5 rounded-full font-medium"
+                  [class.bg-gray-100]="item.status === 'PENDENTE'"
+                  [class.text-gray-600]="item.status === 'PENDENTE'"
+                  [class.bg-orange-100]="item.status === 'PREPARANDO'"
+                  [class.text-orange-700]="item.status === 'PREPARANDO'"
+                  [class.bg-green-100]="item.status === 'PRONTO'"
+                  [class.text-green-700]="item.status === 'PRONTO'"
+                >
+                  @switch (item.status) {
+                    @case ('PENDENTE') { ⏳ }
+                    @case ('PREPARANDO') { 🔥 }
+                    @case ('PRONTO') { ✅ }
+                  }
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Observação do Pedido -->
+      @if (p.observacao && !editando()) {
+        <div class="w-full max-w-sm mt-4 p-3 bg-yellow-50 rounded-xl border border-yellow-200">
+          <p class="text-xs text-yellow-700 font-medium mb-0.5">Observação:</p>
+          <p class="text-sm text-yellow-800">{{ p.observacao }}</p>
+        </div>
+      }
+
+      <!-- Modo Edição (simplificado) -->
+      @if (editando()) {
+        <div class="w-full max-w-sm mt-4 p-4 bg-white rounded-2xl shadow-card animate-slide-up">
+          <h3 class="font-semibold text-gray-800 mb-3">Editar Pedido</h3>
+          <textarea
+            [(ngModel)]="observacaoEdicao"
+            rows="3"
+            class="input-field mb-3"
+            placeholder="Adicione uma observação..."
+            maxlength="300"
+          ></textarea>
+          <div class="flex gap-2">
+            <button
+              (click)="fecharEdicao()"
+              class="flex-1 py-2 px-4 rounded-xl border border-gray-300
+                     text-gray-600 font-medium text-sm hover:bg-gray-50
+                     transition-colors"
+              type="button"
+            >
+              Cancelar
+            </button>
+            <button
+              (click)="salvarEdicao()"
+              class="flex-1 py-2 px-4 rounded-xl bg-primary-600 text-white
+                     font-medium text-sm hover:bg-primary-700 transition-colors"
+              type="button"
+            >
+              Salvar
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- Total -->
+      <div class="mt-8 text-center">
+        <p class="text-sm text-gray-500">Total</p>
+        <p class="text-3xl font-bold text-primary-600">
+          R$ {{ p.valorTotal | number:'1.2-2' }}
+        </p>
+      </div>
+
+      <!-- Status do Pagamento -->
+      @if (p.status === 'ENTREGUE' || p.status === 'PRONTO') {
+        <div class="mt-4">
+          <app-status-badge
+            [status]="p.statusPagamento"
+          />
+        </div>
+      }
+
+      <!-- Ações -->
+      <div class="w-full max-w-sm mt-8 space-y-3">
+        <!-- Novo Pedido (quando finalizado) -->
+        @if (p.status === 'PRONTO' || p.status === 'ENTREGUE') {
+          <button
+            (click)="novoPedido()"
+            class="btn-primary"
+            type="button"
+          >
+            🍔 Fazer Novo Pedido
+          </button>
+        }
+
+        <!-- Cancelar (apenas RECEBIDO ou PREPARANDO) -->
+        @if (podeCancelar) {
+          <button
+            (click)="abrirCancelDialog()"
+            class="w-full py-2.5 px-4 rounded-xl border border-red-300
+                   text-red-600 font-medium text-sm hover:bg-red-50
+                   active:bg-red-100 transition-colors"
+            type="button"
+          >
+            Cancelar Pedido
+          </button>
+        }
+      </div>
+
+      <!-- Timestamps -->
+      <div class="mt-8 w-full max-w-sm text-xs text-gray-400 space-y-1">
+        <p>🕐 Pedido feito: {{ p.dataHoraPedido | date:'dd/MM/yyyy HH:mm' }}</p>
+        @if (p.dataHoraPronto) {
+          <p>✅ Ficou pronto: {{ p.dataHoraPronto | date:'dd/MM/yyyy HH:mm' }}</p>
+        }
+        @if (p.dataHoraEntrega) {
+          <p>📦 Entregue: {{ p.dataHoraEntrega | date:'dd/MM/yyyy HH:mm' }}</p>
+        }
+        @if (p.dataHoraPagamento) {
+          <p>💰 Pago: {{ p.dataHoraPagamento | date:'dd/MM/yyyy HH:mm' }}</p>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Dialog de Cancelamento -->
+  <app-confirm-dialog
+    [visible]="showCancelDialog()"
+    title="Cancelar Pedido"
+    message="Tem certeza que deseja cancelar este pedido?"
+    confirmText="Sim, cancelar"
+    cancelText="Voltar"
+    type="danger"
+    (onConfirm)="confirmarCancelamento()"
+    (onCancel)="fecharCancelDialog()"
+  />
+</div>

@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "produtos")
+@Table(name = "produto")  
 @Getter
 @Setter
 @NoArgsConstructor
@@ -50,7 +50,7 @@ public class Produto {
     @Column(nullable = false, length = 30)
     private CategoriaProduto categoria;
 
-    @Column(nullable = false)
+    @Column(name = "tempo_preparo_minutos", nullable = false)
     @Builder.Default
     private Integer tempoPreparoMinutos = 0;
 
@@ -58,9 +58,10 @@ public class Produto {
     @Builder.Default
     private Boolean disponivel = true;
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @PrePersist

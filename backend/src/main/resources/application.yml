@@ -3,7 +3,7 @@ spring:
     name: fila-certa-api
   
   profiles:
-    active: test
+    active: dev
 
   jackson:
     serialization:

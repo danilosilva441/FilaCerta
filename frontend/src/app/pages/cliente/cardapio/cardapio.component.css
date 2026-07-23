@@ -1,0 +1,80 @@
+:host {
+  display: block;
+}
+
+/* Container principal */
+.page-container {
+  min-height: 100vh;
+  background-color: #f9fafb;
+  padding-bottom: 12rem;
+}
+
+/* Categorias com scroll suave */
+.scroll-x-hidden {
+  display: flex;
+  overflow-x: auto;
+  gap: 0.5rem;
+  padding-bottom: 0.25rem;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scroll-x-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-x-hidden > * {
+  scroll-snap-align: start;
+}
+
+/* Cards com transição suave */
+.card {
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.card:active {
+  transform: scale(0.98);
+}
+
+/* Botão de ícone */
+.btn-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.btn-icon:active {
+  transform: scale(0.92);
+}
+
+/* Animação de entrada dos cards */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+/* Stagger animation delay */
+section .card:nth-child(1) { animation-delay: 0ms; }
+section .card:nth-child(2) { animation-delay: 50ms; }
+section .card:nth-child(3) { animation-delay: 100ms; }
+section .card:nth-child(4) { animation-delay: 150ms; }
+section .card:nth-child(5) { animation-delay: 200ms; }

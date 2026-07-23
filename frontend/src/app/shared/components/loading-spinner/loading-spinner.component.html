@@ -1,0 +1,28 @@
+<div
+  class="flex flex-col items-center justify-center py-12"
+  role="status"
+  aria-live="polite"
+>
+  <!-- Spinner -->
+  <div
+    class="border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"
+    [class.w-8]="size === 'sm'"
+    [class.h-8]="size === 'sm'"
+    [class.w-10]="size === 'md'"
+    [class.h-10]="size === 'md'"
+    [class.w-14]="size === 'lg'"
+    [class.h-14]="size === 'lg'"
+    [class.border-2]="size === 'sm'"
+    [class.border-4]="size === 'md' || size === 'lg'"
+  ></div>
+
+  <!-- Mensagem opcional -->
+  @if (message) {
+    <p class="mt-4 text-sm text-gray-500 animate-pulse">
+      {{ message }}
+    </p>
+  }
+
+  <!-- Texto para leitores de tela -->
+  <span class="sr-only">Carregando...</span>
+</div>

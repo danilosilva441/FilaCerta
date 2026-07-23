@@ -1,26 +1,67 @@
 package com.filacerta.application.mapper;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
-import org.mapstruct.ReportingPolicy;
+import org.springframework.stereotype.Component;
 
 import com.filacerta.application.dto.request.CriarComandaRequest;
 import com.filacerta.application.dto.response.ComandaResponse;
+import com.filacerta.application.dto.response.PedidoResponse;
 import com.filacerta.domain.entity.Comanda;
+import com.filacerta.domain.entity.ComandaPedido;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
-public interface ComandaMapper {
+import lombok.RequiredArgsConstructor;
 
-	@Mappings({ @Mapping(target = "id", ignore = true), @Mapping(target = "codigo", ignore = true),
-			@Mapping(target = "status", ignore = true), @Mapping(target = "valorTotal", ignore = true),
-			@Mapping(target = "abertura", ignore = true), @Mapping(target = "fechamento", ignore = true),
-			@Mapping(target = "createdAt", ignore = true), @Mapping(target = "comandaPedidos", ignore = true) })
-	Comanda toEntity(CriarComandaRequest request);
+@Component
+@RequiredArgsConstructor
+public class ComandaMapper {
 
-	ComandaResponse toResponse(Comanda comanda);
+    private final PedidoMapper pedidoMapper;
 
-	List<ComandaResponse> toResponseList(List<Comanda> comandas);
+    public Comanda toEntity(CriarComandaRequest request) {
+        if (request == null) {
+            return null;
+        }
+
+        Comanda comanda = new Comanda();
+        comanda.setNomeCliente(request.getNomeCliente());
+        comanda.setMesa(request.getMesa());
+        return comanda;
+    }
+
+    public ComandaResponse toResponse(Comanda comanda) {
+        if (comanda == null) {
+            return null;
+        }
+
+        List<PedidoResponse> pedidos = null;
+        if (comanda.getComandaPedidos() != null) {
+            pedidos = comanda.getComandaPedidos().stream()
+                .map(ComandaPedido::getPedido)
+                .map(pedidoMapper::toResponse)
+                .collect(Collectors.toList());
+        }
+
+        return ComandaResponse.builder()
+            .id(comanda.getId())
+            .codigo(comanda.getCodigo())
+            .nomeCliente(comanda.getNomeCliente())
+            .mesa(comanda.getMesa())
+            .status(comanda.getStatus())
+            .valorTotal(comanda.getValorTotal())
+            .abertura(comanda.getAbertura())
+            .fechamento(comanda.getFechamento())
+            .pedidos(pedidos)
+            .build();
+    }
+
+    public List<ComandaResponse> toResponseList(List<Comanda> comandas) {
+        if (comandas == null) {
+            return null;
+        }
+        return comandas.stream()
+            .map(this::toResponse)
+            .collect(Collectors.toList());
+    }
 }

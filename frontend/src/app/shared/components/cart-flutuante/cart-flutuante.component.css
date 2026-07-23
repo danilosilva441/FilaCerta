@@ -1,0 +1,38 @@
+:host {
+  display: block;
+}
+
+/* Animação de entrada */
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Scroll personalizado da lista */
+.max-h-32::-webkit-scrollbar {
+  width: 4px;
+}
+
+.max-h-32::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.max-h-32::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 999px;
+}
+
+/* Sombra personalizada */
+.shadow-bottom-sheet {
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+}

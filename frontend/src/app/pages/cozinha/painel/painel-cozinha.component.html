@@ -1,0 +1,241 @@
+<div class="min-h-screen bg-gray-100">
+  <!-- Header -->
+  <app-header
+    title="Painel Cozinha"
+    [subtitle]="filaResponse() ? filaResponse()!.totalPedidos + ' pedidos ativos' : ''"
+    [rightAction]="{
+      icon: 'account_balance',
+      label: 'Fechar Caixa',
+      handler: irParaFechamento.bind(this)
+    }"
+  />
+
+  <!-- Loading -->
+  @if (loading()) {
+    <app-loading-spinner message="Carregando pedidos..." />
+  }
+
+  <!-- Erro -->
+  @else if (error()) {
+    <div class="p-4">
+      <app-empty-state
+        icon="error"
+        title="Erro ao carregar"
+        description="Não foi possível carregar a fila da cozinha."
+      />
+      <div class="mt-4">
+        <button
+          (click)="iniciarPolling()"
+          class="btn-secondary"
+          type="button"
+        >
+          Tentar Novamente
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Vazio -->
+  @else if (pedidosFiltrados.length === 0) {
+    <div class="p-4">
+      <app-empty-state
+        icon="check_circle"
+        title="Fila Vazia!"
+        description="Todos os pedidos foram preparados. 🎉"
+      />
+    </div>
+  }
+
+  <!-- Fila de Pedidos -->
+  @else {
+    <div class="p-3">
+      <!-- Filtros Rápidos -->
+      <nav class="mb-3 scroll-x-hidden">
+        @for (filtro of filtros; track filtro.valor) {
+          <button
+            (click)="filtroAtivo.set(filtro.valor)"
+            class="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium
+                   whitespace-nowrap transition-all shrink-0"
+            [class.bg-primary-600]="filtroAtivo() === filtro.valor"
+            [class.text-white]="filtroAtivo() === filtro.valor"
+            [class.bg-white]="filtroAtivo() !== filtro.valor"
+            [class.text-gray-600]="filtroAtivo() !== filtro.valor"
+            [class.shadow-sm]="filtroAtivo() !== filtro.valor"
+            type="button"
+          >
+            {{ filtro.icone }} {{ filtro.label }}
+          </button>
+        }
+      </nav>
+
+      <!-- Cards de Pedidos -->
+      <div class="space-y-3">
+        @for (pedido of pedidosFiltrados; track pedido.id) {
+          <div
+            class="rounded-2xl border-l-4 shadow-sm transition-all duration-300 cursor-pointer"
+            [class]="getStatusColor(pedido.status)"
+            (click)="toggleCard(pedido.id)"
+          >
+            <!-- Cabeçalho do Card (sempre visível) -->
+            <div class="p-4">
+              <div class="flex justify-between items-start mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-xl font-bold text-gray-800">
+                    #{{ pedido.numero }}
+                  </span>
+                  <app-status-badge
+                    [status]="pedido.status"
+                    [size]="'sm'"
+                  />
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-gray-400">
+                    ⏱️ {{ getTempoEspera(pedido.dataHoraPedido) }}
+                  </span>
+                  <span class="material-icons text-gray-400 text-sm transition-transform"
+                    [class.rotate-180]="isExpanded(pedido.id)">
+                    expand_more
+                  </span>
+                </div>
+              </div>
+
+              <p class="text-sm font-medium text-gray-700 mb-2">
+                {{ pedido.nomeCliente }}
+              </p>
+
+              <!-- Resumo dos Itens (visível quando colapsado) -->
+              @if (!isExpanded(pedido.id)) {
+                <div class="flex flex-wrap gap-1">
+                  @for (item of pedido.itens.slice(0, 3); track $index) {
+                    <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                      {{ item.quantidade }}x {{ item.nomeProduto }}
+                    </span>
+                  }
+                  @if (pedido.itens.length > 3) {
+                    <span class="text-xs text-gray-400">
+                      +{{ pedido.itens.length - 3 }} itens
+                    </span>
+                  }
+                </div>
+              }
+
+              <!-- Ações Rápidas -->
+              <div class="flex gap-2 mt-3" (click)="$event.stopPropagation()">
+                @if (pedido.status === 'RECEBIDO') {
+                  <button
+                    (click)="iniciarPreparo(pedido.id)"
+                    [disabled]="processando() === pedido.id"
+                    class="flex-1 py-2 px-3 bg-orange-600 text-white text-sm font-medium
+                           rounded-lg hover:bg-orange-700 active:bg-orange-800
+                           disabled:opacity-50 transition-colors"
+                    type="button"
+                  >
+                    @if (processando() === pedido.id) {
+                      ⏳
+                    } @else {
+                      🔥 Iniciar
+                    }
+                  </button>
+                }
+                @if (pedido.status === 'PREPARANDO') {
+                  <button
+                    (click)="marcarPronto(pedido.id)"
+                    [disabled]="processando() === pedido.id"
+                    class="flex-1 py-2 px-3 bg-green-600 text-white text-sm font-medium
+                           rounded-lg hover:bg-green-700 active:bg-green-800
+                           disabled:opacity-50 transition-colors"
+                    type="button"
+                  >
+                    @if (processando() === pedido.id) {
+                      ⏳
+                    } @else {
+                      ✅ Pronto
+                    }
+                  </button>
+                }
+                @if (pedido.status === 'PRONTO') {
+                  <button
+                    (click)="entregarPedido(pedido.id)"
+                    [disabled]="processando() === pedido.id"
+                    class="flex-1 py-2 px-3 bg-blue-600 text-white text-sm font-medium
+                           rounded-lg hover:bg-blue-700 active:bg-blue-800
+                           disabled:opacity-50 transition-colors"
+                    type="button"
+                  >
+                    📦 Entregar
+                  </button>
+                  <button
+                    (click)="verPagamento(pedido.id)"
+                    class="py-2 px-3 bg-primary-600 text-white text-sm font-medium
+                           rounded-lg hover:bg-primary-700 transition-colors"
+                    type="button"
+                  >
+                    💰
+                  </button>
+                }
+                <button
+                  (click)="abrirCancelDialog(pedido.id)"
+                  class="py-2 px-3 bg-red-100 text-red-600 text-sm font-medium
+                         rounded-lg hover:bg-red-200 active:bg-red-300 transition-colors"
+                  type="button"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <!-- Detalhes Expandidos -->
+            @if (isExpanded(pedido.id)) {
+              <div class="border-t border-gray-200 p-4 bg-white/50 rounded-b-2xl animate-slide-up">
+                <h4 class="text-xs font-semibold text-gray-500 uppercase mb-2">
+                  📝 Itens do Pedido
+                </h4>
+                <div class="space-y-2">
+                  @for (item of pedido.itens; track $index) {
+                    <div class="flex items-center justify-between bg-white p-2 rounded-lg">
+                      <div class="flex items-center gap-2">
+                        <span class="text-lg">
+                          {{ getItemCategoria(item) === 'HAMBURGUER' ? '🍔' :
+                             getItemCategoria(item) === 'CACHORRO_QUENTE' ? '🌭' :
+                             getItemCategoria(item) === 'SALGADO' ? '🥟' : '🥤' }}
+                        </span>
+                        <span class="text-sm text-gray-700">
+                          {{ item.quantidade }}x {{ item.nomeProduto }}
+                        </span>
+                      </div>
+                      <span
+                        class="text-xs px-2 py-0.5 rounded-full font-medium"
+                        [class.bg-gray-100]="item.status === 'PENDENTE'"
+                        [class.text-gray-600]="item.status === 'PENDENTE'"
+                        [class.bg-orange-100]="item.status === 'PREPARANDO'"
+                        [class.text-orange-700]="item.status === 'PREPARANDO'"
+                        [class.bg-green-100]="item.status === 'PRONTO'"
+                        [class.text-green-700]="item.status === 'PRONTO'"
+                      >
+                        @if (item.status === 'PENDENTE') { ⏳ }
+                        @if (item.status === 'PREPARANDO') { 🔥 }
+                        @if (item.status === 'PRONTO') { ✅ }
+                      </span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Dialog de Cancelamento -->
+  <app-confirm-dialog
+    [visible]="showCancelDialog() !== null"
+    title="Cancelar Pedido"
+    message="Tem certeza que deseja cancelar este pedido?"
+    confirmText="Sim, Cancelar"
+    cancelText="Voltar"
+    type="danger"
+    (onConfirm)="confirmarCancelamento()"
+    (onCancel)="fecharCancelDialog()"
+  />
+</div>

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,8 +43,15 @@ public class PedidoController {
 	@ApiResponses(value = { @ApiResponse(responseCode = "201", description = "Pedido criado com sucesso"),
 			@ApiResponse(responseCode = "400", description = "Dados inválidos"),
 			@ApiResponse(responseCode = "404", description = "Produto não encontrado") })
-	public ResponseEntity<PedidoResponse> criarPedido(@Valid @RequestBody CriarPedidoRequest request) {
-		PedidoResponse response = pedidoService.criarPedido(request);
+	public ResponseEntity<PedidoResponse> criarPedido(@Valid @RequestBody CriarPedidoRequest request,
+			@RequestHeader(value = "Authorization", required = false) String authorization) {
+
+		String token = null;
+		if (authorization != null && authorization.startsWith("Bearer ")) {
+			token = authorization.substring(7);
+		}
+
+		PedidoResponse response = pedidoService.criarPedido(request, token);
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 

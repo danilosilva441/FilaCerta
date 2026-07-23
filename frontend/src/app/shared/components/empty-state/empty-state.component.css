@@ -1,0 +1,18 @@
+:host {
+  display: block;
+}
+
+/* Ícone grande com transição suave */
+.material-icons {
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+/* Efeito hover suave no container */
+:host(:hover) .material-icons {
+  transform: scale(1.05);
+}
+
+/* Garantir que o slot de ações tenha espaçamento */
+:host ::ng-deep > *:last-child {
+  margin-top: 1rem;
+}

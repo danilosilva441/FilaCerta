@@ -1,6 +1,6 @@
 package com.filacerta.infrastructure.repository;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,18 +19,18 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
 	List<Pedido> findByStatusIn(List<StatusPedido> statuses);
 
-	@Query("SELECT MAX(p.numero) FROM Pedido p WHERE DATE(p.dataHoraPedido) = :data")
-	Integer findMaxNumeroByData(@Param("data") LocalDate data);
+	// Usando BETWEEN para evitar problemas com DATE()
+	@Query("SELECT MAX(p.numero) FROM Pedido p WHERE p.dataHoraPedido BETWEEN :start AND :end")
+	Integer findMaxNumeroByData(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
 	List<Pedido> findByStatusOrderByDataHoraPedidoAsc(StatusPedido status);
 
 	@Query("SELECT p FROM Pedido p WHERE p.status = :status ORDER BY p.dataHoraPedido ASC")
 	List<Pedido> findFilaCozinha(@Param("status") StatusPedido status);
 
-	// CORRIGIDO: Usando caixaDiarioData em vez de caixaDiario
-	Optional<Pedido> findByNumeroAndCaixaDiarioData(Integer numero, LocalDate caixaDiarioData);
+	Optional<Pedido> findByNumeroAndCaixaDiarioData(Integer numero, LocalDateTime caixaDiarioData);
 
-	// Método para buscar por número e data
-	@Query("SELECT p FROM Pedido p WHERE p.numero = :numero AND DATE(p.caixaDiarioData) = :data")
-	Optional<Pedido> findByNumeroAndData(@Param("numero") Integer numero, @Param("data") LocalDate data);
+	@Query("SELECT p FROM Pedido p WHERE p.numero = :numero AND p.caixaDiarioData BETWEEN :start AND :end")
+	Optional<Pedido> findByNumeroAndData(@Param("numero") Integer numero, @Param("start") LocalDateTime start,
+			@Param("end") LocalDateTime end);
 }

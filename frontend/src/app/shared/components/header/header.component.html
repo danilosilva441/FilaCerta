@@ -1,0 +1,54 @@
+<header class="bg-primary-600 text-white sticky top-0 z-20 shadow-md">
+  <div class="flex items-center justify-between px-4 py-3">
+    <!-- Lado Esquerdo: Botão Voltar -->
+    @if (showBack) {
+      @if (backRoute) {
+        <a
+          [routerLink]="backRoute"
+          class="w-10 h-10 flex items-center justify-center rounded-full
+                 hover:bg-primary-700 active:bg-primary-800 transition-colors"
+          aria-label="Voltar"
+        >
+          <span class="material-icons">arrow_back</span>
+        </a>
+      } @else {
+        <button
+          (click)="goBack()"
+          class="w-10 h-10 flex items-center justify-center rounded-full
+                 hover:bg-primary-700 active:bg-primary-800 transition-colors"
+          aria-label="Voltar"
+          type="button"
+        >
+          <span class="material-icons">arrow_back</span>
+        </button>
+      }
+    } @else {
+      <!-- Espaçador para manter alinhamento -->
+      <div class="w-10"></div>
+    }
+
+    <!-- Centro: Título -->
+    <div class="flex-1 text-center mx-2">
+      <h1 class="text-lg font-bold truncate">{{ title }}</h1>
+      @if (subtitle) {
+        <p class="text-xs text-primary-200 truncate">{{ subtitle }}</p>
+      }
+    </div>
+
+    <!-- Lado Direito: Ação opcional -->
+    @if (rightAction) {
+      <button
+        (click)="rightAction.handler()"
+        class="w-10 h-10 flex items-center justify-center rounded-full
+               hover:bg-primary-700 active:bg-primary-800 transition-colors"
+        [attr.aria-label]="rightAction.label"
+        type="button"
+      >
+        <span class="material-icons">{{ rightAction.icon }}</span>
+      </button>
+    } @else {
+      <!-- Espaçador para manter alinhamento -->
+      <div class="w-10"></div>
+    }
+  </div>
+</header>
