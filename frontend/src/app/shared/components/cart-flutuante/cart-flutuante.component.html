@@ -1,6 +1,6 @@
 <div
   *ngIf="itens.length > 0"
-  class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200
+  class="fixed bottom-16 left-0 right-0 bg-white border-t border-gray-200
          shadow-bottom-sheet z-30 rounded-t-2xl animate-slide-up"
 >
   <div class="p-4">
@@ -16,13 +16,35 @@
       </div>
       <button
         (click)="onClear.emit()"
-        class="text-sm text-red-500 hover:text-red-700 active:text-red-800
-               transition-colors"
+        class="text-sm text-red-500 hover:text-red-700 active:text-red-800 transition-colors"
         type="button"
       >
         Limpar
       </button>
     </div>
+
+    <!-- Seleção de Pagamento -->
+    @if (metodosPagamento.length > 0) {
+      <div class="mb-3">
+        <p class="text-xs font-semibold text-gray-500 mb-2">💳 Forma de Pagamento</p>
+        <div class="grid grid-cols-2 gap-2">
+          @for (metodo of metodosPagamento; track metodo.valor) {
+            <button
+              (click)="onSelectPagamento.emit(metodo.valor)"
+              class="flex items-center justify-center gap-1 py-2 px-3 rounded-lg text-xs font-medium transition-all border"
+              [class.border-red-600]="pagamentoSelecionado === metodo.valor"
+              [class.bg-red-50]="pagamentoSelecionado === metodo.valor"
+              [class.text-red-600]="pagamentoSelecionado === metodo.valor"
+              [class.border-gray-200]="pagamentoSelecionado !== metodo.valor"
+              [class.text-gray-500]="pagamentoSelecionado !== metodo.valor"
+              type="button"
+            >
+              {{ metodo.icone }} {{ metodo.label }}
+            </button>
+          }
+        </div>
+      </div>
+    }
 
     <!-- Lista de itens -->
     <div class="max-h-32 overflow-y-auto mb-3 space-y-1">

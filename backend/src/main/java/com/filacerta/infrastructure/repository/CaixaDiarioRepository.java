@@ -12,9 +12,18 @@ import com.filacerta.domain.enums.StatusCaixa;
 @Repository
 public interface CaixaDiarioRepository extends JpaRepository<CaixaDiario, Long> {
 
-	Optional<CaixaDiario> findByDataAndStatus(LocalDate data, StatusCaixa status);
+    // Buscar por data e status
+    Optional<CaixaDiario> findByDataAndStatus(LocalDate data, StatusCaixa status);
 
-	Optional<CaixaDiario> findByStatus(StatusCaixa status);
+    // Buscar por data (qualquer status)
+    Optional<CaixaDiario> findByData(LocalDate data);
 
-	boolean existsByDataAndStatus(LocalDate data, StatusCaixa status);
+    // Buscar por status (apenas um caixa ABERTO por vez)
+    Optional<CaixaDiario> findByStatus(StatusCaixa status);
+
+    // Verificar se existe por data e status
+    boolean existsByDataAndStatus(LocalDate data, StatusCaixa status);
+
+    // Verificar se existe por data (qualquer status)
+    boolean existsByData(LocalDate data);
 }

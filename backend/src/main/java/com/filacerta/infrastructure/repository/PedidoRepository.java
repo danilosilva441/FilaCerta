@@ -1,5 +1,6 @@
 package com.filacerta.infrastructure.repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -15,22 +16,25 @@ import com.filacerta.domain.enums.StatusPedido;
 @Repository
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
-	List<Pedido> findByStatus(StatusPedido status);
+    List<Pedido> findByStatus(StatusPedido status);
 
-	List<Pedido> findByStatusIn(List<StatusPedido> statuses);
+    List<Pedido> findByStatusIn(List<StatusPedido> statuses);
 
-	// Usando BETWEEN para evitar problemas com DATE()
-	@Query("SELECT MAX(p.numero) FROM Pedido p WHERE p.dataHoraPedido BETWEEN :start AND :end")
-	Integer findMaxNumeroByData(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+    // 🔧 CORRIGIDO: Usando BETWEEN para compatibilidade com H2
+    @Query("SELECT MAX(p.numero) FROM Pedido p WHERE p.dataHoraPedido BETWEEN :inicio AND :fim")
+    Integer findMaxNumeroByData(@Param("inicio") LocalDateTime inicio, @Param("fim") LocalDateTime fim);
 
-	List<Pedido> findByStatusOrderByDataHoraPedidoAsc(StatusPedido status);
+    List<Pedido> findByStatusOrderByDataHoraPedidoAsc(StatusPedido status);
 
-	@Query("SELECT p FROM Pedido p WHERE p.status = :status ORDER BY p.dataHoraPedido ASC")
-	List<Pedido> findFilaCozinha(@Param("status") StatusPedido status);
+    @Query("SELECT p FROM Pedido p WHERE p.status = :status ORDER BY p.dataHoraPedido ASC")
+    List<Pedido> findFilaCozinha(@Param("status") StatusPedido status);
 
-	Optional<Pedido> findByNumeroAndCaixaDiarioData(Integer numero, LocalDateTime caixaDiarioData);
+    Optional<Pedido> findByNumeroAndCaixaDiarioData(Integer numero, LocalDate caixaDiarioData);
 
-	@Query("SELECT p FROM Pedido p WHERE p.numero = :numero AND p.caixaDiarioData BETWEEN :start AND :end")
-	Optional<Pedido> findByNumeroAndData(@Param("numero") Integer numero, @Param("start") LocalDateTime start,
-			@Param("end") LocalDateTime end);
+    // 🔧 CORRIGIDO: Usando BETWEEN para compatibilidade com H2
+    @Query("SELECT p FROM Pedido p WHERE p.numero = :numero AND p.caixaDiarioData BETWEEN :inicio AND :fim")
+    Optional<Pedido> findByNumeroAndData(
+            @Param("numero") Integer numero,
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fim") LocalDateTime fim);
 }

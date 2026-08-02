@@ -1,0 +1,84 @@
+<div class="min-h-screen bg-gray-50 flex flex-col">
+  <!-- Header -->
+  <app-header title="Fila Certa" />
+
+  <div class="flex-1 flex flex-col items-center justify-center px-6 text-center">
+    <!-- Ícone animado -->
+    <div class="w-28 h-28 bg-yellow-100 rounded-full flex items-center justify-center mb-6 animate-pulse">
+      <span class="material-icons text-6xl text-yellow-600">pause_circle</span>
+    </div>
+
+    <!-- Mensagem Principal -->
+    <h1 class="text-2xl font-bold text-gray-800 mb-3">
+      {{ status()?.mensagem || '⏸️ Atendimento Pausado' }}
+    </h1>
+
+    <!-- Mensagem Detalhada -->
+    <p class="text-gray-500 mb-2 max-w-sm">
+      {{ status()?.mensagemDetalhada || 'Estamos em uma pausa rápida. Já voltamos!' }}
+    </p>
+
+    <!-- Card de Tempo Estimado -->
+    @if (status()?.tempoEstimado) {
+      <div class="bg-yellow-50 border border-yellow-200 rounded-2xl px-6 py-4 mb-4 w-full max-w-xs">
+        <div class="flex items-center justify-center gap-2 mb-2">
+          <span class="material-icons text-yellow-600 text-lg">schedule</span>
+          <span class="text-yellow-700 font-semibold">Retorno estimado</span>
+        </div>
+        <p class="text-2xl font-bold text-yellow-600">
+          {{ status()?.tempoEstimado }}
+        </p>
+      </div>
+    }
+
+    <!-- Card de Motivo -->
+    @if (status()?.motivoPausa) {
+      <div class="bg-white border border-gray-200 rounded-xl px-4 py-3 mb-6 w-full max-w-xs shadow-sm">
+        <p class="text-sm text-gray-500 mb-1">Motivo da pausa:</p>
+        <p class="text-gray-700 font-medium">{{ status()?.motivoPausa }}</p>
+      </div>
+    }
+
+    <!-- Hora da Pausa -->
+    @if (status()?.horaPausa) {
+      <p class="text-xs text-gray-400 mb-8">
+        Pausa iniciada às {{ status()?.horaPausa }}
+      </p>
+    }
+
+    <!-- Botões de Ação -->
+    <div class="space-y-3 w-full max-w-xs">
+      <!-- Sou o Dono -->
+      <button
+        (click)="irParaLoginDono()"
+        class="btn-secondary"
+        type="button"
+      >
+        🔐 Sou o Dono
+      </button>
+
+      <!-- Verificar Novamente -->
+      <button
+        (click)="verificarNovamente()"
+        class="w-full py-2.5 px-4 rounded-xl border border-gray-300
+               text-gray-500 font-medium text-sm hover:bg-gray-50
+               active:bg-gray-100 transition-colors"
+        type="button"
+      >
+        @if (loading()) {
+          <span class="flex items-center justify-center gap-2">
+            <span class="material-icons animate-spin text-lg">refresh</span>
+            Verificando...
+          </span>
+        } @else {
+          🔄 Verificar se já voltou
+        }
+      </button>
+    </div>
+
+    <!-- Dica -->
+    <p class="text-xs text-gray-400 mt-8 max-w-xs">
+      Esta página atualiza automaticamente a cada 30 segundos.
+    </p>
+  </div>
+</div>

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, retry, catchError, throwError } from 'rxjs';
-import { FilaCozinhaResponse, PedidoResponse, StatusPedido } from '../models';
+import { FilaCozinhaResponse, PedidoResponse, StatusPedido, StatusItemPedido } from '../models';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -11,8 +11,6 @@ export class CozinhaService {
 
   constructor(private http: HttpClient) {}
 
-  // ──── Fila Principal ────
-
   /** GET /api/cozinha/fila */
   listarFila(): Observable<FilaCozinhaResponse> {
     return this.http.get<FilaCozinhaResponse>(`${this.apiUrl}/fila`).pipe(
@@ -20,8 +18,6 @@ export class CozinhaService {
       catchError(this.handleError)
     );
   }
-
-  // ──── Ações do Pedido ────
 
   /** PATCH /api/cozinha/pedidos/{id}/iniciar */
   iniciarPreparo(id: number): Observable<PedidoResponse> {
@@ -44,18 +40,17 @@ export class CozinhaService {
     );
   }
 
-  // ──── Consultas por Status ────
+  /** PATCH /api/cozinha/pedidos/{pedidoId}/itens/{itemId}/status */
+  atualizarStatusItem(pedidoId: number, itemId: number, status: StatusItemPedido): Observable<void> {
+    return this.http.patch<void>(
+      `${this.apiUrl}/pedidos/${pedidoId}/itens/${itemId}/status`,
+      { status }
+    ).pipe(catchError(this.handleError));
+  }
 
   /** GET /api/cozinha/pedidos/status/{status} */
   listarPorStatus(status: StatusPedido): Observable<PedidoResponse[]> {
     return this.http.get<PedidoResponse[]>(`${this.apiUrl}/pedidos/status/${status}`).pipe(
-      catchError(this.handleError)
-    );
-  }
-
-  /** GET /api/cozinha/pedidos */
-  listarPedidosCozinha(): Observable<PedidoResponse[]> {
-    return this.http.get<PedidoResponse[]>(`${this.apiUrl}/pedidos`).pipe(
       catchError(this.handleError)
     );
   }
@@ -80,8 +75,6 @@ export class CozinhaService {
       catchError(this.handleError)
     );
   }
-
-  // ──── Tratamento de Erro ────
 
   private handleError(error: any): Observable<never> {
     console.error('[CozinhaService] Erro:', error);

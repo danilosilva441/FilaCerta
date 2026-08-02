@@ -76,7 +76,6 @@ describe('FechamentoCaixaComponent', () => {
   it('deve confirmar fechamento', () => {
     component.caixa.set(caixaMock);
     component.confirmarFechamento();
-
     expect(caixaServiceMock.fechar).toHaveBeenCalled();
   });
 
@@ -88,8 +87,20 @@ describe('FechamentoCaixaComponent', () => {
     expect(component.error()).toBe(true);
   });
 
-  it('deve navegar para painel ao ver pedidos', () => {
+  it('deve navegar para cozinha ao ver pedidos', () => {
     component.verPedidos();
-    expect(routerMock.navigate).toHaveBeenCalledWith(['/cozinha/painel']);
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/dono/cozinha/painel']);
+  });
+
+  it('deve navegar para dashboard', () => {
+    component.irParaDashboard();
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/dono/dashboard']);
+  });
+
+  it('deve ter navItems com rotas corretas', () => {
+    expect(component.navItems[0].route).toBe('/dono/dashboard');
+    expect(component.navItems[1].route).toBe('/dono/cozinha/painel');
+    expect(component.navItems[2].route).toBe('/dono/caixa/abertura');
+    expect(component.navItems[3].route).toBe('/dono/caixa/fechamento');
   });
 });

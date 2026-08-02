@@ -16,7 +16,7 @@ export class PedidoService {
 
   private readonly apiUrl = `${environment.apiUrl}/pedidos`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // ──── CRUD Principal ────
 
@@ -74,13 +74,16 @@ export class PedidoService {
 
   // ──── Pagamento ────
 
-  /** POST /api/pedidos/{id}/pagamento */
-  registrarPagamento(id: number, request: RegistrarPagamentoRequest): Observable<PedidoResponse> {
-    return this.http.post<PedidoResponse>(
-      `${this.apiUrl}/${id}/pagamento`,
-      request
-    ).pipe(catchError(this.handleError));
-  }
+/** POST /api/pedidos/{id}/pagamento */
+registrarPagamento(pedidoId: number, request: RegistrarPagamentoRequest, confirmar: boolean = true): Observable<PedidoResponse> {
+  const body = {
+    ...request,
+    confirmarPagamento: confirmar
+  };
+  return this.http.post<PedidoResponse>(`${this.apiUrl}/${pedidoId}/pagamento`, body).pipe(
+    catchError(this.handleError)
+  );
+}
 
   // ──── Cancelamento ────
 
@@ -97,6 +100,13 @@ export class PedidoService {
   /** GET /api/pedidos/fila/cozinha */
   buscarFilaCozinha(): Observable<FilaCozinhaResponse> {
     return this.http.get<FilaCozinhaResponse>(`${this.apiUrl}/fila/cozinha`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /** PUT /api/pedidos/{id} — Atualizar pedido completo */
+  atualizarPedido(id: number, request: any): Observable<PedidoResponse> {
+    return this.http.put<PedidoResponse>(`${this.apiUrl}/${id}`, request).pipe(
       catchError(this.handleError)
     );
   }

@@ -6,19 +6,25 @@ module.exports = {
   ],
   theme: {
     extend: {
+      screens: {
+        'xs': '375px',   // iPhone SE
+        'sm': '414px',   // iPhone 11
+        'md': '768px',   // Tablet
+        'lg': '1024px',  // Desktop
+      },
       colors: {
         primary: {
-          50: '#fff7ed',
-          100: '#ffedd5',
-          200: '#fed7aa',
-          300: '#fdba74',
-          400: '#fb923c',
-          500: '#f97316',  // Cor principal - laranja
-          600: '#ea580c',
-          700: '#c2410c',
-          800: '#9a3412',
-          900: '#7c2d12',
-          950: '#431407',
+          50: '#fef2f2',
+          100: '#fee2e2',
+          200: '#fecaca',
+          300: '#fca5a5',
+          400: '#f87171',
+          500: '#ef4444',  // Vermelho principal
+          600: '#dc2626',
+          700: '#b91c1c',
+          800: '#991b1b',
+          900: '#7f1d1d',
+          950: '#450a0a',
         },
         success: {
           DEFAULT: '#16a34a',
@@ -36,42 +42,19 @@ module.exports = {
           DEFAULT: '#2563eb',
           light: '#dbeafe',
         },
-        // Cores específicas do domínio
-        chapa: '#f97316',       // Laranja para hambúrgueres
-        montagem: '#eab308',     // Amarelo para hot dogs
-        imediato: '#22c55e',     // Verde para prontos
-        comanda: '#8b5cf6',      // Roxo para comandas
+        chapa: '#ef4444',
+        montagem: '#f59e0b',
+        imediato: '#22c55e',
+        comanda: '#8b5cf6',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
-      },
-      fontSize: {
-        'xxs': '0.625rem',    // 10px - para badges pequenos
-        'xs': '0.75rem',       // 12px
-        'sm': '0.875rem',      // 14px
-        'base': '1rem',        // 16px
-        'lg': '1.125rem',      // 18px
-        'xl': '1.25rem',       // 20px
-        '2xl': '1.5rem',       // 24px
-        '3xl': '1.875rem',     // 30px
-      },
-      spacing: {
-        '18': '4.5rem',
-        '88': '22rem',
-        '128': '32rem',
-      },
-      borderRadius: {
-        'xl': '0.75rem',
-        '2xl': '1rem',
-        '3xl': '1.5rem',
       },
       animation: {
         'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'bounce-in': 'bounceIn 0.5s ease-out',
         'slide-up': 'slideUp 0.3s ease-out',
         'fade-in': 'fadeIn 0.2s ease-out',
-        'ping-slow': 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite',
       },
       keyframes: {
         bounceIn: {
@@ -93,7 +76,6 @@ module.exports = {
         'card': '0 2px 8px rgba(0, 0, 0, 0.08)',
         'card-hover': '0 4px 16px rgba(0, 0, 0, 0.12)',
         'bottom-sheet': '0 -4px 20px rgba(0, 0, 0, 0.15)',
-        'top': '0 -2px 8px rgba(0, 0, 0, 0.08)',
       },
     },
   },

@@ -92,7 +92,6 @@ export interface ItemPedidoResponse {
   status: StatusItemPedido;
   observacaoItem?: string;
 }
-
 // ──────────────────────────────────────────────
 // Fila da Cozinha (resposta especial)
 // ──────────────────────────────────────────────
@@ -109,13 +108,18 @@ export interface PedidoResumidoResponse {
   dataHoraPedido: string;
   tempoEsperaMinutos: number;
   status: StatusPedido;
+  observacao?: string;              // ← ADICIONAR
+  statusPagamento?: StatusPagamento; // ← ADICIONAR
+  metodoPagamento?: MetodoPagamento; // ← ADICIONAR
   itens: ItemResumidoResponse[];
 }
 
 export interface ItemResumidoResponse {
+  id: number;
   nomeProduto: string;
   quantidade: number;
   status: string;
+  observacaoItem?: string;          // ← ADICIONAR
 }
 
 // ──────────────────────────────────────────────

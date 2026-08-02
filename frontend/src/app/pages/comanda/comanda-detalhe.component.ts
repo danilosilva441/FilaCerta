@@ -2,11 +2,13 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ComandaService } from '../../core/services/comanda.service';
+import { ErrorHandlerService } from '../../core/services/error-handler.service';
 import { HeaderComponent } from '../../shared/components/header/header.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { BottomNavComponent, NavItem } from '../../shared/components/bottom-nav/bottom-nav.component';
 import { ComandaResponse, PedidoResponse, StatusPedido } from '../../core/models';
 
 @Component({
@@ -22,6 +24,7 @@ import { ComandaResponse, PedidoResponse, StatusPedido } from '../../core/models
     StatusBadgeComponent,
     EmptyStateComponent,
     ConfirmDialogComponent,
+    BottomNavComponent,
   ],
   templateUrl: './comanda-detalhe.component.html',
   styleUrls: ['./comanda-detalhe.component.css'],
@@ -34,10 +37,18 @@ export class ComandaDetalheComponent implements OnInit {
   showFecharDialog = signal(false);
   sucesso = signal(false);
 
+  navItems: NavItem[] = [
+    { label: 'Dashboard', icon: 'dashboard', route: '/dono/dashboard' },
+    { label: 'Cozinha', icon: 'cooking', route: '/dono/cozinha/painel' },
+    { label: 'Caixa', icon: 'account_balance', route: '/dono/caixa/abertura' },
+    { label: 'Mais', icon: 'more_horiz', route: '/dono/caixa/fechamento' },
+  ];
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private comandaService: ComandaService
+    private comandaService: ComandaService,
+    private errorHandler: ErrorHandlerService
   ) {}
 
   ngOnInit(): void {
@@ -53,7 +64,6 @@ export class ComandaDetalheComponent implements OnInit {
   carregarComanda(id: number): void {
     this.loading.set(true);
     this.error.set(false);
-
     this.comandaService.buscarPorId(id).subscribe({
       next: (data: ComandaResponse) => {
         this.comanda.set(data);
@@ -92,11 +102,7 @@ export class ComandaDetalheComponent implements OnInit {
 
   statusIcon(status: StatusPedido): string {
     const icons: Record<StatusPedido, string> = {
-      RECEBIDO: '📋',
-      PREPARANDO: '🔥',
-      PRONTO: '✅',
-      ENTREGUE: '📦',
-      CANCELADO: '❌',
+      RECEBIDO: '📋', PREPARANDO: '🔥', PRONTO: '✅', ENTREGUE: '📦', CANCELADO: '❌',
     };
     return icons[status] || '📋';
   }
@@ -104,29 +110,21 @@ export class ComandaDetalheComponent implements OnInit {
   get tempoAberta(): string {
     const abertura = this.comanda()?.abertura;
     if (!abertura) return '';
-
     const inicio = new Date(abertura).getTime();
     const agora = Date.now();
     const minutos = Math.floor((agora - inicio) / 60000);
-
     if (minutos < 60) return `${minutos}min`;
     const horas = Math.floor(minutos / 60);
     const resto = minutos % 60;
     return `${horas}h ${resto}min`;
   }
 
-  abrirFecharDialog(): void {
-    this.showFecharDialog.set(true);
-  }
-
-  fecharFecharDialog(): void {
-    this.showFecharDialog.set(false);
-  }
+  abrirFecharDialog(): void { this.showFecharDialog.set(true); }
+  fecharFecharDialog(): void { this.showFecharDialog.set(false); }
 
   confirmarFechamento(): void {
     const id = this.comanda()?.id;
     if (!id) return;
-
     this.fechando.set(true);
     this.showFecharDialog.set(false);
 
@@ -135,14 +133,12 @@ export class ComandaDetalheComponent implements OnInit {
         this.comanda.set(data);
         this.fechando.set(false);
         this.sucesso.set(true);
-
-        setTimeout(() => {
-          this.router.navigate(['/cozinha/painel']);
-        }, 2000);
+        setTimeout(() => this.router.navigate(['/dono/dashboard']), 2000);
       },
-      error: (err: Error) => {
+      error: (err: any) => {
         this.fechando.set(false);
-        alert(err.message || 'Erro ao fechar comanda.');
+        const mensagem = err?.mensagemAmigavel || err?.message || 'Erro ao fechar comanda.';
+        alert(mensagem);
       },
     });
   }
@@ -151,7 +147,7 @@ export class ComandaDetalheComponent implements OnInit {
     this.router.navigate(['/cliente/pedido', pedidoId]);
   }
 
-  novoPedido(): void {
+  adicionarPedido(): void {
     this.router.navigate(['/cliente/cardapio']);
   }
 

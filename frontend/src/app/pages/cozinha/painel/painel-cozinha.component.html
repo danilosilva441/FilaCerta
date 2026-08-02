@@ -1,241 +1,172 @@
-<div class="min-h-screen bg-gray-100">
-  <!-- Header -->
-  <app-header
-    title="Painel Cozinha"
-    [subtitle]="filaResponse() ? filaResponse()!.totalPedidos + ' pedidos ativos' : ''"
-    [rightAction]="{
-      icon: 'account_balance',
-      label: 'Fechar Caixa',
-      handler: irParaFechamento.bind(this)
-    }"
-  />
+<div class="min-h-screen bg-gray-100 has-bottom-nav">
+  <app-header title="Painel Cozinha" [subtitle]="filaResponse() ? filaResponse()!.totalPedidos + ' pedidos ativos' : ''"
+    [rightAction]="{ icon: 'dashboard', label: 'Dashboard', handler: irParaDashboard.bind(this) }" />
 
-  <!-- Loading -->
-  @if (loading()) {
-    <app-loading-spinner message="Carregando pedidos..." />
-  }
+  @if (loading()) { <app-loading-spinner message="Carregando pedidos..." /> }
 
-  <!-- Erro -->
   @else if (error()) {
-    <div class="p-4">
-      <app-empty-state
-        icon="error"
-        title="Erro ao carregar"
-        description="Não foi possível carregar a fila da cozinha."
-      />
-      <div class="mt-4">
-        <button
-          (click)="iniciarPolling()"
-          class="btn-secondary"
-          type="button"
-        >
-          Tentar Novamente
-        </button>
-      </div>
+  <div class="p-4">
+    <app-empty-state icon="error" title="Erro ao carregar" description="Não foi possível carregar a fila da cozinha." />
+    <div class="mt-4"><button (click)="iniciarPolling()" class="btn-secondary" type="button">Tentar Novamente</button>
     </div>
+  </div>
   }
 
-  <!-- Vazio -->
   @else if (pedidosFiltrados.length === 0) {
-    <div class="p-4">
-      <app-empty-state
-        icon="check_circle"
-        title="Fila Vazia!"
-        description="Todos os pedidos foram preparados. 🎉"
-      />
-    </div>
+  <div class="p-4"><app-empty-state icon="check_circle" title="Fila Vazia!"
+      description="Todos os pedidos foram preparados. 🎉" /></div>
   }
 
-  <!-- Fila de Pedidos -->
   @else {
-    <div class="p-3">
-      <!-- Filtros Rápidos -->
-      <nav class="mb-3 scroll-x-hidden">
-        @for (filtro of filtros; track filtro.valor) {
-          <button
-            (click)="filtroAtivo.set(filtro.valor)"
-            class="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium
-                   whitespace-nowrap transition-all shrink-0"
-            [class.bg-primary-600]="filtroAtivo() === filtro.valor"
-            [class.text-white]="filtroAtivo() === filtro.valor"
-            [class.bg-white]="filtroAtivo() !== filtro.valor"
-            [class.text-gray-600]="filtroAtivo() !== filtro.valor"
-            [class.shadow-sm]="filtroAtivo() !== filtro.valor"
-            type="button"
-          >
-            {{ filtro.icone }} {{ filtro.label }}
-          </button>
-        }
-      </nav>
+  <div class="p-3">
+    <nav class="mb-3 scroll-x-hidden">
+      @for (filtro of filtros; track filtro.valor) {
+      <button (click)="filtroAtivo.set(filtro.valor)"
+        class="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all shrink-0"
+        [class.bg-red-600]="filtroAtivo() === filtro.valor" [class.text-white]="filtroAtivo() === filtro.valor"
+        [class.bg-white]="filtroAtivo() !== filtro.valor" [class.text-gray-600]="filtroAtivo() !== filtro.valor"
+        [class.shadow-sm]="filtroAtivo() !== filtro.valor" type="button">{{ filtro.icone }} {{ filtro.label }}</button>
+      }
+    </nav>
 
-      <!-- Cards de Pedidos -->
-      <div class="space-y-3">
-        @for (pedido of pedidosFiltrados; track pedido.id) {
-          <div
-            class="rounded-2xl border-l-4 shadow-sm transition-all duration-300 cursor-pointer"
-            [class]="getStatusColor(pedido.status)"
-            (click)="toggleCard(pedido.id)"
-          >
-            <!-- Cabeçalho do Card (sempre visível) -->
-            <div class="p-4">
-              <div class="flex justify-between items-start mb-2">
-                <div class="flex items-center gap-2">
-                  <span class="text-xl font-bold text-gray-800">
-                    #{{ pedido.numero }}
-                  </span>
-                  <app-status-badge
-                    [status]="pedido.status"
-                    [size]="'sm'"
-                  />
-                </div>
-                <div class="flex items-center gap-2">
-                  <span class="text-xs text-gray-400">
-                    ⏱️ {{ getTempoEspera(pedido.dataHoraPedido) }}
-                  </span>
-                  <span class="material-icons text-gray-400 text-sm transition-transform"
-                    [class.rotate-180]="isExpanded(pedido.id)">
-                    expand_more
-                  </span>
-                </div>
-              </div>
-
-              <p class="text-sm font-medium text-gray-700 mb-2">
-                {{ pedido.nomeCliente }}
-              </p>
-
-              <!-- Resumo dos Itens (visível quando colapsado) -->
-              @if (!isExpanded(pedido.id)) {
-                <div class="flex flex-wrap gap-1">
-                  @for (item of pedido.itens.slice(0, 3); track $index) {
-                    <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
-                      {{ item.quantidade }}x {{ item.nomeProduto }}
-                    </span>
-                  }
-                  @if (pedido.itens.length > 3) {
-                    <span class="text-xs text-gray-400">
-                      +{{ pedido.itens.length - 3 }} itens
-                    </span>
-                  }
-                </div>
-              }
-
-              <!-- Ações Rápidas -->
-              <div class="flex gap-2 mt-3" (click)="$event.stopPropagation()">
-                @if (pedido.status === 'RECEBIDO') {
-                  <button
-                    (click)="iniciarPreparo(pedido.id)"
-                    [disabled]="processando() === pedido.id"
-                    class="flex-1 py-2 px-3 bg-orange-600 text-white text-sm font-medium
-                           rounded-lg hover:bg-orange-700 active:bg-orange-800
-                           disabled:opacity-50 transition-colors"
-                    type="button"
-                  >
-                    @if (processando() === pedido.id) {
-                      ⏳
-                    } @else {
-                      🔥 Iniciar
-                    }
-                  </button>
-                }
-                @if (pedido.status === 'PREPARANDO') {
-                  <button
-                    (click)="marcarPronto(pedido.id)"
-                    [disabled]="processando() === pedido.id"
-                    class="flex-1 py-2 px-3 bg-green-600 text-white text-sm font-medium
-                           rounded-lg hover:bg-green-700 active:bg-green-800
-                           disabled:opacity-50 transition-colors"
-                    type="button"
-                  >
-                    @if (processando() === pedido.id) {
-                      ⏳
-                    } @else {
-                      ✅ Pronto
-                    }
-                  </button>
-                }
-                @if (pedido.status === 'PRONTO') {
-                  <button
-                    (click)="entregarPedido(pedido.id)"
-                    [disabled]="processando() === pedido.id"
-                    class="flex-1 py-2 px-3 bg-blue-600 text-white text-sm font-medium
-                           rounded-lg hover:bg-blue-700 active:bg-blue-800
-                           disabled:opacity-50 transition-colors"
-                    type="button"
-                  >
-                    📦 Entregar
-                  </button>
-                  <button
-                    (click)="verPagamento(pedido.id)"
-                    class="py-2 px-3 bg-primary-600 text-white text-sm font-medium
-                           rounded-lg hover:bg-primary-700 transition-colors"
-                    type="button"
-                  >
-                    💰
-                  </button>
-                }
-                <button
-                  (click)="abrirCancelDialog(pedido.id)"
-                  class="py-2 px-3 bg-red-100 text-red-600 text-sm font-medium
-                         rounded-lg hover:bg-red-200 active:bg-red-300 transition-colors"
-                  type="button"
-                >
-                  ✕
-                </button>
-              </div>
+    <div class="space-y-3">
+      @for (pedido of pedidosFiltrados; track pedido.id) {
+      <div class="rounded-2xl border-l-4 shadow-sm transition-all duration-300 cursor-pointer"
+        [class]="getStatusColor($any(pedido).status)" (click)="toggleCard(pedido.id)">
+        <div class="p-4">
+          <div class="flex justify-between items-start mb-2">
+            <div class="flex items-center gap-2">
+              <span class="text-xl font-bold text-gray-800">#{{ pedido.numero }}</span>
+              <app-status-badge [status]="$any(pedido).status" [size]="'sm'" />
             </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-gray-400">⏱️ {{ getTempoEspera(pedido.dataHoraPedido) }}</span>
+              <span class="material-icons text-gray-400 text-sm transition-transform"
+                [class.rotate-180]="isExpanded(pedido.id)">expand_more</span>
+            </div>
+          </div>
+          <p class="text-sm font-medium text-gray-700 mb-2">{{ pedido.nomeCliente }}</p>
 
-            <!-- Detalhes Expandidos -->
-            @if (isExpanded(pedido.id)) {
-              <div class="border-t border-gray-200 p-4 bg-white/50 rounded-b-2xl animate-slide-up">
-                <h4 class="text-xs font-semibold text-gray-500 uppercase mb-2">
-                  📝 Itens do Pedido
-                </h4>
-                <div class="space-y-2">
-                  @for (item of pedido.itens; track $index) {
-                    <div class="flex items-center justify-between bg-white p-2 rounded-lg">
-                      <div class="flex items-center gap-2">
-                        <span class="text-lg">
-                          {{ getItemCategoria(item) === 'HAMBURGUER' ? '🍔' :
-                             getItemCategoria(item) === 'CACHORRO_QUENTE' ? '🌭' :
-                             getItemCategoria(item) === 'SALGADO' ? '🥟' : '🥤' }}
-                        </span>
-                        <span class="text-sm text-gray-700">
-                          {{ item.quantidade }}x {{ item.nomeProduto }}
-                        </span>
-                      </div>
-                      <span
-                        class="text-xs px-2 py-0.5 rounded-full font-medium"
-                        [class.bg-gray-100]="item.status === 'PENDENTE'"
-                        [class.text-gray-600]="item.status === 'PENDENTE'"
-                        [class.bg-orange-100]="item.status === 'PREPARANDO'"
-                        [class.text-orange-700]="item.status === 'PREPARANDO'"
-                        [class.bg-green-100]="item.status === 'PRONTO'"
-                        [class.text-green-700]="item.status === 'PRONTO'"
-                      >
-                        @if (item.status === 'PENDENTE') { ⏳ }
-                        @if (item.status === 'PREPARANDO') { 🔥 }
-                        @if (item.status === 'PRONTO') { ✅ }
-                      </span>
-                    </div>
+          @if (!isExpanded(pedido.id)) {
+          <div class="flex flex-wrap gap-1">
+            @for (item of pedido.itens.slice(0, 3); track $index) {
+            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{{ item.quantidade }}x {{
+              item.nomeProduto }}</span>
+            }
+            @if (pedido.itens.length > 3) { <span class="text-xs text-gray-400">+{{ pedido.itens.length - 3 }}
+              itens</span> }
+          </div>
+          }
+
+          <!-- Ações -->
+          <div class="flex gap-2 mt-3" (click)="$event.stopPropagation()">
+            @if ($any(pedido).status === 'RECEBIDO') {
+            <button (click)="iniciarPreparo(pedido.id)" [disabled]="processando() === pedido.id"
+              class="flex-1 py-2 px-3 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors"
+              type="button">
+              @if (processando() === pedido.id) { ⏳ } @else { 🔥 Iniciar }
+            </button>
+            }
+            @if ($any(pedido).status === 'PREPARANDO') {
+            <button (click)="marcarPronto(pedido.id)" [disabled]="processando() === pedido.id"
+              class="flex-1 py-2 px-3 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+              type="button">
+              @if (processando() === pedido.id) { ⏳ } @else { ✅ Pronto }
+            </button>
+            }
+            <!-- 🆕 Banner de Pagamento Pendente -->
+            @if ($any(pedido).status === 'PRONTO' && $any(pedido).statusPagamento !== 'PAGO') {
+            <div class="bg-yellow-50 border border-yellow-300 rounded-xl px-4 py-3 mb-3 flex items-center gap-3">
+              <span class="text-2xl">💰</span>
+              <div class="flex-1">
+                <p class="text-sm font-semibold text-yellow-700">Aguardando Pagamento</p>
+                <p class="text-xs text-yellow-600">
+                  Método: {{ $any(pedido).metodoPagamento || 'Não informado' }}
+                </p>
+              </div>
+              <button (click)="verPagamento(pedido.id); $event.stopPropagation()"
+                class="py-2 px-4 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 transition-colors"
+                type="button">
+                💳 Cobrar
+              </button>
+            </div>
+            }
+            <button (click)="abrirCancelDialog(pedido.id)"
+              class="py-2 px-3 bg-red-100 text-red-600 text-sm font-medium rounded-lg hover:bg-red-200 active:bg-red-300 transition-colors"
+              type="button">✕</button>
+          </div>
+        </div>
+
+        @if (isExpanded(pedido.id)) {
+        <div class="border-t border-gray-200 p-4 bg-white/50 rounded-b-2xl animate-slide-up">
+          <h4 class="text-xs font-semibold text-gray-500 uppercase mb-3">📝 Itens do Pedido — Clique para alternar
+            status</h4>
+          <div class="space-y-2">
+            @for (item of pedido.itens; track $index) {
+            <div (click)="alternarStatusItem(pedido.id, item.id, item.status); $event.stopPropagation()"
+              class="flex items-center justify-between p-3 rounded-lg cursor-pointer active:scale-[0.98] transition-all"
+              [class.bg-white]="item.status === 'PENDENTE'" [class.bg-orange-50]="item.status === 'PREPARANDO'"
+              [class.bg-green-50]="item.status === 'PRONTO'" [class.border]="item.status === 'PENDENTE'"
+              [class.border-gray-200]="item.status === 'PENDENTE'"
+              [class.border-orange-300]="item.status === 'PREPARANDO'"
+              [class.border-green-300]="item.status === 'PRONTO'">
+              <div class="flex items-center gap-3">
+                <div class="w-7 h-7 rounded-full border-2 flex items-center justify-center shrink-0 transition-all"
+                  [class.border-gray-300]="item.status === 'PENDENTE'"
+                  [class.border-orange-400]="item.status === 'PREPARANDO'"
+                  [class.border-green-500]="item.status === 'PRONTO'" [class.bg-green-500]="item.status === 'PRONTO'">
+                  @if (item.status === 'PRONTO') { <span class="material-icons text-white text-sm">check</span> }
+                  @else if (item.status === 'PREPARANDO') { <span
+                    class="material-icons text-orange-500 text-sm">timer</span> }
+                  @else { <span class="w-2 h-2 rounded-full bg-gray-300"></span> }
+                </div>
+                <div>
+                  <span class="text-sm font-medium text-gray-700" [class.line-through]="item.status === 'PRONTO'"
+                    [class.text-gray-400]="item.status === 'PRONTO'">
+                    {{ item.quantidade }}x {{ item.nomeProduto }}
+                  </span>
+                  <!-- 🆕 Observação do item -->
+                  @if (item.observacaoItem) {
+                  <p class="text-xs text-gray-400 mt-0.5 ml-8 italic">
+                    "{{ item.observacaoItem }}"
+                  </p>
                   }
+                  <span class="ml-2 text-xxs px-1.5 py-0.5 rounded-full"
+                    [class.bg-red-100]="getItemCategoria(item) === 'HAMBURGUER'"
+                    [class.text-red-700]="getItemCategoria(item) === 'HAMBURGUER'"
+                    [class.bg-yellow-100]="getItemCategoria(item) === 'CACHORRO_QUENTE'"
+                    [class.text-yellow-700]="getItemCategoria(item) === 'CACHORRO_QUENTE'"
+                    [class.bg-green-100]="getItemCategoria(item) === 'SALGADO' || getItemCategoria(item) === 'BEBIDA'"
+                    [class.text-green-700]="getItemCategoria(item) === 'SALGADO' || getItemCategoria(item) === 'BEBIDA'">
+                    {{ getItemCategoria(item) === 'HAMBURGUER' ? '🍔' :
+                    getItemCategoria(item) === 'CACHORRO_QUENTE' ? '🌭' :
+                    getItemCategoria(item) === 'SALGADO' ? '🥟' : '🥤' }}
+                  </span>
                 </div>
               </div>
+              <span class="text-xs font-medium px-2 py-1 rounded-full shrink-0"
+                [class.bg-gray-100]="item.status === 'PENDENTE'" [class.text-gray-500]="item.status === 'PENDENTE'"
+                [class.bg-orange-100]="item.status === 'PREPARANDO'"
+                [class.text-orange-700]="item.status === 'PREPARANDO'" [class.bg-green-100]="item.status === 'PRONTO'"
+                [class.text-green-700]="item.status === 'PRONTO'">
+                @if (item.status === 'PENDENTE') { ⏳ Pendente }
+                @if (item.status === 'PREPARANDO') { 🔥 Preparando }
+                @if (item.status === 'PRONTO') { ✅ Pronto }
+              </span>
+            </div>
             }
           </div>
+        </div>
         }
       </div>
+      }
     </div>
+  </div>
   }
 
-  <!-- Dialog de Cancelamento -->
-  <app-confirm-dialog
-    [visible]="showCancelDialog() !== null"
-    title="Cancelar Pedido"
-    message="Tem certeza que deseja cancelar este pedido?"
-    confirmText="Sim, Cancelar"
-    cancelText="Voltar"
-    type="danger"
-    (onConfirm)="confirmarCancelamento()"
-    (onCancel)="fecharCancelDialog()"
-  />
+  <app-confirm-dialog [visible]="showCancelDialog() !== null" title="Cancelar Pedido"
+    message="Tem certeza que deseja cancelar este pedido?" confirmText="Sim, Cancelar" cancelText="Voltar" type="danger"
+    (onConfirm)="confirmarCancelamento()" (onCancel)="fecharCancelDialog()" />
+
+  <app-bottom-nav [items]="navItems" />
 </div>

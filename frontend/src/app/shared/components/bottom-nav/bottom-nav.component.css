@@ -1,0 +1,31 @@
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.tap-target {
+  min-height: 48px;
+  min-width: 48px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* Safe area no iPhone */
+nav {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Touch feedback */
+a:active {
+  transform: scale(0.95);
+  transition: transform 0.1s;
+}
+
+/* Labels maiores */
+.text-xxs {
+  font-size: 10px;
+  line-height: 1;
+}

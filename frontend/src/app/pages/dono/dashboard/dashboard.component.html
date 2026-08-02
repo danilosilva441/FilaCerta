@@ -1,0 +1,53 @@
+<div class="min-h-screen bg-gray-100 has-bottom-nav">
+  <app-header title="Dashboard" [subtitle]="caixaAberto ? '🟢 Caixa Aberto' : '🔴 Caixa Fechado'" />
+
+  @if (loading()) {
+    <app-loading-spinner message="Carregando..." />
+  } @else {
+    <div class="p-4 space-y-4 animate-fade-in">
+      <!-- Card Caixa -->
+      <div class="bg-white rounded-2xl shadow-card p-5">
+        <h3 class="text-sm font-semibold text-gray-500 uppercase mb-3">💰 Caixa Hoje</h3>
+        @if (caixa(); as c) {
+          <p class="text-3xl font-bold text-red-600">
+            R$ {{ totalGeral | number:'1.2-2' }}
+          </p>
+          <p class="text-sm text-gray-400 mt-1">{{ c.totalPedidos }} pedidos</p>
+        }
+        @else {
+          <p class="text-gray-400">Nenhum caixa aberto hoje.</p>
+        }
+      </div>
+
+      <!-- Menu Rápido -->
+      <div class="grid grid-cols-2 gap-3">
+        <a routerLink="/dono/cozinha/painel" class="bg-white rounded-2xl shadow-card p-4 flex items-center gap-3 hover:shadow-md transition-shadow">
+          <span class="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
+            <span class="material-icons text-orange-600">cooking</span>
+          </span>
+          <span class="font-medium text-gray-700 text-sm">Cozinha</span>
+        </a>
+        <a routerLink="/dono/caixa/abertura" class="bg-white rounded-2xl shadow-card p-4 flex items-center gap-3 hover:shadow-md transition-shadow">
+          <span class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+            <span class="material-icons text-green-600">store</span>
+          </span>
+          <span class="font-medium text-gray-700 text-sm">Caixa</span>
+        </a>
+        <a routerLink="/dono/caixa/fechamento" class="bg-white rounded-2xl shadow-card p-4 flex items-center gap-3 hover:shadow-md transition-shadow">
+          <span class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+            <span class="material-icons text-blue-600">analytics</span>
+          </span>
+          <span class="font-medium text-gray-700 text-sm">Relatório</span>
+        </a>
+        <a routerLink="/dono/caixa/reativar" class="bg-white rounded-2xl shadow-card p-4 flex items-center gap-3 hover:shadow-md transition-shadow">
+          <span class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+            <span class="material-icons text-purple-600">receipt_long</span>
+          </span>
+          <span class="font-medium text-gray-700 text-sm">Comandas</span>
+        </a>
+      </div>
+    </div>
+  }
+
+  <app-bottom-nav [items]="navItems" />
+</div>

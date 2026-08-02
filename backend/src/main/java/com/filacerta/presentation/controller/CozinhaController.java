@@ -6,9 +6,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.filacerta.application.dto.request.AtualizarStatusItemRequest;
 import com.filacerta.application.dto.response.FilaCozinhaResponse;
 import com.filacerta.application.dto.response.PedidoResponse;
 import com.filacerta.application.service.PedidoService;
@@ -18,6 +20,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -102,5 +105,17 @@ public class CozinhaController {
 	public ResponseEntity<List<PedidoResponse>> listarPedidosProntos() {
 		List<PedidoResponse> response = pedidoService.listarPedidosPorStatus(StatusPedido.PRONTO);
 		return ResponseEntity.ok(response);
+	}
+
+	@PatchMapping("/pedidos/{pedidoId}/itens/{itemId}/status")
+	@Operation(summary = "Atualizar status de um item do pedido", description = "Altera o status do item e pode mudar o status do pedido automaticamente")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Status do item atualizado com sucesso"),
+			@ApiResponse(responseCode = "404", description = "Pedido ou item não encontrado"),
+			@ApiResponse(responseCode = "400", description = "Status inválido ou pedido não permite alteração") })
+	public ResponseEntity<Void> atualizarStatusItem(@PathVariable Long pedidoId, @PathVariable Long itemId,
+			@Valid @RequestBody AtualizarStatusItemRequest request) {
+
+		pedidoService.atualizarStatusItem(pedidoId, itemId, request.getStatus());
+		return ResponseEntity.ok().build();
 	}
 }

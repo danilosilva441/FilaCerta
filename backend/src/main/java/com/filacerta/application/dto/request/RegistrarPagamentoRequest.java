@@ -14,4 +14,6 @@ public class RegistrarPagamentoRequest {
 
 	@NotNull(message = "Método de pagamento é obrigatório")
 	private MetodoPagamento metodoPagamento;
+	
+	private Boolean confirmarPagamento = false;
 }

@@ -111,10 +111,26 @@ public class AuthService {
 				.nomeCliente(cliente.getNomeCompleto()).message("Sessão válida").build();
 	}
 
+	/**
+	 * Busca cliente por token - retorna null se não encontrar NUNCA lança exceção
+	 */
 	public Cliente getClienteByToken(String token) {
-		SessaoCliente sessao = sessaoClienteRepository.findByTokenAndAtivoTrue(token)
-				.orElseThrow(() -> new NegocioException("Sessão inválida ou expirada"));
-		return sessao.getCliente();
+		if (token == null || token.isEmpty()) {
+			return null;
+		}
+
+		try {
+			SessaoCliente sessao = sessaoClienteRepository.findByTokenAndAtivoTrue(token).orElse(null);
+
+			if (sessao == null) {
+				return null;
+			}
+
+			return sessao.getCliente();
+		} catch (Exception e) {
+			log.warn("Erro ao buscar cliente por token: {}", e.getMessage());
+			return null;
+		}
 	}
 
 	// ===== USUÁRIO (DONO) =====

@@ -7,17 +7,10 @@ import org.springframework.stereotype.Component;
 
 import com.filacerta.application.dto.request.CriarComandaRequest;
 import com.filacerta.application.dto.response.ComandaResponse;
-import com.filacerta.application.dto.response.PedidoResponse;
 import com.filacerta.domain.entity.Comanda;
-import com.filacerta.domain.entity.ComandaPedido;
-
-import lombok.RequiredArgsConstructor;
 
 @Component
-@RequiredArgsConstructor
 public class ComandaMapper {
-
-    private final PedidoMapper pedidoMapper;
 
     public Comanda toEntity(CriarComandaRequest request) {
         if (request == null) {
@@ -35,11 +28,11 @@ public class ComandaMapper {
             return null;
         }
 
-        List<PedidoResponse> pedidos = null;
+        // Retorna apenas IDs dos pedidos, não o objeto completo
+        List<Long> pedidoIds = null;
         if (comanda.getComandaPedidos() != null) {
-            pedidos = comanda.getComandaPedidos().stream()
-                .map(ComandaPedido::getPedido)
-                .map(pedidoMapper::toResponse)
+            pedidoIds = comanda.getComandaPedidos().stream()
+                .map(cp -> cp.getPedido().getId())
                 .collect(Collectors.toList());
         }
 
@@ -52,7 +45,7 @@ public class ComandaMapper {
             .valorTotal(comanda.getValorTotal())
             .abertura(comanda.getAbertura())
             .fechamento(comanda.getFechamento())
-            .pedidos(pedidos)
+            .pedidoIds(pedidoIds)  // ← Lista de IDs
             .build();
     }
 

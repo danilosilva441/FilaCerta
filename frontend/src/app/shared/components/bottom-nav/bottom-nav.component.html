@@ -1,0 +1,26 @@
+<nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 safe-area-bottom">
+  <div class="flex justify-around items-center h-16">
+    @for (item of items; track item.route) {
+      <a
+        [routerLink]="item.route"
+        routerLinkActive="text-primary-600"
+        [routerLinkActiveOptions]="{ exact: item.route === '/' }"
+        class="flex flex-col items-center justify-center gap-0.5 px-3 py-2
+               text-gray-400 hover:text-primary-500 transition-colors
+               min-w-0 flex-1 relative tap-target"
+      >
+        <span class="material-icons text-2xl">{{ item.icon }}</span>
+        @if (showLabels) {
+          <span class="text-xxs font-medium truncate max-w-full">{{ item.label }}</span>
+        }
+        @if (item.badge && item.badge > 0) {
+          <span class="absolute -top-0.5 right-2 bg-red-500 text-white text-xxs
+                       rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1
+                       font-bold shadow-sm">
+            {{ item.badge > 99 ? '99+' : item.badge }}
+          </span>
+        }
+      </a>
+    }
+  </div>
+</nav>

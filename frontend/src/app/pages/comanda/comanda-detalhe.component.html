@@ -1,71 +1,41 @@
-<div class="min-h-screen bg-gray-50 pb-8">
-  <!-- Header -->
-  <app-header
-    [title]="'Comanda ' + (comanda()?.codigo || '')"
-    [showBack]="true"
-  />
+<div class="min-h-screen bg-gray-50 has-bottom-nav">
+  <app-header [title]="'Comanda ' + (comanda()?.codigo || '')" [showBack]="true" />
 
-  <!-- Loading -->
   @if (loading()) {
     <app-loading-spinner message="Carregando comanda..." />
   }
 
-  <!-- Erro -->
   @else if (error()) {
     <div class="p-4">
-      <app-empty-state
-        icon="error"
-        title="Comanda não encontrada"
-        description="Verifique o código da comanda."
-      />
-      <div class="mt-4">
-        <button (click)="voltar()" class="btn-secondary" type="button">
-          Voltar
-        </button>
-      </div>
+      <app-empty-state icon="error" title="Comanda não encontrada" description="Verifique o código da comanda." />
+      <div class="mt-4"><button (click)="voltar()" class="btn-secondary" type="button">Voltar</button></div>
     </div>
   }
 
-  <!-- Sucesso ao Fechar -->
   @else if (sucesso()) {
     <div class="flex flex-col items-center justify-center px-4 py-16 animate-fade-in">
       <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6">
-        <span class="material-icons text-5xl text-green-600">check_circle</span>
-      </div>
+        <span class="material-icons text-5xl text-green-600">check_circle</span></div>
       <h2 class="text-2xl font-bold text-gray-800 mb-2">Comanda Fechada!</h2>
-      <p class="text-gray-500 mb-2">
-        Total: R$ {{ totalComanda | number:'1.2-2' }}
-      </p>
-      <p class="text-sm text-gray-400">Redirecionando...</p>
+      <p class="text-gray-500 mb-2">Total: R$ {{ totalComanda | number:'1.2-2' }}</p>
+      <p class="text-sm text-gray-400">Redirecionando para o dashboard...</p>
     </div>
   }
 
-  <!-- Comanda Aberta -->
   @else if (comanda(); as c) {
     <div class="p-4 max-w-md mx-auto animate-fade-in space-y-4">
-      <!-- Card Principal -->
       <div class="bg-white rounded-2xl shadow-card p-5">
-        <!-- Status e Cliente -->
         <div class="flex justify-between items-start mb-4">
           <div>
             <h2 class="font-bold text-gray-800 text-lg">{{ c.nomeCliente }}</h2>
-            <p class="text-sm text-gray-500">
-              Mesa {{ c.mesa || '—' }} • Aberta há {{ tempoAberta }}
-            </p>
+            <p class="text-sm text-gray-500">Mesa {{ c.mesa || '—' }} • Aberta há {{ tempoAberta }}</p>
           </div>
-          <app-status-badge
-            [status]="c.status"
-            [label]="c.status === 'ABERTA' ? 'Aberta' : 'Fechada'"
-          />
+          <app-status-badge [status]="c.status" [label]="c.status === 'ABERTA' ? 'Aberta' : 'Fechada'" />
         </div>
-
-        <!-- Resumo Financeiro -->
         <div class="bg-gray-50 rounded-xl p-4">
           <div class="flex justify-between items-center mb-2">
             <span class="text-sm text-gray-500">Total da comanda</span>
-            <span class="text-2xl font-bold text-primary-600">
-              R$ {{ totalComanda | number:'1.2-2' }}
-            </span>
+            <span class="text-2xl font-bold text-red-600">R$ {{ totalComanda | number:'1.2-2' }}</span>
           </div>
           <div class="flex justify-between text-xs text-gray-400">
             <span>{{ totalPedidos }} pedidos</span>
@@ -74,29 +44,19 @@
         </div>
       </div>
 
-      <!-- Pedidos Ativos (Preparando) -->
       @if (pedidosAtivos.length > 0) {
         <div class="bg-white rounded-2xl shadow-card p-5">
           <h3 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-            <span class="material-icons text-orange-500">cooking</span>
-            Em Preparo ({{ pedidosAtivos.length }})
+            <span class="material-icons text-orange-500">cooking</span> Em Preparo ({{ pedidosAtivos.length }})
           </h3>
           <div class="space-y-3">
             @for (pedido of pedidosAtivos; track pedido.id) {
-              <div
-                (click)="verPedido(pedido.id)"
-                class="flex items-center justify-between p-3 bg-orange-50 rounded-xl
-                       cursor-pointer hover:bg-orange-100 active:bg-orange-200 transition-colors"
-              >
+              <div (click)="verPedido(pedido.id)" class="flex items-center justify-between p-3 bg-orange-50 rounded-xl cursor-pointer hover:bg-orange-100 active:bg-orange-200 transition-colors">
                 <div class="flex items-center gap-3">
                   <span class="text-xl">{{ statusIcon(pedido.status) }}</span>
                   <div>
-                    <p class="font-medium text-gray-800 text-sm">
-                      Pedido #{{ pedido.numero }}
-                    </p>
-                    <p class="text-xs text-gray-500">
-                      {{ pedido.itens.length }} itens • R$ {{ pedido.valorTotal | number:'1.2-2' }}
-                    </p>
+                    <p class="font-medium text-gray-800 text-sm">Pedido #{{ pedido.numero }}</p>
+                    <p class="text-xs text-gray-500">{{ pedido.itens.length }} itens • R$ {{ pedido.valorTotal | number:'1.2-2' }}</p>
                   </div>
                 </div>
                 <span class="material-icons text-gray-400">chevron_right</span>
@@ -106,29 +66,19 @@
         </div>
       }
 
-      <!-- Pedidos Finalizados -->
       @if (pedidosFinalizados.length > 0) {
         <div class="bg-white rounded-2xl shadow-card p-5">
           <h3 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-            <span class="material-icons text-green-500">check_circle</span>
-            Finalizados ({{ pedidosFinalizados.length }})
+            <span class="material-icons text-green-500">check_circle</span> Finalizados ({{ pedidosFinalizados.length }})
           </h3>
           <div class="space-y-2">
             @for (pedido of pedidosFinalizados; track pedido.id) {
-              <div
-                (click)="verPedido(pedido.id)"
-                class="flex items-center justify-between p-3 bg-green-50 rounded-xl
-                       cursor-pointer hover:bg-green-100 active:bg-green-200 transition-colors"
-              >
+              <div (click)="verPedido(pedido.id)" class="flex items-center justify-between p-3 bg-green-50 rounded-xl cursor-pointer hover:bg-green-100 active:bg-green-200 transition-colors">
                 <div class="flex items-center gap-3">
                   <span class="text-xl">✅</span>
                   <div>
-                    <p class="font-medium text-gray-800 text-sm">
-                      Pedido #{{ pedido.numero }}
-                    </p>
-                    <p class="text-xs text-gray-500">
-                      R$ {{ pedido.valorTotal | number:'1.2-2' }}
-                    </p>
+                    <p class="font-medium text-gray-800 text-sm">Pedido #{{ pedido.numero }}</p>
+                    <p class="text-xs text-gray-500">R$ {{ pedido.valorTotal | number:'1.2-2' }}</p>
                   </div>
                 </div>
                 <span class="material-icons text-gray-400">chevron_right</span>
@@ -138,108 +88,51 @@
         </div>
       }
 
-      <!-- Ações -->
       <div class="space-y-3">
-        <!-- Botão Novo Pedido (adiciona à comanda) -->
-        <button
-          (click)="novoPedido()"
-          class="btn-secondary"
-          type="button"
-        >
-          ➕ Adicionar Pedido
-        </button>
-
-        <!-- Botão Fechar Comanda -->
+        <button (click)="adicionarPedido()" class="btn-secondary" type="button">➕ Adicionar Pedido</button>
         @if (c.status === 'ABERTA') {
-          <button
-            (click)="abrirFecharDialog()"
-            [disabled]="fechando()"
-            class="btn-primary"
-            type="button"
-          >
+          <button (click)="abrirFecharDialog()" [disabled]="fechando()" class="btn-primary" type="button">
             @if (fechando()) {
-              <span class="flex items-center justify-center gap-2">
-                <span class="material-icons animate-spin text-lg">refresh</span>
-                Fechando...
-              </span>
-            } @else {
-              💰 Fechar Comanda (R$ {{ totalComanda | number:'1.2-2' }})
-            }
+              <span class="flex items-center justify-center gap-2"><span class="material-icons animate-spin text-lg">refresh</span> Fechando...</span>
+            } @else { 💰 Fechar Comanda (R$ {{ totalComanda | number:'1.2-2' }}) }
           </button>
         }
       </div>
 
-      <!-- Timeline -->
       <div class="bg-white rounded-2xl shadow-card p-5">
         <h3 class="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <span class="material-icons text-gray-400">timeline</span>
-          Histórico
+          <span class="material-icons text-gray-400">timeline</span> Histórico
         </h3>
         <div class="space-y-3">
-          <!-- Abertura -->
           <div class="flex gap-3">
-            <div class="flex flex-col items-center">
-              <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-              <div class="w-0.5 flex-1 bg-gray-200"></div>
-            </div>
-            <div class="pb-3">
-              <p class="text-sm font-medium text-gray-800">Comanda aberta</p>
-              <p class="text-xs text-gray-400">{{ c.abertura | date:'HH:mm' }}</p>
-            </div>
+            <div class="flex flex-col items-center"><div class="w-3 h-3 bg-green-500 rounded-full"></div><div class="w-0.5 flex-1 bg-gray-200"></div></div>
+            <div class="pb-3"><p class="text-sm font-medium text-gray-800">Comanda aberta</p><p class="text-xs text-gray-400">{{ c.abertura | date:'HH:mm' }}</p></div>
           </div>
-
-          <!-- Pedidos -->
           @for (pedido of c.pedidos; track pedido.id; let last = $last) {
             <div class="flex gap-3">
               <div class="flex flex-col items-center">
-                <div
-                  class="w-3 h-3 rounded-full"
-                  [class.bg-green-500]="pedido.status === 'ENTREGUE' || pedido.status === 'PRONTO'"
-                  [class.bg-orange-500]="pedido.status === 'PREPARANDO'"
-                  [class.bg-blue-500]="pedido.status === 'RECEBIDO'"
-                  [class.bg-red-500]="pedido.status === 'CANCELADO'"
-                ></div>
-                @if (!last) {
-                  <div class="w-0.5 flex-1 bg-gray-200"></div>
-                }
+                <div class="w-3 h-3 rounded-full" [class.bg-green-500]="pedido.status === 'ENTREGUE' || pedido.status === 'PRONTO'"
+                  [class.bg-orange-500]="pedido.status === 'PREPARANDO'" [class.bg-blue-500]="pedido.status === 'RECEBIDO'"
+                  [class.bg-red-500]="pedido.status === 'CANCELADO'"></div>
+                @if (!last) { <div class="w-0.5 flex-1 bg-gray-200"></div> }
               </div>
               <div [class.pb-3]="!last">
-                <p class="text-sm font-medium text-gray-800">
-                  Pedido #{{ pedido.numero }}
-                </p>
-                <p class="text-xs text-gray-400">
-                  {{ pedido.dataHoraPedido | date:'HH:mm' }}
-                  • R$ {{ pedido.valorTotal | number:'1.2-2' }}
-                  • {{ pedido.status === 'CANCELADO' ? 'Cancelado' : pedido.itens.length + ' itens' }}
-                </p>
+                <p class="text-sm font-medium text-gray-800">Pedido #{{ pedido.numero }}</p>
+                <p class="text-xs text-gray-400">{{ pedido.dataHoraPedido | date:'HH:mm' }} • R$ {{ pedido.valorTotal | number:'1.2-2' }} • {{ pedido.status === 'CANCELADO' ? 'Cancelado' : pedido.itens.length + ' itens' }}</p>
               </div>
             </div>
           }
         </div>
       </div>
 
-      <!-- Botão Voltar -->
-      <button
-        (click)="voltar()"
-        class="w-full py-2.5 px-4 rounded-xl border border-gray-300
-               text-gray-600 font-medium text-sm hover:bg-gray-50
-               active:bg-gray-100 transition-colors"
-        type="button"
-      >
-        Voltar
-      </button>
+      <button (click)="voltar()" class="w-full py-2.5 px-4 rounded-xl border border-gray-300 text-gray-600 font-medium text-sm hover:bg-gray-50 active:bg-gray-100 transition-colors" type="button">Voltar</button>
     </div>
   }
 
-  <!-- Dialog de Confirmação -->
-  <app-confirm-dialog
-    [visible]="showFecharDialog()"
-    title="Fechar Comanda"
+  <app-confirm-dialog [visible]="showFecharDialog()" title="Fechar Comanda"
     [message]="'Confirmar fechamento da comanda no valor de R$ ' + (totalComanda | number:'1.2-2') + '?'"
-    confirmText="Sim, Fechar"
-    cancelText="Cancelar"
-    type="info"
-    (onConfirm)="confirmarFechamento()"
-    (onCancel)="fecharFecharDialog()"
-  />
+    confirmText="Sim, Fechar" cancelText="Cancelar" type="info"
+    (onConfirm)="confirmarFechamento()" (onCancel)="fecharFecharDialog()" />
+
+  <app-bottom-nav [items]="navItems" />
 </div>

@@ -34,6 +34,7 @@ public class FilaCozinhaResponse {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class ItemResumidoResponse {
+		private Long id;
 		private String nomeProduto;
 		private Integer quantidade;
 		private String status;

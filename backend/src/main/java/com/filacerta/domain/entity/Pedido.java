@@ -1,6 +1,7 @@
 package com.filacerta.domain.entity;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +11,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import com.filacerta.domain.enums.MetodoPagamento;
 import com.filacerta.domain.enums.OrigemPedido;
+import com.filacerta.domain.enums.StatusItemPedido;
 import com.filacerta.domain.enums.StatusPagamento;
 import com.filacerta.domain.enums.StatusPedido;
 import com.filacerta.domain.enums.TipoPedido;
@@ -34,76 +36,83 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class Pedido {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(nullable = false)
-    private Integer numero;
-    
-    @Column(name = "nome_cliente", nullable = false, length = 100)
-    private String nomeCliente;
-    
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TipoPedido tipo;
-    
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private OrigemPedido origem;
-    
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private StatusPedido status = StatusPedido.RECEBIDO;
-    
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status_pagamento", nullable = false)
-    private StatusPagamento statusPagamento = StatusPagamento.AGUARDANDO;
-    
-    @Enumerated(EnumType.STRING)
-    @Column(name = "metodo_pagamento")
-    private MetodoPagamento metodoPagamento;
-    
-    @Column(name = "valor_total", nullable = false, precision = 10, scale = 2)
-    private BigDecimal valorTotal = BigDecimal.ZERO;
-    
-    @Column(name = "data_hora_pedido", nullable = false)
-    private LocalDateTime dataHoraPedido = LocalDateTime.now();
-    
-    @Column(name = "data_hora_pronto")
-    private LocalDateTime dataHoraPronto;
-    
-    @Column(name = "data_hora_entrega")
-    private LocalDateTime dataHoraEntrega;
-    
-    @Column(name = "data_hora_pagamento")
-    private LocalDateTime dataHoraPagamento;
-    
-    @Column(length = 300)
-    private String observacao;
-    
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-    
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-    
-    @Column(name = "caixa_diario_data", nullable = false)
-    private LocalDateTime caixaDiarioData = LocalDateTime.now();
-    
-    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<ItemPedido> itens = new ArrayList<>();
-    
-    @OneToOne(mappedBy = "pedido", cascade = CascadeType.ALL)
-    private ComandaPedido comandaPedido;
-    
-    // Método para calcular valor total
-    public BigDecimal calcularValorTotal() {
-        return itens.stream()
-            .map(item -> item.getPrecoUnitario().multiply(BigDecimal.valueOf(item.getQuantidade())))
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+
+	@Column(nullable = false)
+	private Integer numero;
+
+	@Column(name = "nome_cliente", nullable = false, length = 100)
+	private String nomeCliente;
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private TipoPedido tipo;
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private OrigemPedido origem;
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private StatusPedido status = StatusPedido.RECEBIDO;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "status_pagamento", nullable = false)
+	private StatusPagamento statusPagamento = StatusPagamento.AGUARDANDO;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "metodo_pagamento")
+	private MetodoPagamento metodoPagamento;
+
+	@Column(name = "valor_total", nullable = false, precision = 10, scale = 2)
+	private BigDecimal valorTotal = BigDecimal.ZERO;
+
+	@Column(name = "data_hora_pedido", nullable = false)
+	private LocalDateTime dataHoraPedido = LocalDateTime.now();
+
+	@Column(name = "data_hora_pronto")
+	private LocalDateTime dataHoraPronto;
+
+	@Column(name = "data_hora_entrega")
+	private LocalDateTime dataHoraEntrega;
+
+	@Column(name = "data_hora_pagamento")
+	private LocalDateTime dataHoraPagamento;
+
+	@Column(length = 300)
+	private String observacao;
+
+	@CreationTimestamp
+	@Column(name = "created_at", nullable = false, updatable = false)
+	private LocalDateTime createdAt;
+
+	@UpdateTimestamp
+	@Column(name = "updated_at")
+	private LocalDateTime updatedAt;
+
+	// CORRIGIDO: Mudar para LocalDate
+	@Column(name = "caixa_diario_data", nullable = false)
+	private LocalDate caixaDiarioData = LocalDate.now();
+
+	@OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private List<ItemPedido> itens = new ArrayList<>();
+
+	@OneToOne(mappedBy = "pedido", cascade = CascadeType.ALL)
+	private ComandaPedido comandaPedido;
+
+	public BigDecimal calcularValorTotal() {
+		return itens.stream().map(item -> item.getPrecoUnitario().multiply(BigDecimal.valueOf(item.getQuantidade())))
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
+	}
+
+	public boolean todosItensProntos() {
+		if (itens == null || itens.isEmpty()) {
+			return false;
+		}
+		return itens.stream().allMatch(item -> item.getStatus() == StatusItemPedido.PRONTO);
+	}
+
 }

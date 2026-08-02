@@ -3,8 +3,12 @@ export interface CaixaDiarioResponse {
   data: string;
   horaAbertura: string;
   horaFechamento?: string;
+  horaPausa?: string;                // ← ADICIONAR
+  horaReativacao?: string;           // ← ADICIONAR
+  motivoPausa?: string;              // ← ADICIONAR
+  tempoEstimadoRetorno?: string;     // ← ADICIONAR
   valorInicial: number;
-  status: 'ABERTO' | 'FECHADO';
+  status: 'ABERTO' | 'PAUSADO' | 'FECHADO'; // ← ADICIONAR PAUSADO
   totalDinheiro: number;
   totalDebito: number;
   totalCredito: number;
@@ -12,6 +16,19 @@ export interface CaixaDiarioResponse {
   totalFiado: number;
   totalPedidos: number;
   totalCancelados: number;
+  totalConcluidos?: number;          // ← ADICIONAR
+  valorTotalConcluidos?: number;     // ← ADICIONAR
+}
+
+export interface StatusCaixaResponse {
+  status: 'ABERTO' | 'PAUSADO' | 'FECHADO' | 'NAO_ABERTO';
+  mensagem: string;
+  mensagemDetalhada: string;
+  icone: string;
+  podePedir: boolean;
+  horaPausa?: string;
+  motivoPausa?: string;
+  tempoEstimado?: string;
 }
 
 export interface AbrirCaixaRequest {

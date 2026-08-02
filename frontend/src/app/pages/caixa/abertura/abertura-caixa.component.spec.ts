@@ -62,7 +62,7 @@ describe('AberturaCaixaComponent', () => {
     expect(component.sucesso()).toBe(true);
 
     vi.advanceTimersByTime(1500);
-    expect(routerMock.navigate).toHaveBeenCalledWith(['/cozinha/painel']);
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/dono/dashboard']);
     vi.useRealTimers();
   });
 
@@ -86,5 +86,12 @@ describe('AberturaCaixaComponent', () => {
     expect(component.valoresRapidos.length).toBeGreaterThan(0);
     expect(component.valoresRapidos).toContain(50);
     expect(component.valoresRapidos).toContain(0);
+  });
+
+  it('deve ter navItems com rotas corretas', () => {
+    expect(component.navItems[0].route).toBe('/dono/dashboard');
+    expect(component.navItems[1].route).toBe('/dono/cozinha/painel');
+    expect(component.navItems[2].route).toBe('/dono/caixa/abertura');
+    expect(component.navItems[3].route).toBe('/dono/caixa/fechamento');
   });
 });

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { PedidoService } from '../../../core/services/pedido.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { HeaderComponent } from '../../../shared/components/header/header.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
@@ -42,7 +43,8 @@ export class PedidoComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private pedidoService: PedidoService
+    private pedidoService: PedidoService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -53,6 +55,11 @@ export class PedidoComponent implements OnInit {
       this.error.set(true);
       this.loading.set(false);
     }
+  }
+
+  /** Nome do cliente logado */
+  get nomeCliente(): string {
+    return this.authService.usuario()?.nomeCliente || '';
   }
 
   carregarPedido(id: number): void {
@@ -134,7 +141,7 @@ export class PedidoComponent implements OnInit {
     });
   }
 
-  // ──── Edição (simplificada - só observação) ────
+  // ──── Edição ────
 
   abrirEdicao(): void {
     this.observacaoEdicao.set(this.pedido()?.observacao || '');
@@ -146,9 +153,15 @@ export class PedidoComponent implements OnInit {
   }
 
   salvarEdicao(): void {
-    // A edição completa seria via endpoint PATCH
-    // Aqui apenas fecha o modo edição
     this.editando.set(false);
+  }
+
+  // ──── Adicionar Itens ────
+
+  adicionarItens(): void {
+    this.router.navigate(['/cliente/cardapio'], {
+      queryParams: { pedidoId: this.pedido()?.id }
+    });
   }
 
   // ──── Navegação ────
@@ -159,5 +172,14 @@ export class PedidoComponent implements OnInit {
 
   voltarCardapio(): void {
     this.router.navigate(['/cliente/cardapio']);
+  }
+
+  voltarAcompanhamento(): void {
+    const id = this.pedido()?.id;
+    if (id) {
+      this.router.navigate(['/cliente/acompanhamento', id]);
+    } else {
+      this.router.navigate(['/cliente/cardapio']);
+    }
   }
 }

@@ -1,9 +1,6 @@
 spring:
   application:
-    name: fila-certa-api
-  
-  profiles:
-    active: dev
+    name: filacerta-api
 
   jackson:
     serialization:
@@ -17,3 +14,7 @@ springdoc:
     path: /api-docs
   swagger-ui:
     path: /swagger-ui.html
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"

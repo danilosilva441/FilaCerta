@@ -24,5 +24,5 @@ public class ComandaResponse {
 	private BigDecimal valorTotal;
 	private LocalDateTime abertura;
 	private LocalDateTime fechamento;
-	private List<PedidoResponse> pedidos;
+	private List<Long> pedidoIds;
 }

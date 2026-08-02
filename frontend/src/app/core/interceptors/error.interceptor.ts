@@ -7,33 +7,35 @@ import {
   HttpErrorResponse,
 } from '@angular/common/http';
 import { Observable, catchError, throwError } from 'rxjs';
+import { ErrorHandlerService } from '../services/error-handler.service';
 
 @Injectable()
 export class ErrorInterceptor implements HttpInterceptor {
 
+  constructor(private errorHandler: ErrorHandlerService) {}
+
   intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     return next.handle(req).pipe(
       catchError((error: HttpErrorResponse) => {
-        let mensagem = 'Ocorreu um erro inesperado.';
-
-        if (error.status === 0) {
-          mensagem = 'Sem conexão com o servidor.';
-        } else if (error.status === 400) {
-          mensagem = error.error?.message || 'Dados inválidos.';
-        } else if (error.status === 404) {
-          mensagem = error.error?.message || 'Recurso não encontrado.';
-        } else if (error.status === 422) {
-          mensagem = error.error?.message || 'Operação não permitida.';
-        } else if (error.status >= 500) {
-          mensagem = 'Erro interno do servidor.';
+        // Log detalhado para debug
+        if (error.status !== 200) {
+          console.error(
+            `[ErrorInterceptor] HTTP ${error.status}:`,
+            error.error?.error || error.message,
+            '|',
+            error.error?.message || ''
+          );
         }
 
-        // Só loga erros reais
-        if (error.status !== 200 && error.status !== 0) {
-          console.error(`[ErrorInterceptor] HTTP ${error.status}:`, error.message);
-        }
+        // Preserva o erro original e adiciona mensagem amigável
+        const enhancedError = {
+          ...error,
+          originalError: error.error,        // ← Preserva o corpo original
+          mensagemAmigavel: this.errorHandler.getMensagemAmigavel(error),
+          titulo: this.errorHandler.getTitulo(error),
+        };
 
-        return throwError(() => new Error(mensagem));
+        return throwError(() => enhancedError);
       })
     );
   }

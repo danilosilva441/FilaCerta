@@ -36,3 +36,21 @@
 .shadow-bottom-sheet {
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
 }
+
+/* Aumentar área de toque */
+button {
+  min-height: 48px;
+  touch-action: manipulation;
+}
+
+/* Deslizar para fechar */
+@media (max-width: 768px) {
+  .animate-slide-up {
+    animation: slideUpMobile 0.3s ease-out;
+  }
+
+  @keyframes slideUpMobile {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+}

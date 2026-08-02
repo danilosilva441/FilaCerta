@@ -1,9 +1,6 @@
-<div class="min-h-screen bg-gray-50 pb-8">
+<div class="min-h-screen bg-gray-50 has-bottom-nav">
   <!-- Header -->
-  <app-header
-    title="Pagamento"
-    [showBack]="true"
-  />
+  <app-header title="Pagamento" [showBack]="true" />
 
   <!-- Loading -->
   @if (loading()) {
@@ -13,20 +10,15 @@
   <!-- Erro -->
   @else if (error()) {
     <div class="p-4">
-      <app-empty-state
-        icon="error"
-        title="Pedido não encontrado"
-        description="Não foi possível carregar este pedido."
-      />
+      <app-empty-state icon="error" title="Pedido não encontrado"
+        description="Não foi possível carregar este pedido." />
       <div class="mt-4">
-        <button (click)="voltar()" class="btn-secondary" type="button">
-          Voltar
-        </button>
+        <button (click)="voltar()" class="btn-secondary" type="button">Voltar</button>
       </div>
     </div>
   }
 
-  <!-- Sucesso (já pago) -->
+  <!-- Sucesso (pagamento confirmado) -->
   @else if (sucesso()) {
     <div class="flex flex-col items-center justify-center px-4 py-16 animate-fade-in">
       <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6">
@@ -36,22 +28,41 @@
       <p class="text-gray-500 mb-2">Pedido #{{ pedido()?.numero }}</p>
       <app-status-badge
         [status]="pedido()?.statusPagamento || 'PAGO'"
-        [label]="'Pago com ' + (pedido()?.metodoPagamento || '')"
-      />
-      <button
-        (click)="novoPedido()"
-        class="btn-primary mt-8 max-w-sm"
-        type="button"
-      >
-        🍔 Novo Pedido
-      </button>
+        [label]="'Pago com ' + (pedido()?.metodoPagamento || '')" />
+
+      <!-- Resumo do pagamento -->
+      <div class="bg-white rounded-xl shadow-card p-4 mt-6 w-full max-w-xs">
+        <div class="flex justify-between text-sm mb-2">
+          <span class="text-gray-500">Método:</span>
+          <span class="font-medium text-gray-800">{{ pedido()?.metodoPagamento }}</span>
+        </div>
+        <div class="flex justify-between text-sm mb-2">
+          <span class="text-gray-500">Total:</span>
+          <span class="font-bold text-red-600">R$ {{ pedido()?.valorTotal | number:'1.2-2' }}</span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500">Pago em:</span>
+          <span class="text-gray-600">{{ pedido()?.dataHoraPagamento | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+
+      <div class="flex gap-3 mt-8 w-full max-w-xs">
+        <button (click)="irParaCozinha()" class="flex-1 btn-primary" type="button">
+          🍔 Voltar para Cozinha
+        </button>
+        <button (click)="irParaDashboard()"
+          class="flex-1 py-3 px-4 rounded-xl border border-gray-300 text-gray-600 font-medium text-sm
+                 hover:bg-gray-50 transition-colors" type="button">
+          📊 Dashboard
+        </button>
+      </div>
     </div>
   }
 
   <!-- Formulário de Pagamento -->
   @else if (pedido(); as p) {
     <div class="p-4 max-w-md mx-auto animate-fade-in space-y-4">
-      <!-- Card Resumo do Pedido -->
+      <!-- Card Resumo -->
       <div class="bg-white rounded-2xl shadow-card p-5">
         <div class="flex justify-between items-start mb-3">
           <div>
@@ -61,26 +72,24 @@
           <app-status-badge [status]="p.status" />
         </div>
 
-        <!-- Itens -->
+        <!-- Método pré-selecionado pelo cliente -->
+        @if (p.metodoPagamento && !metodoSelecionado()) {
+          <div class="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 mb-3">
+            <p class="text-xs text-blue-600">Cliente escolheu: <strong>{{ p.metodoPagamento }}</strong></p>
+          </div>
+        }
+
         <div class="border-t border-gray-100 pt-3 space-y-2">
           @for (item of p.itens; track item.id) {
             <div class="flex justify-between text-sm">
-              <span class="text-gray-600">
-                {{ item.quantidade }}x {{ item.nomeProduto }}
-              </span>
-              <span class="text-gray-500">
-                R$ {{ item.subtotal | number:'1.2-2' }}
-              </span>
+              <span class="text-gray-600">{{ item.quantidade }}x {{ item.nomeProduto }}</span>
+              <span class="text-gray-500">R$ {{ item.subtotal | number:'1.2-2' }}</span>
             </div>
           }
         </div>
-
-        <!-- Total -->
         <div class="border-t border-gray-200 mt-3 pt-3 flex justify-between items-center">
           <span class="font-bold text-gray-800">Total</span>
-          <span class="text-2xl font-bold text-primary-600">
-            R$ {{ p.valorTotal | number:'1.2-2' }}
-          </span>
+          <span class="text-2xl font-bold text-red-600">R$ {{ p.valorTotal | number:'1.2-2' }}</span>
         </div>
       </div>
 
@@ -89,96 +98,60 @@
         <h3 class="font-semibold text-gray-800 mb-4">💳 Forma de Pagamento</h3>
         <div class="grid grid-cols-2 gap-3">
           @for (metodo of metodosPagamento; track metodo.valor) {
-            <button
-              (click)="selecionarMetodo(metodo.valor)"
-              class="flex flex-col items-center gap-2 p-4 rounded-xl border-2
-                     transition-all active:scale-95"
-              [class.border-primary-600]="metodoSelecionado() === metodo.valor"
-              [class.bg-primary-50]="metodoSelecionado() === metodo.valor"
+            <button (click)="selecionarMetodo(metodo.valor)"
+              class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all active:scale-95"
+              [class.border-red-600]="metodoSelecionado() === metodo.valor"
+              [class.bg-red-50]="metodoSelecionado() === metodo.valor"
               [class.border-gray-200]="metodoSelecionado() !== metodo.valor"
-              [class.hover:border-gray-300]="metodoSelecionado() !== metodo.valor"
-              type="button"
-            >
+              type="button">
               <span class="material-icons text-2xl"
-                [class.text-primary-600]="metodoSelecionado() === metodo.valor"
-                [class.text-gray-400]="metodoSelecionado() !== metodo.valor"
-              >
-                {{ metodo.icone }}
-              </span>
+                [class.text-red-600]="metodoSelecionado() === metodo.valor"
+                [class.text-gray-400]="metodoSelecionado() !== metodo.valor">{{ metodo.icone }}</span>
               <span class="text-sm font-medium"
-                [class.text-primary-600]="metodoSelecionado() === metodo.valor"
-                [class.text-gray-600]="metodoSelecionado() !== metodo.valor"
-              >
-                {{ metodo.label }}
-              </span>
+                [class.text-red-600]="metodoSelecionado() === metodo.valor"
+                [class.text-gray-600]="metodoSelecionado() !== metodo.valor">{{ metodo.label }}</span>
             </button>
           }
         </div>
       </div>
 
-      <!-- Valor Recebido (apenas Dinheiro) -->
+      <!-- Valor Recebido (Dinheiro) -->
       @if (metodoSelecionado() === 'DINHEIRO') {
         <div class="bg-white rounded-2xl shadow-card p-5 animate-slide-up">
           <h3 class="font-semibold text-gray-800 mb-3">💵 Valor Recebido</h3>
           <div class="relative">
-            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium">
-              R$
-            </span>
-            <input
-              type="number"
-              [ngModel]="valorRecebido()"
-              (ngModelChange)="valorRecebido.set($event)"
-              class="input-field pl-10 text-lg font-bold"
-              placeholder="0,00"
-              min="0"
-              step="0.01"
-              aria-label="Valor recebido"
-            />
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium">R$</span>
+            <input type="number" [ngModel]="valorRecebido()" (ngModelChange)="valorRecebido.set($event)"
+              class="input-field pl-10 text-lg font-bold" placeholder="0,00" min="0" step="0.01" />
           </div>
-
-          <!-- Troco -->
           <div class="mt-3 p-3 bg-gray-50 rounded-xl">
             <div class="flex justify-between items-center">
               <span class="text-sm text-gray-500">Troco</span>
-              <span class="text-lg font-bold text-green-600">
-                R$ {{ troco | number:'1.2-2' }}
-              </span>
+              <span class="text-lg font-bold text-green-600">R$ {{ troco | number:'1.2-2' }}</span>
             </div>
           </div>
         </div>
       }
 
       <!-- Botão Confirmar -->
-      <button
-        (click)="abrirConfirmDialog()"
-        [disabled]="!podeConfirmar || processando()"
-        class="btn-primary text-lg"
-        type="button"
-      >
+      <button (click)="abrirConfirmDialog()" [disabled]="!podeConfirmar || processando()"
+        class="btn-primary text-lg" type="button">
         @if (processando()) {
           <span class="flex items-center justify-center gap-2">
-            <span class="material-icons animate-spin text-lg">refresh</span>
-            Processando...
+            <span class="material-icons animate-spin text-lg">refresh</span> Processando...
           </span>
-        } @else {
-          ✅ Confirmar Pagamento
-        }
+        } @else { ✅ Confirmar Pagamento }
       </button>
 
-      <!-- Botão Cancelar -->
-      <button
-        (click)="voltar()"
+      <!-- Botão Voltar -->
+      <button (click)="voltar()"
         class="w-full py-2.5 px-4 rounded-xl border border-gray-300
                text-gray-600 font-medium text-sm hover:bg-gray-50
-               active:bg-gray-100 transition-colors"
-        type="button"
-      >
-        Voltar
-      </button>
+               active:bg-gray-100 transition-colors" type="button">Voltar</button>
     </div>
   }
 
-  <!-- Dialog de Confirmação -->
+  <!-- Dialog -->
   <app-confirm-dialog
     [visible]="showConfirmDialog()"
     title="Confirmar Pagamento"
@@ -187,6 +160,8 @@
     cancelText="Cancelar"
     type="info"
     (onConfirm)="confirmarPagamento()"
-    (onCancel)="fecharConfirmDialog()"
-  />
+    (onCancel)="fecharConfirmDialog()" />
+
+  <!-- Bottom Navigation -->
+  <app-bottom-nav [items]="navItems" />
 </div>

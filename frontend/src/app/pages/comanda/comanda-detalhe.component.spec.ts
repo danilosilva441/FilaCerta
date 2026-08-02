@@ -103,7 +103,7 @@ describe('ComandaDetalheComponent', () => {
   });
 
   it('deve navegar para cardápio ao adicionar pedido', () => {
-    component.novoPedido();
+    component.adicionarPedido();
     expect(routerMock.navigate).toHaveBeenCalledWith(['/cliente/cardapio']);
   });
 });

@@ -1,6 +1,6 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ProdutoResponse } from '../../../core/models';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { ProdutoResponse, MetodoPagamento } from '../../../core/models';
 
 interface CartItem {
   produto: ProdutoResponse;
@@ -18,21 +18,21 @@ export class CartFlutuanteComponent {
   @Input() itens: CartItem[] = [];
   @Input() buttonText = 'Fazer Pedido';
   @Input() disabled = false;
+  @Input() pagamentoSelecionado: MetodoPagamento | null = null;
+  @Input() metodosPagamento: { valor: MetodoPagamento; label: string; icone: string }[] = [];
 
   @Output() onConfirm = new EventEmitter<void>();
   @Output() onClear = new EventEmitter<void>();
+  @Output() onSelectPagamento = new EventEmitter<MetodoPagamento>();
 
   get total(): number {
-    return this.itens.reduce((sum, item) => {
-      return sum + item.produto.preco * item.quantidade;
-    }, 0);
+    return this.itens.reduce((sum, item) => sum + item.produto.preco * item.quantidade, 0);
   }
 
   get totalItens(): number {
     return this.itens.reduce((sum, item) => sum + item.quantidade, 0);
   }
 
-  /** TrackBy para melhor performance no *ngFor */
   trackByProduto(index: number, item: CartItem): number {
     return item.produto.id;
   }

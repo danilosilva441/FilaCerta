@@ -109,7 +109,6 @@ describe('PagamentoComponent', () => {
     component.selecionarMetodo('DINHEIRO');
     component.valorRecebido.set(10);
     expect(component.podeConfirmar).toBe(false);
-
     component.valorRecebido.set(40);
     expect(component.podeConfirmar).toBe(true);
   });
@@ -119,13 +118,19 @@ describe('PagamentoComponent', () => {
     component.selecionarMetodo('DINHEIRO');
     component.valorRecebido.set(40);
     component.confirmarPagamento();
-
     expect(pedidoServiceMock.registrarPagamento).toHaveBeenCalled();
     expect(component.sucesso()).toBe(true);
   });
 
-  it('deve navegar para novo pedido', () => {
-    component.novoPedido();
-    expect(routerMock.navigate).toHaveBeenCalledWith(['/cliente/cardapio']);
+  it('deve navegar para cozinha', () => {
+    component.irParaCozinha();
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/dono/cozinha/painel']);
+  });
+
+  it('deve ter navItems com rotas corretas', () => {
+    expect(component.navItems[0].route).toBe('/dono/dashboard');
+    expect(component.navItems[1].route).toBe('/dono/cozinha/painel');
+    expect(component.navItems[2].route).toBe('/dono/caixa/abertura');
+    expect(component.navItems[3].route).toBe('/dono/caixa/fechamento');
   });
 });

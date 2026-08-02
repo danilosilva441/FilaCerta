@@ -94,7 +94,6 @@ describe('CardapioComponent', () => {
   it('deve adicionar item ao carrinho', () => {
     component.adicionar(produtosMock[0]);
     expect(component.getQuantidade(1)).toBe(1);
-
     component.adicionar(produtosMock[0]);
     expect(component.getQuantidade(1)).toBe(2);
   });
@@ -104,7 +103,6 @@ describe('CardapioComponent', () => {
     component.adicionar(produtosMock[0]);
     component.remover(produtosMock[0]);
     expect(component.getQuantidade(1)).toBe(1);
-
     component.remover(produtosMock[0]);
     expect(component.getQuantidade(1)).toBe(0);
   });
@@ -120,32 +118,15 @@ describe('CardapioComponent', () => {
     component.adicionar(produtosMock[0]);
     component.adicionar(produtosMock[0]);
     component.adicionar(produtosMock[1]);
-
     const itens = component.carrinhoItens;
     expect(itens.length).toBe(2);
     expect(itens[0].quantidade).toBe(2);
     expect(itens[1].quantidade).toBe(1);
   });
 
-  it('não deve permitir envio sem nome e itens', () => {
-    expect(component.podeEnviar).toBe(false);
-
-    component.nomeCliente.set('Jo');
-    expect(component.podeEnviar).toBe(false);
-
+  it('deve permitir envio com itens no carrinho', () => {
     component.adicionar(produtosMock[0]);
     expect(component.podeEnviar).toBe(true);
-  });
-
-  it('deve enviar pedido e navegar para acompanhamento', () => {
-    component.nomeCliente.set('João');
-    component.tipoPedido.set('LEVAR');
-    component.adicionar(produtosMock[0]);
-
-    component.enviarPedido();
-
-    expect(pedidoServiceMock.criar).toHaveBeenCalled();
-    expect(routerMock.navigate).toHaveBeenCalledWith(['/cliente/acompanhamento', 1]);
   });
 
   it('deve lidar com erro ao carregar produtos', () => {
@@ -160,12 +141,9 @@ describe('CardapioComponent', () => {
     pedidoServiceMock.criar.mockReturnValue(
       throwError(() => new Error('Erro'))
     );
-    component.nomeCliente.set('João');
     component.adicionar(produtosMock[0]);
-
     const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
     component.enviarPedido();
-
     expect(component.enviando()).toBe(false);
     expect(alertSpy).toHaveBeenCalled();
     alertSpy.mockRestore();

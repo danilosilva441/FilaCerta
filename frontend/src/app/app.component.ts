@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 @Component({
@@ -10,9 +10,8 @@ import { RouterOutlet } from '@angular/router';
     :host {
       display: block;
       min-height: 100vh;
+      background-color: #f9fafb;
     }
   `],
 })
-export class AppComponent {
-  protected readonly appName = signal('Fila Certa');
-}
+export class AppComponent {}

@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gray-50">
+<div class="min-h-screen bg-gray-50 has-bottom-nav">
   <!-- Header -->
   <app-header
     title="Abrir Caixa"
@@ -20,7 +20,7 @@
       </div>
       <h2 class="text-2xl font-bold text-gray-800 mb-2">Caixa Aberto!</h2>
       <p class="text-gray-500 mb-6">Expediente iniciado com sucesso.</p>
-      <p class="text-sm text-gray-400">Redirecionando para o painel...</p>
+      <p class="text-sm text-gray-400">Redirecionando para o dashboard...</p>
     </div>
   }
 
@@ -45,29 +45,17 @@
           <label class="block text-sm font-semibold text-gray-700 mb-2">
             💵 Valor inicial do caixa
           </label>
-
-          <!-- Input -->
           <div class="relative">
-            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium">
-              R$
-            </span>
-            <input
-              type="number"
-              [ngModel]="valorInicial()"
-              (ngModelChange)="valorInicial.set($event)"
-              class="input-field pl-10 text-lg font-bold"
-              placeholder="0,00"
-              min="0"
-              step="0.01"
-              aria-label="Valor inicial do caixa"
-            />
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium">R$</span>
+            <input type="number" [ngModel]="valorInicial()" (ngModelChange)="valorInicial.set($event)"
+              class="input-field pl-10 text-lg font-bold" placeholder="0,00" min="0" step="0.01"
+              aria-label="Valor inicial do caixa" />
           </div>
 
           <!-- Valores Rápidos -->
           <div class="flex flex-wrap gap-2 mt-3">
             @for (valor of valoresRapidos; track valor) {
-              <button
-                (click)="selecionarValor(valor)"
+              <button (click)="selecionarValor(valor)"
                 class="px-3 py-1.5 rounded-lg text-sm font-medium transition-all
                        border border-gray-200 hover:border-primary-400
                        active:bg-primary-50 active:border-primary-500"
@@ -75,9 +63,7 @@
                 [class.text-white]="valorInicial() === valor"
                 [class.border-primary-600]="valorInicial() === valor"
                 [class.text-gray-600]="valorInicial() !== valor"
-                [class.bg-white]="valorInicial() !== valor"
-                type="button"
-              >
+                [class.bg-white]="valorInicial() !== valor" type="button">
                 R$ {{ valor }}
               </button>
             }
@@ -117,16 +103,10 @@
         }
 
         <!-- Botão Abrir -->
-        <button
-          (click)="abrirCaixa()"
-          [disabled]="abrindo()"
-          class="btn-primary text-lg"
-          type="button"
-        >
+        <button (click)="abrirCaixa()" [disabled]="abrindo()" class="btn-primary text-lg" type="button">
           @if (abrindo()) {
             <span class="flex items-center justify-center gap-2">
-              <span class="material-icons animate-spin text-lg">refresh</span>
-              Abrindo...
+              <span class="material-icons animate-spin text-lg">refresh</span> Abrindo...
             </span>
           } @else {
             🔓 Abrir Caixa
@@ -135,15 +115,15 @@
       </div>
 
       <!-- Botão Voltar -->
-      <button
-        (click)="voltar()"
+      <button (click)="voltar()"
         class="w-full py-2.5 px-4 rounded-xl border border-gray-300
                text-gray-600 font-medium text-sm hover:bg-gray-50
-               active:bg-gray-100 transition-colors"
-        type="button"
-      >
+               active:bg-gray-100 transition-colors" type="button">
         Voltar
       </button>
     </div>
   }
+
+  <!-- Bottom Navigation -->
+  <app-bottom-nav [items]="navItems" />
 </div>
