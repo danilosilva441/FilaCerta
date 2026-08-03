@@ -4,7 +4,7 @@ spring:
     name: filacerta-api
 
   datasource:
-    url: ${DATABASE_URL}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/filacerta}
     username: ${DATABASE_USERNAME}
     password: ${DATABASE_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -56,4 +56,15 @@ springdoc:
   api-docs:
     path: /api-docs
   swagger-ui:
-    path: /swagger-ui.html
+    path: /swagger-ui.html	
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  health:
+    db:
+      enabled: true
+  info:
+    env:
+      enabled: true
