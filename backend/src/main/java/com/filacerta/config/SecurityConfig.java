@@ -11,16 +11,15 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-		http
-				// 👇 ESSA É A LINHA QUE PERMITE O PREFLIGHT PASSAR
-				.cors(Customizer.withDefaults()).csrf(csrf -> csrf.disable()) // Provavelmente você já usa isso para sua
-																				// API
-				.authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**").permitAll() // Seus endpoints
-																								// públicos
-						.anyRequest().authenticated());
-
-		return http.build();
-	}
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .cors(Customizer.withDefaults()) // Diz ao Spring Security para usar a configuração do FilaCertaApplication
+            .csrf(csrf -> csrf.disable()) 
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/**").permitAll() // Por enquanto, libera tudo para testarmos se o erro some
+            );
+            
+        return http.build();
+    }
 }
