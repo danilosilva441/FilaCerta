@@ -1,11 +1,12 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, ChangeDetectionStrategy } from '@angular/core';
+import { DecimalPipe, NgTemplateOutlet } from '@angular/common'; // CommonModule removido para performance
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { finalize } from 'rxjs';
 import {
   CategoriaProduto,
   CriarPedidoRequest,
-  MetodoPagamento, // ← ADICIONAR
+  MetodoPagamento,
   PedidoResponse,
   ProdutoResponse,
   TipoPedido,
@@ -35,7 +36,8 @@ interface CartItem {
   selector: 'app-cardapio',
   standalone: true,
   imports: [
-    CommonModule,
+    DecimalPipe,
+    NgTemplateOutlet,
     FormsModule,
     HeaderComponent,
     LoadingSpinnerComponent,
@@ -44,10 +46,19 @@ interface CartItem {
     BottomNavComponent,
   ],
   templateUrl: './cardapio.component.html',
-  styleUrls: ['./cardapio.component.css'],
+  // OnPush: A tela não pisca e economiza bateria!
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CardapioComponent implements OnInit {
-  // Estado
+  // Injeções de Dependência
+  private produtoService = inject(ProdutoService);
+  private pedidoService = inject(PedidoService);
+  private caixaService = inject(CaixaService);
+  private authService = inject(AuthService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+
+  // Estados Base (Signals)
   tipoPedido = signal<TipoPedido>('LEVAR');
   categoriaSelecionada = signal<CategoriaProduto | 'TODOS'>('TODOS');
   produtos = signal<ProdutoResponse[]>([]);
@@ -56,17 +67,16 @@ export class CardapioComponent implements OnInit {
   error = signal(false);
   enviando = signal(false);
 
-  // Edição
   editandoPedido = signal(false);
   pedidoEditando = signal<PedidoResponse | null>(null);
-  pedidoIdEditando = signal<number | null>(null);
 
-  // Caixa
   caixaAberto = signal(true);
   showCaixaFechadoDialog = signal(false);
-
-  // Pagamento
   formaPagamento = signal<MetodoPagamento | null>(null);
+
+  // ID do pedido ativo fixado na inicialização para o menu inferior
+  private pedidoAtivoId = signal<number | null>(null);
+
   metodosPagamento: { valor: MetodoPagamento; label: string; icone: string }[] = [
     { valor: 'DINHEIRO', label: 'Dinheiro', icone: '💵' },
     { valor: 'CARTAO_DEBITO', label: 'Débito', icone: '💳' },
@@ -83,20 +93,65 @@ export class CardapioComponent implements OnInit {
     { nome: 'Porções', icone: '🍟', valor: 'PORCAO' },
   ];
 
-  constructor(
-    private produtoService: ProdutoService,
-    private pedidoService: PedidoService,
-    private caixaService: CaixaService,
-    private authService: AuthService,
-    private route: ActivatedRoute,
-    private router: Router
-  ) { }
+  // ✨ COMPUTED SIGNALS (Substituem os antigos getters para Máxima Performance)
+
+  nomeCliente = computed(() => this.authService.usuario()?.nomeCliente || '');
+  botaoTexto = computed(() => this.editandoPedido() ? 'Atualizar Pedido' : 'Fazer Pedido');
+  podeEnviar = computed(() => this.carrinho().size > 0 && this.caixaAberto());
+
+  produtosFiltrados = computed(() => {
+    const cat = this.categoriaSelecionada();
+    if (cat === 'TODOS') return this.produtos();
+    return this.produtos().filter((p) => p.categoria === cat);
+  });
+
+  produtosAgrupados = computed(() => {
+    const grupos = new Map<string, ProdutoResponse[]>();
+    const icones: Record<string, string> = {
+      HAMBURGUER: '🍔', CACHORRO_QUENTE: '🌭', SALGADO: '🥟',
+      BEBIDA: '🥤', PORCAO: '🍟', ADICIONAL: '➕',
+    };
+
+    this.produtosFiltrados().forEach((p) => {
+      const key = p.categoria;
+      if (!grupos.has(key)) grupos.set(key, []);
+      grupos.get(key)!.push(p);
+    });
+
+    return Array.from(grupos.entries()).map(([cat, items]) => ({
+      categoria: cat, icone: icones[cat] || '📦', items,
+    }));
+  });
+
+  carrinhoItens = computed(() => {
+    const items: CartItem[] = [];
+    const prods = this.produtos();
+    this.carrinho().forEach((qtd, produtoId) => {
+      const produto = prods.find((p) => p.id === produtoId);
+      if (produto) items.push({ produto, quantidade: qtd });
+    });
+    return items;
+  });
+
+  navItems = computed<NavItem[]>(() => {
+    const id = this.pedidoAtivoId();
+    const items: NavItem[] = [
+      { label: 'Início', icon: 'home', route: '/cliente/home' },
+      { label: 'Cardápio', icon: 'restaurant_menu', route: '/cliente/cardapio' },
+    ];
+    if (id) {
+      items.push({ label: 'Meu Pedido', icon: 'receipt_long', route: `/cliente/acompanhamento/${id}`, badge: 1 });
+    }
+    items.push({ label: 'Sair', icon: 'logout', route: '/cliente/login' });
+    return items;
+  });
 
   ngOnInit(): void {
-    const pedidoId = this.route.snapshot.queryParamMap.get('pedidoId');
-    if (pedidoId) {
-      this.pedidoIdEditando.set(Number(pedidoId));
-      this.carregarPedidoParaEdicao(Number(pedidoId));
+    this.pedidoAtivoId.set(this.authService.getPedidoAtivoId());
+    const pedidoIdParam = this.route.snapshot.queryParamMap.get('pedidoId');
+
+    if (pedidoIdParam) {
+      this.carregarPedidoParaEdicao(Number(pedidoIdParam));
     } else {
       this.verificarCaixa();
     }
@@ -111,13 +166,16 @@ export class CardapioComponent implements OnInit {
   carregarPedidoParaEdicao(id: number): void {
     this.loading.set(true);
     this.editandoPedido.set(true);
+
     this.pedidoService.buscarPorId(id).subscribe({
       next: (pedido) => {
         this.pedidoEditando.set(pedido);
         this.tipoPedido.set(pedido.tipo);
+
         const carrinhoMap = new Map<number, number>();
         pedido.itens.forEach(item => carrinhoMap.set(item.produtoId, item.quantidade));
         this.carrinho.set(carrinhoMap);
+
         this.verificarCaixa();
       },
       error: () => {
@@ -131,16 +189,13 @@ export class CardapioComponent implements OnInit {
     const id = this.pedidoEditando()?.id;
     this.editandoPedido.set(false);
     this.pedidoEditando.set(null);
-    this.pedidoIdEditando.set(null);
     this.limparCarrinho();
-    if (id) {
-      this.router.navigate(['/cliente/acompanhamento', id]);
-    } else {
-      this.router.navigate(['/cliente/cardapio']);
-    }
+
+    if (id) this.router.navigate(['/cliente/acompanhamento', id]);
+    else this.router.navigate(['/cliente/cardapio']);
   }
 
-  // ──── Caixa ────
+  // ──── Caixa e Autenticação ────
   verificarCaixa(): void {
     this.loading.set(true);
     this.caixaService.buscarCaixaHoje().subscribe({
@@ -163,53 +218,25 @@ export class CardapioComponent implements OnInit {
     this.verificarCaixa();
   }
 
-  irParaLoginDono(): void {
-    this.router.navigate(['/dono/login']);
-  }
-
-  // ──── Navegação ────
-  get nomeCliente(): string {
-    return this.authService.usuario()?.nomeCliente || '';
-  }
-
-  sair(): void {
-    this.authService.logout();
-  }
+  irParaLoginDono(): void { this.router.navigate(['/dono/login']); }
+  sair(): void { this.authService.logout(); }
 
   // ──── Produtos ────
   carregarProdutos(): void {
     this.loading.set(true);
     this.error.set(false);
-    this.produtoService.listarDisponiveis().subscribe({
-      next: (data) => { this.produtos.set(data); this.loading.set(false); },
-      error: () => { this.error.set(true); this.loading.set(false); },
-    });
-  }
-
-  get produtosFiltrados(): ProdutoResponse[] {
-    const cat = this.categoriaSelecionada();
-    if (cat === 'TODOS') return this.produtos();
-    return this.produtos().filter((p) => p.categoria === cat);
-  }
-
-  get produtosAgrupados(): { categoria: string; icone: string; items: ProdutoResponse[] }[] {
-    const grupos = new Map<string, ProdutoResponse[]>();
-    const icones: Record<string, string> = {
-      HAMBURGUER: '🍔', CACHORRO_QUENTE: '🌭', SALGADO: '🥟',
-      BEBIDA: '🥤', PORCAO: '🍟', ADICIONAL: '➕',
-    };
-    this.produtosFiltrados.forEach((p) => {
-      const key = p.categoria;
-      if (!grupos.has(key)) grupos.set(key, []);
-      grupos.get(key)!.push(p);
-    });
-    return Array.from(grupos.entries()).map(([cat, items]) => ({
-      categoria: cat, icone: icones[cat] || '📦', items,
-    }));
+    this.produtoService.listarDisponiveis()
+      .pipe(finalize(() => this.loading.set(false)))
+      .subscribe({
+        next: (data) => this.produtos.set(data),
+        error: () => this.error.set(true),
+      });
   }
 
   // ──── Carrinho ────
-  getQuantidade(produtoId: number): number { return this.carrinho().get(produtoId) || 0; }
+  getQuantidade(produtoId: number): number {
+    return this.carrinho().get(produtoId) || 0;
+  }
 
   adicionar(produto: ProdutoResponse): void {
     const novo = new Map(this.carrinho());
@@ -225,26 +252,16 @@ export class CardapioComponent implements OnInit {
     this.carrinho.set(novo);
   }
 
-  get carrinhoItens(): CartItem[] {
-    const items: CartItem[] = [];
-    const prods = this.produtos();
-    this.carrinho().forEach((qtd, produtoId) => {
-      const produto = prods.find((p) => p.id === produtoId);
-      if (produto) items.push({ produto, quantidade: qtd });
-    });
-    return items;
+  limparCarrinho(): void {
+    this.carrinho.set(new Map());
   }
 
-  get podeEnviar(): boolean { return this.carrinho().size > 0 && this.caixaAberto(); }
-  limparCarrinho(): void { this.carrinho.set(new Map()); }
-  get botaoTexto(): string { return this.editandoPedido() ? 'Atualizar Pedido' : 'Fazer Pedido'; }
-
-  // ──── Envio ────
+  // ──── Envio do Pedido ────
   enviarPedido(): void {
-    if (!this.podeEnviar || this.enviando()) return;
+    if (!this.podeEnviar() || this.enviando()) return;
     if (!this.caixaAberto()) { this.showCaixaFechadoDialog.set(true); return; }
-    this.enviando.set(true);
 
+    this.enviando.set(true);
     const itens = Array.from(this.carrinho().entries()).map(
       ([produtoId, quantidade]) => ({ produtoId, quantidade })
     );
@@ -258,7 +275,7 @@ export class CardapioComponent implements OnInit {
 
   criarNovoPedido(itens: { produtoId: number; quantidade: number }[]): void {
     const request: CriarPedidoRequest = {
-      nomeCliente: this.nomeCliente,
+      nomeCliente: this.nomeCliente(),
       tipo: this.tipoPedido(),
       origem: 'QR_CODE',
       itens,
@@ -286,6 +303,7 @@ export class CardapioComponent implements OnInit {
 
   finalizarPedido(pedidoId: number): void {
     this.authService.setPedidoAtivo(pedidoId);
+    this.pedidoAtivoId.set(pedidoId); // Atualiza menu inferior
     this.limparCarrinho();
     this.formaPagamento.set(null);
     this.enviando.set(false);
@@ -301,6 +319,7 @@ export class CardapioComponent implements OnInit {
       itens,
       observacao: pedidoAtual.observacao || '',
     };
+
     this.pedidoService.atualizarPedido(pedidoAtual.id, request).subscribe({
       next: (response) => {
         this.limparCarrinho();
@@ -317,30 +336,8 @@ export class CardapioComponent implements OnInit {
       this.caixaAberto.set(false);
       this.showCaixaFechadoDialog.set(true);
     } else {
-      const mensagem = err?.mensagemAmigavel || 'Erro ao processar pedido. Tente novamente.';
-      alert(mensagem);
+      alert(err?.mensagemAmigavel || 'Erro ao processar pedido. Tente novamente.');
     }
     this.enviando.set(false);
-  }
-
-  trackByProdutoId(index: number, produto: ProdutoResponse): number { return produto.id; }
-
-  // ──── Navegação Inferior ────
-  get navItems(): NavItem[] {
-    const pedidoId = this.authService.getPedidoAtivoId();
-    const items: NavItem[] = [
-      { label: 'Início', icon: 'home', route: '/cliente/home' },
-      { label: 'Cardápio', icon: 'restaurant_menu', route: '/cliente/cardapio' },
-    ];
-    if (pedidoId) {
-      items.push({
-        label: 'Meu Pedido',
-        icon: 'receipt_long',
-        route: `/cliente/acompanhamento/${pedidoId}`,
-        badge: 1,
-      });
-    }
-    items.push({ label: 'Sair', icon: 'logout', route: '/cliente/login' });
-    return items;
   }
 }

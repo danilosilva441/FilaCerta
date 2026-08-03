@@ -1,5 +1,5 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
-import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
+import { Component, OnInit, OnDestroy, signal, computed, ChangeDetectionStrategy, inject } from '@angular/core';
+import { DatePipe, DecimalPipe } from '@angular/common'; // CommonModule removido para economizar memória
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subscription, timer, switchMap, tap } from 'rxjs';
 import { PedidoService } from '../../../core/services/pedido.service';
@@ -18,7 +18,6 @@ import { environment } from '../../../../environments/environment';
   selector: 'app-acompanhamento',
   standalone: true,
   imports: [
-    CommonModule,
     DatePipe,
     DecimalPipe,
     RouterModule,
@@ -30,15 +29,24 @@ import { environment } from '../../../../environments/environment';
     BottomNavComponent,
   ],
   templateUrl: './acompanhamento.component.html',
-  styleUrls: ['./acompanhamento.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush, // Evita re-renderizações desnecessárias
 })
 export class AcompanhamentoComponent implements OnInit, OnDestroy {
+  // Injeções de dependência modernas
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private pedidoService = inject(PedidoService);
+  private authService = inject(AuthService);
+  private notificationService = inject(NotificationService);
+
+  // Estados Base
   pedido = signal<PedidoResponse | null>(null);
   loading = signal(true);
   error = signal(false);
   tempoEspera = signal('');
   showCancelDialog = signal(false);
   cancelando = signal(false);
+
   private pollingSub?: Subscription;
   private timerSub?: Subscription;
 
@@ -47,21 +55,60 @@ export class AcompanhamentoComponent implements OnInit, OnDestroy {
     'Tá ficando bom! 👨‍🍳',
     'Já já fica pronto! ⏳',
     'Queijo derretendo... 🧀',
-    'Preparando com carinho! ❤️',
     'Só mais um pouquinho... 🤏',
   ];
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private pedidoService: PedidoService,
-    private authService: AuthService,
-    private notificationService: NotificationService
-  ) {}
+  // ✨ COMPUTED SIGNALS (Substituem os antigos getters para máxima performance)
+
+  statusIcon = computed(() => {
+    const icons: Record<StatusPedido, string> = {
+      RECEBIDO: '📋', PREPARANDO: '🔥', PRONTO: '✅', ENTREGUE: '📦', CANCELADO: '❌',
+    };
+    return icons[this.pedido()?.status || 'RECEBIDO'];
+  });
+
+  statusMensagem = computed(() => {
+    const status = this.pedido()?.status || 'RECEBIDO';
+    const msgs: Record<StatusPedido, string> = {
+      RECEBIDO: 'Pedido recebido! Aguardando preparo...',
+      PREPARANDO: this.mensagemAleatoria(),
+      PRONTO: 'Pronto! Dirija-se ao balcão para retirar.',
+      ENTREGUE: 'Pedido entregue. Bom apetite! 🍔',
+      CANCELADO: 'Pedido cancelado.',
+    };
+    return msgs[status];
+  });
+
+  progressoWidth = computed(() => {
+    switch (this.pedido()?.status) {
+      case 'RECEBIDO': return 15;
+      case 'PREPARANDO': return 55;
+      case 'PRONTO':
+      case 'ENTREGUE': return 100;
+      default: return 0;
+    }
+  });
+
+  navItems = computed<NavItem[]>(() => {
+    const pedidoId = this.pedido()?.id;
+    const items: NavItem[] = [
+      { label: 'Início', icon: 'home', route: '/cliente/home' },
+      { label: 'Cardápio', icon: 'restaurant_menu', route: '/cliente/cardapio' },
+    ];
+    if (pedidoId) {
+      items.push({
+        label: 'Meu Pedido',
+        icon: 'receipt_long',
+        route: `/cliente/acompanhamento/${pedidoId}`,
+        badge: 1,
+      });
+    }
+    items.push({ label: 'Sair', icon: 'logout', route: '/cliente/login' });
+    return items;
+  });
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
-    console.log('[Acompanhamento] ID do pedido:', id);
     if (id) {
       this.iniciarPolling(id);
     } else {
@@ -146,13 +193,8 @@ export class AcompanhamentoComponent implements OnInit, OnDestroy {
     if (id) this.router.navigate(['/cliente/pedido', id]);
   }
 
-  abrirCancelDialog(): void {
-    this.showCancelDialog.set(true);
-  }
-
-  fecharCancelDialog(): void {
-    this.showCancelDialog.set(false);
-  }
+  abrirCancelDialog(): void { this.showCancelDialog.set(true); }
+  fecharCancelDialog(): void { this.showCancelDialog.set(false); }
 
   confirmarCancelamento(): void {
     const id = this.pedido()?.id;
@@ -177,53 +219,7 @@ export class AcompanhamentoComponent implements OnInit, OnDestroy {
     this.router.navigate(['/cliente/cardapio']);
   }
 
-  get statusIcon(): string {
-    const icons: Record<StatusPedido, string> = {
-      RECEBIDO: '📋', PREPARANDO: '🔥', PRONTO: '✅', ENTREGUE: '📦', CANCELADO: '❌',
-    };
-    return icons[this.pedido()?.status || 'RECEBIDO'];
-  }
-
-  get statusMensagem(): string {
-    const msgs: Record<StatusPedido, string> = {
-      RECEBIDO: 'Pedido recebido! Aguardando preparo...',
-      PREPARANDO: this.mensagemAleatoria(),
-      PRONTO: 'Pronto! Dirija-se ao balcão para retirar.',
-      ENTREGUE: 'Pedido entregue. Bom apetite! 🍔',
-      CANCELADO: 'Pedido cancelado.',
-    };
-    return msgs[this.pedido()?.status || 'RECEBIDO'];
-  }
-
   private mensagemAleatoria(): string {
     return this.mensagensPreparando[Math.floor(Math.random() * this.mensagensPreparando.length)];
-  }
-
-  get progressoWidth(): number {
-    switch (this.pedido()?.status) {
-      case 'RECEBIDO': return 10;
-      case 'PREPARANDO': return 50;
-      case 'PRONTO': return 100;
-      case 'ENTREGUE': return 100;
-      default: return 0;
-    }
-  }
-
-  get navItems(): NavItem[] {
-    const pedidoId = this.pedido()?.id;
-    const items: NavItem[] = [
-      { label: 'Início', icon: 'home', route: '/cliente/home' },
-      { label: 'Cardápio', icon: 'restaurant_menu', route: '/cliente/cardapio' },
-    ];
-    if (pedidoId) {
-      items.push({
-        label: 'Meu Pedido',
-        icon: 'receipt_long',
-        route: `/cliente/acompanhamento/${pedidoId}`,
-        badge: 1,
-      });
-    }
-    items.push({ label: 'Sair', icon: 'logout', route: '/cliente/login' });
-    return items;
   }
 }

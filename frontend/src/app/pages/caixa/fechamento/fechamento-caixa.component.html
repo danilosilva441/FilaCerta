@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gray-50 has-bottom-nav">
+<div class="min-h-dvh bg-gray-50 pb-[calc(6rem+env(safe-area-inset-bottom))]">
   <!-- Header -->
   <app-header
     title="Fechar Caixa"
@@ -8,154 +8,155 @@
 
   <!-- Loading -->
   @if (loading()) {
-    <app-loading-spinner message="Carregando resumo..." />
+    <div class="pt-20">
+      <app-loading-spinner message="Carregando resumo..." />
+    </div>
   }
 
   <!-- Erro -->
   @else if (error()) {
-    <div class="p-4">
+    <div class="p-4 pt-10">
       <app-empty-state icon="error" title="Erro ao carregar"
         description="Não foi possível carregar os dados do caixa." />
-      <div class="mt-4">
-        <button (click)="carregarCaixa()" class="btn-secondary" type="button">Tentar Novamente</button>
+      <div class="mt-6 flex justify-center">
+        <button (click)="carregarCaixa()" class="btn-secondary max-w-xs" type="button">Tentar Novamente</button>
       </div>
     </div>
   }
 
   <!-- Caixa já fechado -->
-  @else if (caixaFechado) {
-    <div class="flex flex-col items-center justify-center px-4 py-16 animate-fade-in">
-      <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+  @else if (caixaFechado()) {
+    <div class="flex flex-col items-center justify-center px-4 py-20 animate-fade-in text-center">
+      <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6 shadow-sm">
         <span class="material-icons text-5xl text-gray-400">lock</span>
       </div>
-      <h2 class="text-2xl font-bold text-gray-800 mb-2">Caixa Fechado</h2>
-      <p class="text-gray-500 mb-4">O expediente de hoje já foi encerrado.</p>
-      <button (click)="voltar()" class="btn-secondary max-w-xs" type="button">Voltar</button>
+      <h2 class="text-2xl font-bold text-gray-900 mb-2">Caixa Fechado</h2>
+      <p class="text-gray-500 mb-6 font-medium">O expediente de hoje já foi encerrado com sucesso.</p>
+      <button (click)="voltar()" class="btn-secondary max-w-xs shadow-sm" type="button">Voltar</button>
     </div>
   }
 
   <!-- Resumo do Caixa -->
   @else if (caixa(); as c) {
-    <div class="p-4 max-w-md mx-auto animate-fade-in space-y-4">
+    <main class="p-4 max-w-md mx-auto animate-fade-in space-y-4 pt-4">
       <!-- Card Status -->
-      <div class="bg-white rounded-2xl shadow-card p-5">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 bg-green-50 border border-green-100 rounded-full flex items-center justify-center shrink-0">
             <span class="material-icons text-2xl text-green-600">store</span>
           </div>
           <div>
-            <h2 class="font-bold text-gray-800">Caixa Aberto</h2>
-            <p class="text-sm text-gray-500">Desde {{ c.horaAbertura }} — {{ c.data | date:'dd/MM/yyyy' }}</p>
+            <h2 class="font-bold text-gray-900">Caixa Aberto</h2>
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mt-0.5">Desde {{ c.horaAbertura }} — {{ c.data | date:'dd/MM/yyyy' }}</p>
           </div>
         </div>
       </div>
 
-      <!-- Card Total -->
-      <div class="bg-primary-600 rounded-2xl shadow-lg p-6 text-white">
-        <p class="text-primary-200 text-sm font-medium mb-1">FATURAMENTO TOTAL</p>
-        <p class="text-4xl font-bold">R$ {{ totalGeral | number:'1.2-2' }}</p>
-        <div class="flex gap-4 mt-4 text-primary-100 text-sm">
-          <span>{{ c.totalPedidos }} pedidos</span>
+      <!-- Card Total (Faturamento) -->
+      <div class="bg-primary-600 rounded-2xl shadow-md p-6 text-white">
+        <p class="text-primary-200 text-xs font-bold uppercase tracking-wider mb-1">Faturamento Total</p>
+        <p class="text-4xl font-black tracking-tight">R$ {{ totalGeral() | number:'1.2-2' }}</p>
+        <div class="flex gap-3 mt-4 pt-3 border-t border-primary-500/50 text-primary-100 text-xs font-semibold">
+          <span>📦 {{ c.totalPedidos }} pedidos</span>
           <span>•</span>
-          <span>Ticket: R$ {{ ticketMedio | number:'1.2-2' }}</span>
+          <span>🎟️ Ticket: R$ {{ ticketMedio() | number:'1.2-2' }}</span>
         </div>
       </div>
 
       <!-- Detalhamento por Método -->
-      <div class="bg-white rounded-2xl shadow-card p-5">
-        <h3 class="font-semibold text-gray-800 mb-4">💳 Por Forma de Pagamento</h3>
-        <div class="space-y-3">
-          <div class="flex justify-between items-center">
-            <div class="flex items-center gap-2">
-              <span class="material-icons text-green-600">payments</span>
-              <span class="text-sm text-gray-600">Dinheiro</span>
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">💳 Por Forma de Pagamento</h3>
+        <div class="space-y-3 text-sm">
+          <div class="flex justify-between items-center py-1">
+            <div class="flex items-center gap-2.5">
+              <span class="material-icons text-green-600 text-lg">payments</span>
+              <span class="font-medium text-gray-600">Dinheiro</span>
             </div>
-            <span class="font-semibold text-gray-800">R$ {{ c.totalDinheiro | number:'1.2-2' }}</span>
+            <span class="font-bold text-gray-800">R$ {{ c.totalDinheiro | number:'1.2-2' }}</span>
           </div>
-          <div class="flex justify-between items-center">
-            <div class="flex items-center gap-2">
-              <span class="material-icons text-blue-600">credit_card</span>
-              <span class="text-sm text-gray-600">Débito</span>
+          <div class="flex justify-between items-center py-1">
+            <div class="flex items-center gap-2.5">
+              <span class="material-icons text-blue-600 text-lg">credit_card</span>
+              <span class="font-medium text-gray-600">Débito</span>
             </div>
-            <span class="font-semibold text-gray-800">R$ {{ c.totalDebito | number:'1.2-2' }}</span>
+            <span class="font-bold text-gray-800">R$ {{ c.totalDebito | number:'1.2-2' }}</span>
           </div>
-          <div class="flex justify-between items-center">
-            <div class="flex items-center gap-2">
-              <span class="material-icons text-purple-600">credit_score</span>
-              <span class="text-sm text-gray-600">Crédito</span>
+          <div class="flex justify-between items-center py-1">
+            <div class="flex items-center gap-2.5">
+              <span class="material-icons text-purple-600 text-lg">credit_score</span>
+              <span class="font-medium text-gray-600">Crédito</span>
             </div>
-            <span class="font-semibold text-gray-800">R$ {{ c.totalCredito | number:'1.2-2' }}</span>
+            <span class="font-bold text-gray-800">R$ {{ c.totalCredito | number:'1.2-2' }}</span>
           </div>
-          <div class="flex justify-between items-center">
-            <div class="flex items-center gap-2">
-              <span class="material-icons text-teal-600">pix</span>
-              <span class="text-sm text-gray-600">PIX</span>
+          <div class="flex justify-between items-center py-1">
+            <div class="flex items-center gap-2.5">
+              <span class="material-icons text-teal-600 text-lg">pix</span>
+              <span class="font-medium text-gray-600">PIX</span>
             </div>
-            <span class="font-semibold text-gray-800">R$ {{ c.totalPix | number:'1.2-2' }}</span>
+            <span class="font-bold text-gray-800">R$ {{ c.totalPix | number:'1.2-2' }}</span>
           </div>
           @if (c.totalFiado > 0) {
-            <div class="flex justify-between items-center">
-              <div class="flex items-center gap-2">
-                <span class="material-icons text-orange-600">receipt_long</span>
-                <span class="text-sm text-gray-600">Fiado</span>
+            <div class="flex justify-between items-center py-1">
+              <div class="flex items-center gap-2.5">
+                <span class="material-icons text-orange-600 text-lg">receipt_long</span>
+                <span class="font-medium text-gray-600">Fiado</span>
               </div>
-              <span class="font-semibold text-orange-600">R$ {{ c.totalFiado | number:'1.2-2' }}</span>
+              <span class="font-bold text-orange-600">R$ {{ c.totalFiado | number:'1.2-2' }}</span>
             </div>
           }
-          <div class="border-t border-gray-200 pt-3 flex justify-between items-center">
-            <span class="font-semibold text-gray-800">Total</span>
-            <span class="font-bold text-lg text-gray-800">R$ {{ totalGeral | number:'1.2-2' }}</span>
+          <div class="border-t border-gray-100 pt-3 flex justify-between items-center">
+            <span class="font-bold text-gray-900">Total Geral</span>
+            <span class="font-black text-lg text-gray-900">R$ {{ totalGeral() | number:'1.2-2' }}</span>
           </div>
         </div>
       </div>
 
       <!-- Resumo de Pedidos -->
-      <div class="bg-white rounded-2xl shadow-card p-5">
-        <h3 class="font-semibold text-gray-800 mb-4">📋 Pedidos</h3>
-        <div class="grid grid-cols-2 gap-4">
-          <div class="bg-green-50 rounded-xl p-4 text-center">
-            <p class="text-2xl font-bold text-green-700">{{ c.totalPedidos }}</p>
-            <p class="text-xs text-green-600 mt-1">Realizados</p>
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">📋 Status dos Pedidos</h3>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-green-50 border border-green-100 rounded-xl p-3 text-center">
+            <p class="text-2xl font-black text-green-700">{{ c.totalPedidos }}</p>
+            <p class="text-xs font-semibold text-green-600 mt-1">Realizados</p>
           </div>
-          <div class="bg-red-50 rounded-xl p-4 text-center">
-            <p class="text-2xl font-bold text-red-700">{{ c.totalCancelados }}</p>
-            <p class="text-xs text-red-600 mt-1">Cancelados</p>
+          <div class="bg-red-50 border border-red-100 rounded-xl p-3 text-center">
+            <p class="text-2xl font-black text-red-700">{{ c.totalCancelados }}</p>
+            <p class="text-xs font-semibold text-red-600 mt-1">Cancelados</p>
           </div>
         </div>
         <button (click)="verPedidos()"
-          class="w-full mt-4 py-2.5 px-4 rounded-xl border border-gray-300
-                 text-gray-600 font-medium text-sm hover:bg-gray-50
-                 active:bg-gray-100 transition-colors" type="button">
-          Ver Todos os Pedidos
+          class="w-full mt-4 py-2.5 px-4 rounded-xl border border-gray-200
+                 text-gray-600 font-bold text-sm bg-white hover:bg-gray-50
+                 active:scale-95 transition-all shadow-sm" type="button">
+          🔍 Ver Cozinha / Pedidos
         </button>
       </div>
 
-      <!-- Botão Fechar -->
-      <button (click)="abrirConfirmDialog()" [disabled]="fechando()" class="btn-primary text-lg" type="button">
-        @if (fechando()) {
-          <span class="flex items-center justify-center gap-2">
-            <span class="material-icons animate-spin text-lg">refresh</span> Fechando...
-          </span>
-        } @else {
-          🔒 Fechar Caixa
-        }
-      </button>
+      <!-- Ações de Fechamento -->
+      <div class="space-y-3 pt-2">
+        <button (click)="abrirConfirmDialog()" [disabled]="fechando()" class="btn-primary text-base font-bold py-4 shadow-sm" type="button">
+          @if (fechando()) {
+            <span class="flex items-center justify-center gap-2">
+              <span class="material-icons animate-spin text-lg">refresh</span> Encerrando expediente...
+            </span>
+          } @else {
+            🔒 Fechar Caixa do Dia
+          }
+        </button>
 
-      <!-- Botão Voltar -->
-      <button (click)="voltar()"
-        class="w-full py-2.5 px-4 rounded-xl border border-gray-300
-               text-gray-600 font-medium text-sm hover:bg-gray-50
-               active:bg-gray-100 transition-colors" type="button">
-        Voltar ao Painel
-      </button>
-    </div>
+        <button (click)="voltar()"
+          class="w-full py-3 px-4 rounded-xl border border-gray-200 text-gray-600 font-bold text-sm bg-white hover:bg-gray-50 active:scale-95 transition-all shadow-sm" type="button">
+          Voltar ao Painel
+        </button>
+      </div>
+    </main>
   }
 
   <!-- Dialog de Confirmação -->
   <app-confirm-dialog
     [visible]="showConfirmDialog()"
     title="Fechar Caixa"
-    message="Tem certeza que deseja encerrar o expediente? Após o fechamento, novos pedidos não poderão ser registrados."
+    message="Tem certeza que deseja encerrar o expediente? Após o fechamento, novos pedidos não poderão ser registrados no caixa de hoje."
     confirmText="Sim, Fechar"
     cancelText="Cancelar"
     type="warning"
@@ -164,5 +165,5 @@
   />
 
   <!-- Bottom Navigation -->
-  <app-bottom-nav [items]="navItems" />
+  <app-bottom-nav [items]="navItems()" />
 </div>

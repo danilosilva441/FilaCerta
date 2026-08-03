@@ -6,12 +6,31 @@ module.exports = {
   ],
   theme: {
     extend: {
+      // 1. EXTENSÕES PARA MOBILE (Novo)
+      height: {
+        'dvh': '100dvh', // Usa a altura real da tela visível no celular
+      },
+      minHeight: {
+        'dvh': '100dvh',
+      },
+      spacing: {
+        // Permite usar as áreas seguras do iPhone direto nas classes.
+        // Exemplo: pt-safe-top, pb-safe-bottom
+        'safe-top': 'env(safe-area-inset-top)',
+        'safe-bottom': 'env(safe-area-inset-bottom)',
+        'safe-left': 'env(safe-area-inset-left)',
+        'safe-right': 'env(safe-area-inset-right)',
+      },
+
+      // 2. BREAKPOINTS
       screens: {
         'xs': '375px',   // iPhone SE
-        'sm': '414px',   // iPhone 11
+        'sm': '414px',   // iPhone 11 / Pro Max
         'md': '768px',   // Tablet
         'lg': '1024px',  // Desktop
       },
+
+      // 3. CORES
       colors: {
         primary: {
           50: '#fef2f2',
@@ -42,25 +61,30 @@ module.exports = {
           DEFAULT: '#2563eb',
           light: '#dbeafe',
         },
+        // Cores específicas do negócio
         chapa: '#ef4444',
         montagem: '#f59e0b',
         imediato: '#22c55e',
         comanda: '#8b5cf6',
       },
+
+      // 4. TIPOGRAFIA
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
+
+      // 5. ANIMAÇÕES (Sensação de App Nativo)
       animation: {
         'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'bounce-in': 'bounceIn 0.5s ease-out',
-        'slide-up': 'slideUp 0.3s ease-out',
+        'bounce-in': 'bounceIn 0.5s cubic-bezier(0.16, 1, 0.3, 1)', // Curva mais suave
+        'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
         'fade-in': 'fadeIn 0.2s ease-out',
       },
       keyframes: {
         bounceIn: {
           '0%': { transform: 'scale(0.3)', opacity: '0' },
           '50%': { transform: 'scale(1.05)' },
-          '70%': { transform: 'scale(0.9)' },
+          '70%': { transform: 'scale(0.95)' },
           '100%': { transform: 'scale(1)', opacity: '1' },
         },
         slideUp: {
@@ -72,6 +96,8 @@ module.exports = {
           '100%': { opacity: '1' },
         },
       },
+
+      // 6. SOMBRAS
       boxShadow: {
         'card': '0 2px 8px rgba(0, 0, 0, 0.08)',
         'card-hover': '0 4px 16px rgba(0, 0, 0, 0.12)',

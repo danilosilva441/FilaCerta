@@ -1,7 +1,10 @@
-import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, signal, computed, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { DecimalPipe, DatePipe } from '@angular/common'; // Importação super leve no lugar do CommonModule
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { timer, switchMap, tap } from 'rxjs';
+
 import { PedidoService } from '../../../core/services/pedido.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { HeaderComponent } from '../../../shared/components/header/header.component';
@@ -10,12 +13,14 @@ import { StatusBadgeComponent } from '../../../shared/components/status-badge/st
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { PedidoResponse, StatusPedido } from '../../../core/models';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-pedido',
   standalone: true,
   imports: [
-    CommonModule,
+    DecimalPipe,
+    DatePipe,
     FormsModule,
     RouterModule,
     HeaderComponent,
@@ -25,73 +30,40 @@ import { PedidoResponse, StatusPedido } from '../../../core/models';
     ConfirmDialogComponent,
   ],
   templateUrl: './pedido.component.html',
-  styleUrls: ['./pedido.component.css'],
+  // OnPush + Computed garante que a bateria do cliente não seja drenada pelas atualizações da tela
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PedidoComponent implements OnInit {
+  // Injeções de Dependência
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private pedidoService = inject(PedidoService);
+  private authService = inject(AuthService);
+  private destroyRef = inject(DestroyRef); // Usado para encerrar o polling ao fechar a tela
+
+  // Estados Base
   pedido = signal<PedidoResponse | null>(null);
   loading = signal(true);
   error = signal(false);
 
-  // Edição de itens
+  // Estados de Interface
   editando = signal(false);
   observacaoEdicao = signal('');
-
-  // Cancelamento
   showCancelDialog = signal(false);
   cancelando = signal(false);
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private pedidoService: PedidoService,
-    private authService: AuthService
-  ) {}
+  // ✨ Computed Signals (Substituem os antigos 'get()')
+  // Eles guardam o resultado em cache e só recalcula se o 'this.pedido()' mudar!
+  nomeCliente = computed(() => this.authService.usuario()?.nomeCliente || '');
 
-  ngOnInit(): void {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
-    if (id) {
-      this.carregarPedido(id);
-    } else {
-      this.error.set(true);
-      this.loading.set(false);
-    }
-  }
-
-  /** Nome do cliente logado */
-  get nomeCliente(): string {
-    return this.authService.usuario()?.nomeCliente || '';
-  }
-
-  carregarPedido(id: number): void {
-    this.loading.set(true);
-    this.error.set(false);
-
-    this.pedidoService.buscarPorId(id).subscribe({
-      next: (data) => {
-        this.pedido.set(data);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.error.set(true);
-        this.loading.set(false);
-      },
-    });
-  }
-
-  // ──── Status ────
-
-  get statusIcon(): string {
+  statusIcon = computed(() => {
     const icons: Record<StatusPedido, string> = {
-      RECEBIDO: '📋',
-      PREPARANDO: '🔥',
-      PRONTO: '✅',
-      ENTREGUE: '📦',
-      CANCELADO: '❌',
+      RECEBIDO: '📋', PREPARANDO: '🔥', PRONTO: '✅', ENTREGUE: '📦', CANCELADO: '❌',
     };
     return icons[this.pedido()?.status || 'RECEBIDO'];
-  }
+  });
 
-  get statusMensagem(): string {
+  statusMensagem = computed(() => {
     const msgs: Record<StatusPedido, string> = {
       RECEBIDO: 'Pedido recebido! Aguardando preparo...',
       PREPARANDO: 'Seu pedido está sendo preparado!',
@@ -100,33 +72,59 @@ export class PedidoComponent implements OnInit {
       CANCELADO: 'Pedido cancelado.',
     };
     return msgs[this.pedido()?.status || 'RECEBIDO'];
-  }
+  });
 
-  get podeCancelar(): boolean {
+  podeCancelar = computed(() => {
     const status = this.pedido()?.status;
     return status === 'RECEBIDO' || status === 'PREPARANDO';
+  });
+
+  podeEditar = computed(() => this.pedido()?.status === 'RECEBIDO');
+
+  ngOnInit(): void {
+    const id = Number(this.route.snapshot.paramMap.get('id'));
+    if (id) {
+      this.iniciarMonitoramento(id);
+    } else {
+      this.error.set(true);
+      this.loading.set(false);
+    }
   }
 
-  get podeEditar(): boolean {
-    return this.pedido()?.status === 'RECEBIDO';
+  // ──── Polling Dinâmico ────
+  // Atualiza o pedido sozinho a cada X segundos para o cliente ver o status em tempo real
+  iniciarMonitoramento(id: number): void {
+    timer(0, environment.pollingIntervalMs || 10000)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        switchMap(() => this.pedidoService.buscarPorId(id)),
+      )
+      .subscribe({
+        next: (data) => {
+          this.pedido.set(data);
+          this.loading.set(false);
+          this.error.set(false);
+        },
+        error: (err) => {
+          console.error('Falha ao atualizar pedido', err);
+          // Só mostra a tela de erro fatal se for a primeira vez carregando
+          if (!this.pedido()) {
+            this.error.set(true);
+            this.loading.set(false);
+          }
+        },
+      });
   }
 
   // ──── Cancelamento ────
-
-  abrirCancelDialog(): void {
-    this.showCancelDialog.set(true);
-  }
-
-  fecharCancelDialog(): void {
-    this.showCancelDialog.set(false);
-  }
+  abrirCancelDialog(): void { this.showCancelDialog.set(true); }
+  fecharCancelDialog(): void { this.showCancelDialog.set(false); }
 
   confirmarCancelamento(): void {
     const pedidoId = this.pedido()?.id;
     if (!pedidoId) return;
 
     this.cancelando.set(true);
-
     this.pedidoService.cancelar(pedidoId).subscribe({
       next: (data) => {
         this.pedido.set(data);
@@ -142,7 +140,6 @@ export class PedidoComponent implements OnInit {
   }
 
   // ──── Edição ────
-
   abrirEdicao(): void {
     this.observacaoEdicao.set(this.pedido()?.observacao || '');
     this.editando.set(true);
@@ -153,33 +150,15 @@ export class PedidoComponent implements OnInit {
   }
 
   salvarEdicao(): void {
+    // TODO: Adicionar chamada a API caso precise salvar (ex: this.pedidoService.atualizarObservacao)
     this.editando.set(false);
   }
 
-  // ──── Adicionar Itens ────
-
-  adicionarItens(): void {
-    this.router.navigate(['/cliente/cardapio'], {
-      queryParams: { pedidoId: this.pedido()?.id }
-    });
-  }
-
   // ──── Navegação ────
-
-  novoPedido(): void {
-    this.router.navigate(['/cliente/cardapio']);
+  adicionarItens(): void {
+    this.router.navigate(['/cliente/cardapio'], { queryParams: { pedidoId: this.pedido()?.id } });
   }
 
-  voltarCardapio(): void {
-    this.router.navigate(['/cliente/cardapio']);
-  }
-
-  voltarAcompanhamento(): void {
-    const id = this.pedido()?.id;
-    if (id) {
-      this.router.navigate(['/cliente/acompanhamento', id]);
-    } else {
-      this.router.navigate(['/cliente/cardapio']);
-    }
-  }
+  novoPedido(): void { this.router.navigate(['/cliente/cardapio']); }
+  voltarCardapio(): void { this.router.navigate(['/cliente/cardapio']); }
 }

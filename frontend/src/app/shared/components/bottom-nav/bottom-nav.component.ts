@@ -1,5 +1,4 @@
-import { Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
 export interface NavItem {
@@ -12,9 +11,10 @@ export interface NavItem {
 @Component({
   selector: 'app-bottom-nav',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [RouterModule], // CommonModule removido para poupar KB do bundle!
   templateUrl: './bottom-nav.component.html',
-  styleUrls: ['./bottom-nav.component.css'],
+  // OnPush aqui é excelente porque o menu não fica se re-renderizando a cada clique interno do app
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BottomNavComponent {
   @Input() items: NavItem[] = [];

@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, throwError, map, of } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { Observable, catchError, map, of, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface StatusCaixaResponse {
@@ -45,28 +45,22 @@ export class CaixaService {
 
   private readonly apiUrl = `${environment.apiUrl}/caixa`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
-   // Verificar status do caixa (público)
+  // Verificar status do caixa (público)
   getStatus(): Observable<StatusCaixaResponse> {
     return this.http.get<StatusCaixaResponse>(`${this.apiUrl}/hoje/status`);
   }
 
-  // Verificar se o caixa está aberto (método simplificado para o Guard)
+  // Verificar se o caixa está aberto (usando operadores RxJS limpos)
   verificarCaixaAberto(): Observable<boolean> {
-    return new Observable<boolean>((observer) => {
-      this.getStatus().subscribe({
-        next: (status) => {
-          observer.next(status.status === 'ABERTO');
-          observer.complete();
-        },
-        error: (error) => {
-          console.error('Erro ao verificar caixa:', error);
-          observer.next(false);
-          observer.complete();
-        }
-      });
-    });
+    return this.getStatus().pipe(
+      map(status => status.status === 'ABERTO'), // Se der sucesso, converte a resposta para true/false
+      catchError((error) => {
+        console.error('Erro ao verificar caixa:', error);
+        return of(false); // Se a API cair ou der erro, o guard entende como false com segurança
+      })
+    );
   }
 
 

@@ -1,22 +1,36 @@
-<nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 safe-area-bottom">
-  <div class="flex justify-around items-center h-16">
+<!--
+  1. pb-[env(safe-area-inset-bottom)]: Protege o menu da barra de gestos do iPhone
+  2. select-none: Evita que o usuário selecione texto sem querer ao arrastar a tela
+-->
+<nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-40
+            pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_20px_rgba(0,0,0,0.04)] select-none">
+
+  <div class="flex justify-around items-center h-16 px-1">
     @for (item of items; track item.route) {
       <a
         [routerLink]="item.route"
         routerLinkActive="text-primary-600"
         [routerLinkActiveOptions]="{ exact: item.route === '/' }"
-        class="flex flex-col items-center justify-center gap-0.5 px-3 py-2
-               text-gray-400 hover:text-primary-500 transition-colors
-               min-w-0 flex-1 relative tap-target"
+        class="flex flex-col items-center justify-center gap-1
+               text-gray-400 hover:text-primary-500 active:scale-90 transition-all
+               min-w-[64px] min-h-[48px] flex-1 relative"
+        [attr.aria-label]="item.label + (item.badge ? ' - ' + item.badge + ' notificações' : '')"
       >
-        <span class="material-icons text-2xl">{{ item.icon }}</span>
+        <span class="material-icons text-2xl leading-none">{{ item.icon }}</span>
+
         @if (showLabels) {
-          <span class="text-xxs font-medium truncate max-w-full">{{ item.label }}</span>
+          <span class="text-[10px] font-medium truncate max-w-full leading-none">{{ item.label }}</span>
         }
+
         @if (item.badge && item.badge > 0) {
-          <span class="absolute -top-0.5 right-2 bg-red-500 text-white text-xxs
+          <!--
+            O badge agora tem uma bordinha branca (border-white) que o recorta por cima do ícone,
+            dando uma aparência de aplicativo Premium (estilo Instagram/WhatsApp).
+            A posição right-[calc(50%-24px)] garante que ele fique colado no ícone, mesmo em telas de tablets.
+          -->
+          <span class="absolute top-1 right-[calc(50%-24px)] bg-red-500 text-white text-[10px]
                        rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1
-                       font-bold shadow-sm">
+                       font-bold shadow-sm leading-none border-2 border-white box-content">
             {{ item.badge > 99 ? '99+' : item.badge }}
           </span>
         }

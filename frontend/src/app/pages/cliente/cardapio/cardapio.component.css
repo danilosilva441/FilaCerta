@@ -2,65 +2,33 @@
   display: block;
 }
 
-/* Container principal */
-.page-container {
-  min-height: 100vh;
-  background-color: #f9fafb;
-  padding-bottom: 12rem;
+/*
+  1. SCROLL HORIZONTAL SUAVE (MOBILE)
+  Substituímos a classe '.scroll-x-hidden' por '.no-scrollbar' para bater com o HTML.
+*/
+.no-scrollbar {
+  -ms-overflow-style: none; /* Oculta no IE e Edge */
+  scrollbar-width: none; /* Oculta no Firefox */
+  scroll-snap-type: x mandatory; /* Faz o scroll "grudar" nos itens */
+  -webkit-overflow-scrolling: touch; /* Garante rolagem fluida no iOS */
 }
 
-/* Categorias com scroll suave */
-.scroll-x-hidden {
-  display: flex;
-  overflow-x: auto;
-  gap: 0.5rem;
-  padding-bottom: 0.25rem;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Oculta no Chrome, Safari e Android */
 }
 
-.scroll-x-hidden::-webkit-scrollbar {
-  display: none;
-}
-
-.scroll-x-hidden > * {
+/* Garante que os botões de categoria parem no lugar certo ao rolar */
+.no-scrollbar > * {
   scroll-snap-align: start;
 }
 
-/* Cards com transição suave */
-.card {
-  transition: box-shadow 0.2s ease, transform 0.15s ease;
-}
-
-.card:active {
-  transform: scale(0.98);
-}
-
-/* Botão de ícone */
-.btn-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s ease;
-  border: none;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.btn-icon:active {
-  transform: scale(0.92);
-}
-
-/* Animação de entrada dos cards */
+/*
+  2. ANIMAÇÕES DE ENTRADA DOS CARDS (EFEITO APLICATIVO NATIVO)
+*/
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(15px);
   }
   to {
     opacity: 1;
@@ -69,12 +37,20 @@
 }
 
 .card {
-  animation: fadeInUp 0.3s ease-out;
+  /*
+    O 'both' garante que o card fique invisível ANTES da animação começar.
+    O 'cubic-bezier' dá um toque mais suave e "premium", estilo iOS.
+  */
+  animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity; /* Otimiza a performance da animação no celular */
 }
 
-/* Stagger animation delay */
-section .card:nth-child(1) { animation-delay: 0ms; }
-section .card:nth-child(2) { animation-delay: 50ms; }
-section .card:nth-child(3) { animation-delay: 100ms; }
-section .card:nth-child(4) { animation-delay: 150ms; }
-section .card:nth-child(5) { animation-delay: 200ms; }
+/* Efeito Cascata (Stagger) - Aumentei até 8 prevendo telas de tablet/desktop */
+.card:nth-child(1) { animation-delay: 0ms; }
+.card:nth-child(2) { animation-delay: 50ms; }
+.card:nth-child(3) { animation-delay: 100ms; }
+.card:nth-child(4) { animation-delay: 150ms; }
+.card:nth-child(5) { animation-delay: 200ms; }
+.card:nth-child(6) { animation-delay: 250ms; }
+.card:nth-child(7) { animation-delay: 300ms; }
+.card:nth-child(8) { animation-delay: 350ms; }

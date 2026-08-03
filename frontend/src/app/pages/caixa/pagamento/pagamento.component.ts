@@ -1,5 +1,5 @@
-import { CommonModule, DecimalPipe } from '@angular/common';
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed, ChangeDetectionStrategy, inject } from '@angular/core';
+import { DecimalPipe, DatePipe } from '@angular/common'; // CommonModule substituído para otimizar memória
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -25,9 +25,9 @@ interface MetodoPagamentoVisual {
   selector: 'app-pagamento',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     DecimalPipe,
+    DatePipe,
     HeaderComponent,
     LoadingSpinnerComponent,
     StatusBadgeComponent,
@@ -36,9 +36,15 @@ interface MetodoPagamentoVisual {
     BottomNavComponent,
   ],
   templateUrl: './pagamento.component.html',
-  styleUrls: ['./pagamento.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush, // Performance máxima
 })
 export class PagamentoComponent implements OnInit {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private pedidoService = inject(PedidoService);
+  private errorHandler = inject(ErrorHandlerService);
+
+  // Estados Base
   pedido = signal<PedidoResponse | null>(null);
   loading = signal(true);
   error = signal(false);
@@ -48,12 +54,25 @@ export class PagamentoComponent implements OnInit {
   sucesso = signal(false);
   showConfirmDialog = signal(false);
 
-  navItems: NavItem[] = [
-    { label: 'Dashboard', icon: 'dashboard', route: '/dono/dashboard' },
-    { label: 'Cozinha', icon: 'cooking', route: '/dono/cozinha/painel' },
-    { label: 'Caixa', icon: 'account_balance', route: '/dono/caixa/abertura' },
-    { label: 'Mais', icon: 'more_horiz', route: '/dono/caixa/fechamento' },
-  ];
+  // ✨ COMPUTED SIGNALS (Substituem os antigos getters)
+  troco = computed(() => {
+    return Math.max(0, this.valorRecebido() - (this.pedido()?.valorTotal || 0));
+  });
+
+  podeConfirmar = computed(() => {
+    const metodo = this.metodoSelecionado();
+    if (!metodo) return false;
+    if (metodo === 'FIADO') return true;
+    if (metodo === 'DINHEIRO') return this.valorRecebido() >= (this.pedido()?.valorTotal || 0);
+    return true;
+  });
+
+  navItems = computed<NavItem[]>(() => [
+    { label: 'Painel', icon: 'dashboard', route: '/dono/dashboard' },
+    { label: 'Cozinha', icon: 'soup_kitchen', route: '/dono/cozinha/painel' },
+    { label: 'Comandas', icon: 'receipt_long', route: '/dono/comandas' },
+    { label: 'Relatórios', icon: 'analytics', route: '/dono/relatorios/hoje' },
+  ]);
 
   metodosPagamento: MetodoPagamentoVisual[] = [
     { valor: 'DINHEIRO', label: 'Dinheiro', icone: 'payments' },
@@ -62,13 +81,6 @@ export class PagamentoComponent implements OnInit {
     { valor: 'PIX', label: 'PIX', icone: 'pix' },
     { valor: 'FIADO', label: 'Fiado', icone: 'receipt_long' },
   ];
-
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private pedidoService: PedidoService,
-    private errorHandler: ErrorHandlerService
-  ) { }
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -83,10 +95,10 @@ export class PagamentoComponent implements OnInit {
   carregarPedido(id: number): void {
     this.loading.set(true);
     this.error.set(false);
+
     this.pedidoService.buscarPorId(id).subscribe({
       next: (data) => {
         this.pedido.set(data);
-        // Pré-seleciona o método se já existir
         if (data.metodoPagamento) {
           this.metodoSelecionado.set(data.metodoPagamento as MetodoPagamento);
         }
@@ -99,18 +111,6 @@ export class PagamentoComponent implements OnInit {
         this.loading.set(false);
       },
     });
-  }
-
-  get troco(): number {
-    return Math.max(0, this.valorRecebido() - (this.pedido()?.valorTotal || 0));
-  }
-
-  get podeConfirmar(): boolean {
-    const metodo = this.metodoSelecionado();
-    if (!metodo) return false;
-    if (metodo === 'FIADO') return true;
-    if (metodo === 'DINHEIRO') return this.valorRecebido() >= (this.pedido()?.valorTotal || 0);
-    return true;
   }
 
   selecionarMetodo(metodo: MetodoPagamento): void {
@@ -129,7 +129,6 @@ export class PagamentoComponent implements OnInit {
     this.processando.set(true);
     this.showConfirmDialog.set(false);
 
-    // Enviar com confirmarPagamento: true
     this.pedidoService.registrarPagamento(pedidoId, { metodoPagamento: metodo }, true).subscribe({
       next: (data) => {
         this.pedido.set(data);
@@ -145,14 +144,6 @@ export class PagamentoComponent implements OnInit {
   }
 
   voltar(): void { window.history.back(); }
-
-  /** Volta para o painel da cozinha após confirmar pagamento */
-  irParaCozinha(): void {
-    this.router.navigate(['/dono/cozinha/painel']);
-  }
-
-  /** Volta para o dashboard */
-  irParaDashboard(): void {
-    this.router.navigate(['/dono/dashboard']);
-  }
+  irParaCozinha(): void { this.router.navigate(['/dono/cozinha/painel']); }
+  irParaDashboard(): void { this.router.navigate(['/dono/dashboard']); }
 }

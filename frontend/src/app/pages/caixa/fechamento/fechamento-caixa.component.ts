@@ -1,5 +1,5 @@
-import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
+import { Component, OnInit, signal, computed, ChangeDetectionStrategy, inject } from '@angular/core';
+import { DatePipe, DecimalPipe } from '@angular/common'; // CommonModule removido para poupar memória
 import { Router } from '@angular/router';
 import { CaixaService, CaixaDiarioResponse } from '../../../core/services/caixa.service';
 import { ErrorHandlerService } from '../../../core/services/error-handler.service';
@@ -13,7 +13,6 @@ import { BottomNavComponent, NavItem } from '../../../shared/components/bottom-n
   selector: 'app-fechamento-caixa',
   standalone: true,
   imports: [
-    CommonModule,
     DatePipe,
     DecimalPipe,
     HeaderComponent,
@@ -23,27 +22,44 @@ import { BottomNavComponent, NavItem } from '../../../shared/components/bottom-n
     BottomNavComponent,
   ],
   templateUrl: './fechamento-caixa.component.html',
-  styleUrls: ['./fechamento-caixa.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush, // Performance máxima
 })
 export class FechamentoCaixaComponent implements OnInit {
+  private caixaService = inject(CaixaService);
+  private errorHandler = inject(ErrorHandlerService);
+  private router = inject(Router);
+
+  // Estados Base
   caixa = signal<CaixaDiarioResponse | null>(null);
   loading = signal(true);
   error = signal(false);
   fechando = signal(false);
   showConfirmDialog = signal(false);
 
-  navItems: NavItem[] = [
-    { label: 'Dashboard', icon: 'dashboard', route: '/dono/dashboard' },
-    { label: 'Cozinha', icon: 'cooking', route: '/dono/cozinha/painel' },
-    { label: 'Caixa', icon: 'account_balance', route: '/dono/caixa/abertura' },
-    { label: 'Mais', icon: 'more_horiz', route: '/dono/caixa/fechamento' },
-  ];
+  // ✨ COMPUTED SIGNALS (Substituem os antigos getters para alta performance)
+  caixaFechado = computed(() => this.caixa()?.status === 'FECHADO');
 
-  constructor(
-    private caixaService: CaixaService,
-    private errorHandler: ErrorHandlerService,
-    private router: Router
-  ) {}
+  totalGeral = computed(() => {
+    const c = this.caixa();
+    if (!c) return 0;
+    return (c as any).valorTotalConcluidos ||
+      (c.totalDinheiro + c.totalDebito + c.totalCredito + c.totalPix + c.totalFiado);
+  });
+
+  totalConcluidos = computed(() => (this.caixa() as any)?.totalConcluidos || 0);
+
+  ticketMedio = computed(() => {
+    const c = this.caixa();
+    if (!c || c.totalPedidos === 0) return 0;
+    return this.totalGeral() / c.totalPedidos;
+  });
+
+  navItems = computed<NavItem[]>(() => [
+    { label: 'Painel', icon: 'dashboard', route: '/dono/dashboard' },
+    { label: 'Cozinha', icon: 'soup_kitchen', route: '/dono/cozinha/painel' },
+    { label: 'Comandas', icon: 'receipt_long', route: '/dono/comandas' },
+    { label: 'Relatórios', icon: 'analytics', route: '/dono/relatorios/hoje' },
+  ]);
 
   ngOnInit(): void {
     this.carregarCaixa();
@@ -52,6 +68,7 @@ export class FechamentoCaixaComponent implements OnInit {
   carregarCaixa(): void {
     this.loading.set(true);
     this.error.set(false);
+
     this.caixaService.buscarCaixaHoje().subscribe({
       next: (data) => {
         this.caixa.set(data);
@@ -64,34 +81,13 @@ export class FechamentoCaixaComponent implements OnInit {
     });
   }
 
-  get caixaFechado(): boolean {
-    return this.caixa()?.status === 'FECHADO';
-  }
-
-  get totalGeral(): number {
-    const c = this.caixa();
-    if (!c) return 0;
-    // Usa totalConcluidos se disponível, senão soma os métodos
-    return (c as any).valorTotalConcluidos ||
-      (c.totalDinheiro + c.totalDebito + c.totalCredito + c.totalPix + c.totalFiado);
-  }
-
-  get totalConcluidos(): number {
-    return (this.caixa() as any)?.totalConcluidos || 0;
-  }
-
-  get ticketMedio(): number {
-    const c = this.caixa();
-    if (!c || c.totalPedidos === 0) return 0;
-    return this.totalGeral / c.totalPedidos;
-  }
-
   abrirConfirmDialog(): void { this.showConfirmDialog.set(true); }
   fecharConfirmDialog(): void { this.showConfirmDialog.set(false); }
 
   confirmarFechamento(): void {
     this.fechando.set(true);
     this.showConfirmDialog.set(false);
+
     this.caixaService.fechar().subscribe({
       next: () => {
         this.fechando.set(false);

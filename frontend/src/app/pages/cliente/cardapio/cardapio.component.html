@@ -1,154 +1,203 @@
-<div class="page-container has-bottom-nav pb-20">
-  <app-header title="Bora Rochedo" [subtitle]="'Olá, ' + nomeCliente" [rightAction]="{
+<div class="bg-gray-50 min-h-dvh pb-[calc(6rem+env(safe-area-inset-bottom))]">
+  <app-header
+    title="Bora Rochedo"
+    [subtitle]="'Olá, ' + nomeCliente()"
+    [rightAction]="{
       icon: 'logout',
       label: 'Sair',
       handler: sair.bind(this)
-    }"></app-header>
+    }">
+  </app-header>
 
   <!-- Banner de Edição -->
   @if (editandoPedido() && pedidoEditando()) {
-  <div class="bg-yellow-50 border-b border-yellow-200 px-4 py-3">
-    <div class="flex items-center justify-between">
+  <div class="bg-yellow-50 border-b border-yellow-200 px-4 py-3 sm:px-6 md:px-8">
+    <div class="flex items-center justify-between max-w-7xl mx-auto">
       <div>
         <p class="text-sm font-medium text-yellow-800">✏️ Editando Pedido #{{ pedidoEditando()?.numero }}</p>
-        <p class="text-xs text-yellow-600">{{ pedidoEditando()?.tipo === 'LEVAR' ? '🏃 Para levar' : '🍽️ Comer aqui' }}
+        <p class="text-xs text-yellow-600">
+          {{ pedidoEditando()?.tipo === 'LEVAR' ? '🏃 Para levar' : '🍽️ Comer aqui' }}
         </p>
       </div>
       <button (click)="cancelarEdicao()"
-        class="text-sm text-yellow-700 font-medium hover:text-yellow-800 transition-colors"
-        type="button">Cancelar</button>
+        class="text-sm text-yellow-700 font-medium hover:text-yellow-800 active:scale-95 transition-all px-3 py-2"
+        type="button">
+        Cancelar
+      </button>
     </div>
   </div>
   }
 
   <!-- Tipo de Pedido -->
-  <div class="bg-white p-4 space-y-3 shadow-sm">
-    <div class="flex gap-2">
-      <button (click)="tipoPedido.set('LEVAR')" class="flex-1 py-2.5 rounded-xl font-medium text-sm transition-all"
-        [class.btn-primary]="tipoPedido() === 'LEVAR'" [class.bg-gray-100]="tipoPedido() !== 'LEVAR'"
-        [class.text-gray-700]="tipoPedido() !== 'LEVAR'" type="button">🏃 Levar</button>
-      <button (click)="tipoPedido.set('COMER_AQUI')" class="flex-1 py-2.5 rounded-xl font-medium text-sm transition-all"
-        [class.btn-primary]="tipoPedido() === 'COMER_AQUI'" [class.bg-gray-100]="tipoPedido() !== 'COMER_AQUI'"
-        [class.text-gray-700]="tipoPedido() !== 'COMER_AQUI'" type="button">🍽️ Comer Aqui</button>
+  <div class="bg-white p-4 sm:px-6 md:px-8 shadow-sm border-b border-gray-100">
+    <div class="flex gap-3 max-w-md mx-auto sm:max-w-lg">
+      <button (click)="tipoPedido.set('LEVAR')"
+        class="flex-1 py-3 rounded-xl font-medium text-sm transition-all active:scale-95"
+        [class.btn-primary]="tipoPedido() === 'LEVAR'"
+        [class.bg-gray-100]="tipoPedido() !== 'LEVAR'"
+        [class.text-gray-700]="tipoPedido() !== 'LEVAR'"
+        type="button">🏃 Levar
+      </button>
+      <button (click)="tipoPedido.set('COMER_AQUI')"
+        class="flex-1 py-3 rounded-xl font-medium text-sm transition-all active:scale-95"
+        [class.btn-primary]="tipoPedido() === 'COMER_AQUI'"
+        [class.bg-gray-100]="tipoPedido() !== 'COMER_AQUI'"
+        [class.text-gray-700]="tipoPedido() !== 'COMER_AQUI'"
+        type="button">🍽️ Comer Aqui
+      </button>
     </div>
   </div>
 
-  <!-- Categorias -->
-  <nav class="bg-white border-b border-gray-100 px-4 py-3 sticky top-14 z-10">
-    <div class="scroll-x-hidden">
+  <!-- Categorias (Scroll Horizontal Suave) -->
+  <nav class="bg-white border-b border-gray-100 py-3 sticky top-[4.5rem] z-10 shadow-sm">
+    <div class="flex overflow-x-auto gap-2 px-4 sm:px-6 md:px-8 no-scrollbar pb-1">
       @for (cat of categorias; track cat.valor) {
       <button (click)="categoriaSelecionada.set(cat.valor)"
-        class="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all shrink-0"
+        class="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all shrink-0 active:scale-95"
         [class.bg-red-600]="categoriaSelecionada() === cat.valor"
         [class.text-white]="categoriaSelecionada() === cat.valor"
         [class.bg-gray-100]="categoriaSelecionada() !== cat.valor"
-        [class.text-gray-600]="categoriaSelecionada() !== cat.valor" type="button">{{ cat.icone }} {{ cat.nome
-        }}</button>
+        [class.text-gray-600]="categoriaSelecionada() !== cat.valor"
+        type="button">
+        {{ cat.icone }} {{ cat.nome }}
+      </button>
       }
     </div>
   </nav>
 
-  @if (loading()) { <app-loading-spinner message="Carregando cardápio..." /> }
+  <!-- Área Principal de Conteúdo -->
+  <main class="max-w-7xl mx-auto w-full pb-6">
+    @if (loading()) {
+      <div class="pt-8"><app-loading-spinner message="Carregando cardápio..." /></div>
+    }
 
-  @else if (error()) {
-  <app-empty-state icon="error" title="Erro ao carregar" description="Não foi possível carregar o cardápio." />
-  <div class="px-4"><button (click)="carregarProdutos()" class="btn-secondary" type="button">Tentar Novamente</button>
-  </div>
-  }
+    @else if (error()) {
+      <div class="pt-8">
+        <app-empty-state icon="error" title="Erro ao carregar" description="Não foi possível carregar o cardápio." />
+        <div class="px-4 flex justify-center mt-4">
+          <button (click)="carregarProdutos()" class="btn-secondary px-8 py-3 rounded-xl active:scale-95 transition-transform" type="button">
+            Tentar Novamente
+          </button>
+        </div>
+      </div>
+    }
 
-  @else if (produtosFiltrados.length === 0) {
-  <app-empty-state icon="restaurant_menu" title="Sem produtos"
-    description="Nenhum produto disponível nesta categoria." />
-  }
+    @else if (produtosFiltrados().length === 0) {
+      <div class="pt-8">
+        <app-empty-state icon="restaurant_menu" title="Sem produtos" description="Nenhum produto disponível nesta categoria." />
+      </div>
+    }
 
-  @else if (categoriaSelecionada() === 'TODOS') {
-  @for (grupo of produtosAgrupados; track grupo.categoria) {
-  <section class="px-4 pt-4">
-    <h2 class="text-lg font-bold text-gray-800 mb-3">{{ grupo.icone }} {{ grupo.categoria }}</h2>
-    <div class="space-y-3">
-      @for (produto of grupo.items; track produto.id) {
-      <div class="card flex justify-between items-center gap-3">
-        <div class="flex-1 min-w-0">
-          <h3 class="font-semibold text-gray-800 truncate">{{ produto.nome }}</h3>
-          <p class="text-sm text-gray-500 truncate">{{ produto.descricao }}</p>
-          <div class="flex items-center gap-2 mt-1">
-            <span class="text-red-600 font-bold">R$ {{ produto.preco | number:'1.2-2' }}</span>
-            @if (produto.tempoPreparoMinutos > 0) { <span class="text-xs text-gray-400">⏱️ {{
-              produto.tempoPreparoMinutos }}min</span> }
+    @else if (categoriaSelecionada() === 'TODOS') {
+      @for (grupo of produtosAgrupados(); track grupo.categoria) {
+      <section class="px-4 sm:px-6 md:px-8 pt-6">
+        <h2 class="text-lg md:text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <span>{{ grupo.icone }}</span> {{ grupo.categoria }}
+        </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          @for (produto of grupo.items; track produto.id) {
+            <ng-container *ngTemplateOutlet="produtoCard; context: { $implicit: produto }"></ng-container>
+          }
+        </div>
+      </section>
+      }
+    }
+
+    @else {
+      <section class="p-4 sm:p-6 md:p-8 pt-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          @for (produto of produtosFiltrados(); track produto.id) {
+            <ng-container *ngTemplateOutlet="produtoCard; context: { $implicit: produto }"></ng-container>
+          }
+        </div>
+      </section>
+    }
+  </main>
+
+  <!-- Template Reutilizável do Card de Produto (Preço e Tempo em cima dos botões) -->
+  <ng-template #produtoCard let-produto>
+    <div class="card flex flex-col justify-between p-4 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow h-full">
+
+      <!-- Topo: Informações do Produto (Nome e Descrição) -->
+      <div class="w-full min-w-0 flex flex-col mb-3">
+        <h3 class="font-bold text-gray-900 text-base leading-snug">{{ produto.nome }}</h3>
+        <p class="text-xs sm:text-sm text-gray-500 line-clamp-3 mt-1.5">{{ produto.descricao }}</p>
+      </div>
+
+      <!-- Meio/Rodapé: Preço e Tempo logo acima dos botões de quantidade -->
+      <div class="w-full flex flex-col gap-2.5 pt-3 border-t border-gray-100 mt-auto">
+
+        <!-- Preço e Tempo de Preparo -->
+        <div class="flex items-center justify-between">
+          <span class="text-red-600 font-extrabold text-base tracking-tight">R$ {{ produto.preco | number:'1.2-2' }}</span>
+          @if (produto.tempoPreparoMinutos > 0) {
+            <span class="text-[11px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">⏱️ {{ produto.tempoPreparoMinutos }} min</span>
+          }
+        </div>
+
+        <!-- Botões de Mais / Menos ocupando a largura de forma limpa -->
+        <div class="w-full flex items-center justify-between bg-gray-50 p-1.5 rounded-xl border border-gray-200">
+          <span class="text-xs font-medium text-gray-500 pl-2">Qtde</span>
+
+          <div class="flex items-center gap-2">
+            <button (click)="remover(produto)"
+              class="w-9 h-9 flex items-center justify-center rounded-lg bg-white text-gray-600 shadow-sm hover:bg-gray-100 active:scale-90 transition-all border border-gray-100"
+              [class.opacity-0]="getQuantidade(produto.id) === 0"
+              [class.pointer-events-none]="getQuantidade(produto.id) === 0"
+              [attr.aria-label]="'Remover ' + produto.nome" type="button">
+              <span class="material-icons text-base">remove</span>
+            </button>
+
+            <span class="w-6 text-center font-bold text-sm text-gray-800" aria-live="polite">
+              {{ getQuantidade(produto.id) || 0 }}
+            </span>
+
+            <button (click)="adicionar(produto)"
+              class="w-9 h-9 flex items-center justify-center rounded-lg bg-red-600 text-white shadow-sm hover:bg-red-700 active:scale-90 transition-all"
+              [attr.aria-label]="'Adicionar ' + produto.nome" type="button">
+              <span class="material-icons text-base">add</span>
+            </button>
           </div>
         </div>
-        <div class="flex items-center gap-2 shrink-0">
-          <button (click)="remover(produto)"
-            class="btn-icon bg-gray-100 text-gray-600 hover:bg-gray-200 active:bg-gray-300 transition-colors"
-            [class.invisible]="getQuantidade(produto.id) === 0" [attr.aria-label]="'Remover ' + produto.nome"
-            type="button">
-            <span class="material-icons text-lg">remove</span></button>
-          <span class="w-6 text-center font-medium text-sm" aria-live="polite">{{ getQuantidade(produto.id) }}</span>
-          <button (click)="adicionar(produto)"
-            class="btn-icon bg-red-600 text-white hover:bg-red-700 active:bg-red-800 transition-colors"
-            [attr.aria-label]="'Adicionar ' + produto.nome" type="button">
-            <span class="material-icons text-lg">add</span></button>
-        </div>
-      </div>
-      }
-    </div>
-  </section>
-  }
-  }
 
-  @else {
-  <div class="p-4 space-y-3">
-    @for (produto of produtosFiltrados; track produto.id) {
-    <div class="card flex justify-between items-center gap-3">
-      <div class="flex-1 min-w-0">
-        <h3 class="font-semibold text-gray-800 truncate">{{ produto.nome }}</h3>
-        <p class="text-sm text-gray-500 truncate">{{ produto.descricao }}</p>
-        <div class="flex items-center gap-2 mt-1">
-          <span class="text-red-600 font-bold">R$ {{ produto.preco | number:'1.2-2' }}</span>
-          @if (produto.tempoPreparoMinutos > 0) { <span class="text-xs text-gray-400">⏱️ {{ produto.tempoPreparoMinutos
-            }}min</span> }
-        </div>
       </div>
-      <div class="flex items-center gap-2 shrink-0">
-        <button (click)="remover(produto)"
-          class="btn-icon bg-gray-100 text-gray-600 hover:bg-gray-200 active:bg-gray-300 transition-colors"
-          [class.invisible]="getQuantidade(produto.id) === 0" [attr.aria-label]="'Remover ' + produto.nome"
-          type="button">
-          <span class="material-icons text-lg">remove</span></button>
-        <span class="w-6 text-center font-medium text-sm" aria-live="polite">{{ getQuantidade(produto.id) }}</span>
-        <button (click)="adicionar(produto)"
-          class="btn-icon bg-red-600 text-white hover:bg-red-700 active:bg-red-800 transition-colors"
-          [attr.aria-label]="'Adicionar ' + produto.nome" type="button">
-          <span class="material-icons text-lg">add</span></button>
-      </div>
+
     </div>
-    }
-  </div>
-  }
+  </ng-template>
 
   <!-- Diálogo Caixa Fechado -->
   @if (showCaixaFechadoDialog()) {
-  <div class="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-6 text-center">
-    <div class="w-28 h-28 bg-yellow-100 rounded-full flex items-center justify-center mb-6 animate-bounce-in">
+  <div class="fixed inset-0 z-50 bg-gray-50 flex flex-col items-center justify-center px-6 text-center">
+    <div class="w-28 h-28 bg-yellow-100 rounded-full flex items-center justify-center mb-6 animate-bounce-in shadow-sm">
       <span class="material-icons text-6xl text-yellow-600">store_off</span>
     </div>
-    <h1 class="text-2xl font-bold text-gray-800 mb-3">Estabelecimento Fechado 😴</h1>
-    <p class="text-gray-500 mb-2 max-w-sm">O caixa ainda não foi aberto hoje.</p>
-    <p class="text-sm text-gray-400 mb-8 max-w-sm">Assim que o expediente começar, você poderá fazer seus pedidos
-      normalmente.</p>
-    <div class="space-y-3 w-full max-w-xs">
-      <button (click)="irParaLoginDono()" class="btn-secondary" type="button">🔐 Sou o Dono</button>
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-3">Estabelecimento Fechado 😴</h1>
+    <p class="text-gray-600 mb-2 max-w-sm md:text-lg">O caixa ainda não foi aberto hoje.</p>
+    <p class="text-sm text-gray-500 mb-8 max-w-sm">Assim que o expediente começar, você poderá fazer seus pedidos normalmente.</p>
+
+    <div class="space-y-4 w-full max-w-xs">
+      <button (click)="irParaLoginDono()" class="w-full bg-gray-900 text-white py-3.5 px-4 rounded-xl font-medium shadow-md hover:bg-gray-800 active:scale-95 transition-all" type="button">
+        🔐 Sou o Dono
+      </button>
       <button (click)="tentarNovamente()"
-        class="w-full py-2.5 px-4 rounded-xl border border-gray-300 text-gray-500 font-medium text-sm hover:bg-gray-50 active:bg-gray-100 transition-colors"
-        type="button">🔄 Tentar Novamente</button>
+        class="w-full py-3.5 px-4 rounded-xl border-2 border-gray-200 text-gray-600 font-medium hover:bg-gray-50 active:scale-95 transition-all"
+        type="button">
+        🔄 Tentar Novamente
+      </button>
     </div>
-    <p class="text-xs text-gray-400 mt-8">Horário de funcionamento: 14:00 - 23:00</p>
+    <p class="text-xs text-gray-400 mt-10 font-medium tracking-wide uppercase">Horário de funcionamento: 14:00 - 23:00</p>
   </div>
   }
 
-  <app-cart-flutuante [itens]="carrinhoItens" [buttonText]="enviando() ? 'Enviando...' : botaoTexto"
-    [disabled]="!podeEnviar || enviando()" [pagamentoSelecionado]="formaPagamento()"
-    [metodosPagamento]="metodosPagamento" (onConfirm)="enviarPedido()" (onClear)="limparCarrinho()"
+  <app-cart-flutuante
+    [itens]="carrinhoItens()"
+    [buttonText]="enviando() ? 'Enviando...' : botaoTexto()"
+    [disabled]="!podeEnviar() || enviando()"
+    [pagamentoSelecionado]="formaPagamento()"
+    [metodosPagamento]="metodosPagamento"
+    (onConfirm)="enviarPedido()"
+    (onClear)="limparCarrinho()"
     (onSelectPagamento)="selecionarPagamento($event)" />
-  <app-bottom-nav [items]="navItems" />
+
+  <app-bottom-nav [items]="navItems()" />
 </div>

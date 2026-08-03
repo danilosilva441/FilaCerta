@@ -1,6 +1,8 @@
-import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule, DecimalPipe } from '@angular/common';
+import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { DecimalPipe } from '@angular/common'; // CommonModule removido para poupar memória
 import { RouterModule } from '@angular/router';
+import { finalize } from 'rxjs';
+
 import { CaixaService, CaixaDiarioResponse } from '../../../core/services/caixa.service';
 import { HeaderComponent } from '../../../shared/components/header/header.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
@@ -10,24 +12,41 @@ import { BottomNavComponent, NavItem } from '../../../shared/components/bottom-n
   selector: 'app-dashboard',
   standalone: true,
   imports: [
-    CommonModule, DecimalPipe, RouterModule,
-    HeaderComponent, LoadingSpinnerComponent, BottomNavComponent,
+    DecimalPipe,
+    RouterModule,
+    HeaderComponent,
+    LoadingSpinnerComponent,
+    BottomNavComponent,
   ],
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css'],
+  // O OnPush evita que a tela fique piscando/recalculando à toa
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashboardComponent implements OnInit {
+  private caixaService = inject(CaixaService);
+
+  // Estados principais
   caixa = signal<CaixaDiarioResponse | null>(null);
   loading = signal(true);
 
-  navItems: NavItem[] = [
-    { label: 'Dashboard', icon: 'dashboard', route: '/dono/dashboard' },
-    { label: 'Cozinha', icon: 'cooking', route: '/dono/cozinha/painel' },
-    { label: 'Caixa', icon: 'account_balance', route: '/dono/caixa/abertura' },
-    { label: 'Mais', icon: 'more_horiz', route: '/dono/caixa/fechamento' },
-  ];
+  // ✨ MÁGICA DOS SIGNALS: O 'computed' guarda o valor na memória.
+  // Ele NÃO refaz a conta toda vez que o usuário clica na tela,
+  // diferente do 'get totalGeral()' antigo que pesava o celular.
+  caixaAberto = computed(() => this.caixa()?.status === 'ABERTO');
 
-  constructor(private caixaService: CaixaService) {}
+  totalGeral = computed(() => {
+    const c = this.caixa();
+    if (!c) return 0;
+    return c.totalDinheiro + c.totalDebito + c.totalCredito + c.totalPix + c.totalFiado;
+  });
+
+  // Ícones do Material Icons corrigidos ('cooking' não existe, o correto é 'soup_kitchen')
+  navItems: NavItem[] = [
+    { label: 'Painel', icon: 'dashboard', route: '/dono/dashboard' },
+    { label: 'Cozinha', icon: 'soup_kitchen', route: '/dono/cozinha/painel' },
+    { label: 'Comandas', icon: 'receipt_long', route: '/dono/comandas' },
+    { label: 'Relatórios', icon: 'analytics', route: '/dono/relatorios/hoje' },
+  ];
 
   ngOnInit(): void {
     this.carregarCaixa();
@@ -35,22 +54,15 @@ export class DashboardComponent implements OnInit {
 
   carregarCaixa(): void {
     this.loading.set(true);
-    this.caixaService.buscarCaixaHoje().subscribe({
-      next: (data) => {
-        this.caixa.set(data);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
-    });
-  }
 
-  get caixaAberto(): boolean {
-    return this.caixa()?.status === 'ABERTO';
-  }
-
-  get totalGeral(): number {
-    const c = this.caixa();
-    if (!c) return 0;
-    return c.totalDinheiro + c.totalDebito + c.totalCredito + c.totalPix + c.totalFiado;
+    this.caixaService.buscarCaixaHoje()
+      .pipe(
+        // finalize sempre executa, dando erro ou sucesso. Evita que o spinner fique girando pra sempre.
+        finalize(() => this.loading.set(false))
+      )
+      .subscribe({
+        next: (data) => this.caixa.set(data),
+        error: (err) => console.error('[Dashboard] Erro ao carregar caixa:', err)
+      });
   }
 }

@@ -1,6 +1,6 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit, signal, computed, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Router, RouterModule } from '@angular/router';
 import { Subscription, switchMap, tap, timer } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import {
@@ -19,13 +19,13 @@ import { HeaderComponent } from '../../../shared/components/header/header.compon
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 
-type FiltroCozinha = 'TODOS' | 'HAMBURGUER' | 'CACHORRO_QUENTE' | 'SALGADO' | 'BEBIDA';
+export type FiltroCozinha = 'TODOS' | 'HAMBURGUER' | 'CACHORRO_QUENTE' | 'SALGADO' | 'BEBIDA';
 
 @Component({
   selector: 'app-painel-cozinha',
   standalone: true,
   imports: [
-    CommonModule,
+    RouterModule,
     HeaderComponent,
     LoadingSpinnerComponent,
     StatusBadgeComponent,
@@ -34,13 +34,45 @@ type FiltroCozinha = 'TODOS' | 'HAMBURGUER' | 'CACHORRO_QUENTE' | 'SALGADO' | 'B
     BottomNavComponent,
   ],
   templateUrl: './painel-cozinha.component.html',
-  styleUrls: ['./painel-cozinha.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PainelCozinhaComponent implements OnInit, OnDestroy {
+export class PainelCozinhaComponent implements OnInit {
+  // Injeções de dependência modernas
+  private cozinhaService = inject(CozinhaService);
+  private pedidoService = inject(PedidoService);
+  private notificationService = inject(NotificationService);
+  private router = inject(Router);
+  private destroyRef = inject(DestroyRef); // Necessário para gerenciar o Polling com segurança
+
+  // Estados Base
   filaResponse = signal<FilaCozinhaResponse | null>(null);
   loading = signal(true);
   error = signal(false);
   filtroAtivo = signal<FiltroCozinha>('TODOS');
+  processando = signal<number | null>(null);
+  showCancelDialog = signal<number | null>(null);
+  cardsExpandidos = signal<Set<number>>(new Set());
+  private pollingSub?: Subscription;
+
+  // Computed Properties (Alta Performance)
+  pedidosFiltrados = computed(() => {
+    const response = this.filaResponse();
+    if (!response?.pedidos) return [];
+
+    const filtro = this.filtroAtivo();
+    if (filtro === 'TODOS') return response.pedidos;
+
+    return response.pedidos.filter((pedido: PedidoResumidoResponse) =>
+      pedido.itens.some((item: ItemResumidoResponse) => this.getItemCategoria(item) === filtro)
+    );
+  });
+
+  navItems = computed<NavItem[]>(() => [
+    { label: 'Painel', icon: 'dashboard', route: '/dono/dashboard' },
+    { label: 'Cozinha', icon: 'soup_kitchen', route: '/dono/cozinha/painel', badge: this.filaResponse()?.totalPedidos || 0 },
+    { label: 'Comandas', icon: 'receipt_long', route: '/dono/comandas' },
+    { label: 'Relatórios', icon: 'analytics', route: '/dono/relatorios/hoje' },
+  ]);
 
   filtros: { label: string; valor: FiltroCozinha; icone: string }[] = [
     { label: 'Todos', valor: 'TODOS', icone: '📋' },
@@ -50,29 +82,30 @@ export class PainelCozinhaComponent implements OnInit, OnDestroy {
     { label: 'Bebidas', valor: 'BEBIDA', icone: '🥤' },
   ];
 
-  processando = signal<number | null>(null);
-  showCancelDialog = signal<number | null>(null);
-  cardsExpandidos = signal<Set<number>>(new Set());
-  private pollingSub?: Subscription;
+  ngOnInit(): void {
+    this.iniciarPolling();
+  }
 
-  constructor(
-    private cozinhaService: CozinhaService,
-    private pedidoService: PedidoService,
-    private notificationService: NotificationService,
-    private router: Router
-  ) {}
-
-  ngOnInit(): void { this.iniciarPolling(); }
-  ngOnDestroy(): void { this.pollingSub?.unsubscribe(); }
-
+  // Controle de Polling Seguro
   iniciarPolling(): void {
+    this.loading.set(true);
+    this.error.set(false);
+
+    // Evita duplicar requisições se o usuário clicar rápido no botão
+    if (this.pollingSub) {
+      this.pollingSub.unsubscribe();
+    }
+
     this.pollingSub = timer(0, environment.pollingIntervalMs)
       .pipe(
+        takeUntilDestroyed(this.destroyRef), // Limpa automaticamente quando sair da página
         switchMap(() => this.cozinhaService.listarFila()),
         tap((response) => {
           const anterior = this.filaResponse();
           this.filaResponse.set(response);
           this.loading.set(false);
+          this.error.set(false);
+
           if (anterior && response.totalPedidos > anterior.totalPedidos) {
             this.notificationService.tocarAlerta('novo-pedido');
             this.notificationService.vibrar([200, 100, 200]);
@@ -80,18 +113,31 @@ export class PainelCozinhaComponent implements OnInit, OnDestroy {
         })
       )
       .subscribe({
-        error: () => { this.error.set(true); this.loading.set(false); },
+        error: (err) => {
+          console.error('[Cozinha] Erro no polling:', err);
+          this.error.set(true);
+          this.loading.set(false);
+        },
       });
   }
 
-  get pedidosFiltrados(): PedidoResumidoResponse[] {
-    const response = this.filaResponse();
-    if (!response?.pedidos) return [];
-    const filtro = this.filtroAtivo();
-    if (filtro === 'TODOS') return response.pedidos;
-    return response.pedidos.filter((pedido: PedidoResumidoResponse) =>
-      pedido.itens.some((item: ItemResumidoResponse) => this.getItemCategoria(item) === filtro)
-    );
+  // Navegações chamadas pelo HTML
+  irParaDashboard(): void {
+    this.router.navigate(['/dono/dashboard']);
+  }
+
+  verPagamento(pedidoId: number): void {
+    this.router.navigate(['/dono/caixa/pagamento', pedidoId]);
+  }
+
+  // Helpers Visuais chamados pelo HTML
+  getStatusColor(status: string): string {
+    const colors: Record<string, string> = {
+      'RECEBIDO': 'border-blue-400 bg-blue-50',
+      'PREPARANDO': 'border-orange-400 bg-orange-50',
+      'PRONTO': 'border-green-400 bg-green-50',
+    };
+    return colors[status] || 'border-gray-200 bg-white';
   }
 
   getItemCategoria(item: ItemResumidoResponse): FiltroCozinha {
@@ -103,13 +149,25 @@ export class PainelCozinhaComponent implements OnInit, OnDestroy {
     return 'TODOS';
   }
 
+  getTempoEspera(dataHoraPedido: string): string {
+    const inicio = new Date(dataHoraPedido).getTime();
+    const agora = Date.now();
+    const minutos = Math.floor((agora - inicio) / 60000);
+    if (minutos < 1) return 'Agora';
+    if (minutos < 60) return `${minutos}min`;
+    return `${Math.floor(minutos / 60)}h ${minutos % 60}min`;
+  }
+
+  // Ações de Estado do Pedido
   toggleCard(pedidoId: number): void {
     const expandidos = new Set(this.cardsExpandidos());
     expandidos.has(pedidoId) ? expandidos.delete(pedidoId) : expandidos.add(pedidoId);
     this.cardsExpandidos.set(expandidos);
   }
 
-  isExpanded(pedidoId: number): boolean { return this.cardsExpandidos().has(pedidoId); }
+  isExpanded(pedidoId: number): boolean {
+    return this.cardsExpandidos().has(pedidoId);
+  }
 
   iniciarPreparo(pedidoId: number): void {
     this.processando.set(pedidoId);
@@ -135,6 +193,7 @@ export class PainelCozinhaComponent implements OnInit, OnDestroy {
     });
   }
 
+  // Fluxo de Cancelamento
   abrirCancelDialog(pedidoId: number): void { this.showCancelDialog.set(pedidoId); }
   fecharCancelDialog(): void { this.showCancelDialog.set(null); }
 
@@ -149,37 +208,7 @@ export class PainelCozinhaComponent implements OnInit, OnDestroy {
     });
   }
 
-  verPagamento(pedidoId: number): void { this.router.navigate(['/dono/caixa/pagamento', pedidoId]); }
-  irParaDashboard(): void { this.router.navigate(['/dono/dashboard']); }
-  irParaFechamento(): void { this.router.navigate(['/dono/caixa/fechamento']); }
-
-  getStatusColor(status: string): string {
-    const colors: Record<string, string> = {
-      'RECEBIDO': 'border-blue-400 bg-blue-50',
-      'PREPARANDO': 'border-orange-400 bg-orange-50',
-      'PRONTO': 'border-green-400 bg-green-50',
-    };
-    return colors[status] || 'border-gray-200 bg-white';
-  }
-
-  getTempoEspera(dataHoraPedido: string): string {
-    const inicio = new Date(dataHoraPedido).getTime();
-    const agora = Date.now();
-    const minutos = Math.floor((agora - inicio) / 60000);
-    if (minutos < 1) return 'Agora';
-    if (minutos < 60) return `${minutos}min`;
-    return `${Math.floor(minutos / 60)}h ${minutos % 60}min`;
-  }
-
-  get navItems(): NavItem[] {
-    return [
-      { label: 'Dashboard', icon: 'dashboard', route: '/dono/dashboard' },
-      { label: 'Cozinha', icon: 'cooking', route: '/dono/cozinha/painel', badge: this.filaResponse()?.totalPedidos || 0 },
-      { label: 'Caixa', icon: 'account_balance', route: '/dono/caixa/abertura' },
-      { label: 'Mais', icon: 'more_horiz', route: '/dono/caixa/fechamento' },
-    ];
-  }
-
+  // Ações de Itens Individuais
   alternarStatusItem(pedidoId: number, itemId: number, statusAtual: string): void {
     let novoStatus: StatusItemPedido;
     switch (statusAtual) {
