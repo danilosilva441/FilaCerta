@@ -21,8 +21,5 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 RUN rm -rf /usr/share/nginx/html/*
 COPY --from=build /app/browser /usr/share/nginx/html
 
-# Expõe a porta 80
-EXPOSE 80
-
-# Inicia o Nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Comando mágico: Substitui o PORT_PLACEHOLDER pela porta dinâmica do Railway e liga o Nginx
+CMD sh -c "sed -i 's/PORT_PLACEHOLDER/'\"$PORT\"'/g' /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
