@@ -43,6 +43,18 @@ services:
     volumes:
       - ./backend/logs:/app/logs
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: filacerta-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+    networks:
+      - filacerta-network
+
   nginx:
     image: nginx:alpine
     container_name: filacerta-nginx
