@@ -1,6 +1,6 @@
 export const environment = {
-  production: true, // <-- IMPORTANTE: false no ambiente dev
-  apiUrl: 'http://localhost:8080/api',
+  production: true, // <-- IMPORTANTE: true no ambiente prod
+  apiUrl: 'https://eloquent-victory.railway.internal/api',
   pollingIntervalMs: 5000,
   appName: 'Fila Certa',
   version: '1.0.0',
