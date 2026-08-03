@@ -3,11 +3,10 @@ spring:
     name: filacerta-api
 
   datasource:
-    # Colocamos o "jdbc:" na frente da variável que o Railway já fornece
-    url: jdbc:${DATABASE_URL}
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
-    # Removidos username e password daqui pois o driver do Postgres 
-    # vai ler eles automaticamente de dentro da DATABASE_URL
     hikari:
       maximum-pool-size: 5
       minimum-idle: 2
@@ -49,21 +48,3 @@ logging:
     org.springframework.web: WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-
-springdoc:
-  api-docs:
-    path: /api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics
-  health:
-    db:
-      enabled: true
-  info:
-    env:
-      enabled: true
