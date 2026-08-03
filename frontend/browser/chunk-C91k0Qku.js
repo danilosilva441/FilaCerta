@@ -1,0 +1,1 @@
+import {g as p,a9 as Ue,aI as vo,aJ as x}from'./main-ZAAIEOMP.js';function w(t){t||(t=p(Ue));let i=new x(e=>{if(t.destroyed){e.next();return}return t.onDestroy(e.next.bind(e))});return e=>e.pipe(vo(i))}export{w};
