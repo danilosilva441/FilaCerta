@@ -1,7 +1,6 @@
 spring:
-  config:
-    activate:
-      on-profile: prod
+  application:
+    name: filacerta-api
 
   datasource:
     url: jdbc:postgresql://${DB_HOST:postgres}:${DB_PORT:5432}/${DB_NAME:filacerta}
@@ -47,6 +46,8 @@ logging:
     com.filacerta: INFO
     org.hibernate: WARN
     org.springframework.web: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
 
 springdoc:
   api-docs:

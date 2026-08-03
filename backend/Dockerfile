@@ -10,7 +10,7 @@ RUN mvn dependency:go-offline -B
 # Copiar código fonte
 COPY src ./src
 
-# Compilar
+# Compilar com profile railway
 RUN mvn clean package -DskipTests
 
 # Estágio de produção
@@ -24,6 +24,9 @@ RUN addgroup -S spring && adduser -S spring -G spring
 # Copiar JAR
 COPY --from=build /app/target/*.jar app.jar
 
+# Criar diretório para logs
+RUN mkdir -p /app/logs && chown spring:spring /app/logs
+
 # Expor porta
 EXPOSE 8080
 
@@ -31,6 +34,6 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
   CMD wget -qO- http://localhost:8080/actuator/health || exit 1
 
-# Executar
+# Executar com usuário não-root
 USER spring
 ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -1,10 +1,9 @@
-# src/main/resources/application.yml
 spring:
-  profiles:
-    active: ${SPRING_PROFILES_ACTIVE:dev}
-
   application:
     name: filacerta-api
+
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
 
   jackson:
     serialization:
