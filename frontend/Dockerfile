@@ -32,14 +32,28 @@ RUN if [ -d "/app/browser" ]; then \
         exit 1; \
     fi
 
-# Estágio 2: Configuração do Nginx
+# Estágio 2: Nginx com configuração dinâmica
 FROM nginx:alpine
 
-RUN rm /etc/nginx/conf.d/default.conf
-COPY nginx.conf /etc/nginx/templates/default.conf.template
+# Instala gettext para envsubst
+RUN apk add --no-cache gettext
 
+# Remove configuração padrão
+RUN rm /etc/nginx/conf.d/default.conf
+
+# Copia os arquivos do Angular
 RUN rm -rf /usr/share/nginx/html/*
 COPY --from=build /app/build-output /usr/share/nginx/html
 
-# Usando envsubst ao invés de sed
-CMD ["/bin/sh", "-c", "envsubst '${PORT}' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
+# Copia o template e script
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD wget -q --spider http://localhost:${PORT:-8080}/health || exit 1
+
+EXPOSE 8080
+
+CMD ["/start.sh"]
