@@ -17,7 +17,7 @@ FROM nginx:alpine
 RUN rm /etc/nginx/conf.d/default.conf
 
 # Copia o template de configuração
-COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 
 # Limpa a pasta html padrão e copia os arquivos gerados pelo Angular
 RUN rm -rf /usr/share/nginx/html/*
