@@ -13,18 +13,13 @@ RUN npm run build
 # Estágio 2: Configuração do Nginx
 FROM nginx:alpine
 
-# Remove a configuração padrão do Nginx
+# Remove a configuração padrão do Nginx e copia a nossa
 RUN rm /etc/nginx/conf.d/default.conf
-
-# Copia o template de configuração
-COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Limpa a pasta html padrão e copia os arquivos gerados pelo Angular
 RUN rm -rf /usr/share/nginx/html/*
-COPY --from=build /app/dist/your-app-name/browser /usr/share/nginx/html
+COPY --from=build /app/browser /usr/share/nginx/html
 
-# Expõe a porta 8080 (ou qualquer porta que o Railway usar)
-EXPOSE ${PORT:-8080}
-
-# Usa envsubst para substituir variáveis de ambiente no template
-CMD ["/bin/sh", "-c", "envsubst '${PORT}' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
+# Comando mágico: Substitui o PORT_PLACEHOLDER pela porta dinâmica do Railway e liga o Nginx
+CMD sh -c "sed -i 's/PORT_PLACEHOLDER/'\"$PORT\"'/g' /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
