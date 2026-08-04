@@ -36,9 +36,10 @@ RUN if [ -d "/app/browser" ]; then \
 FROM nginx:alpine
 
 RUN rm /etc/nginx/conf.d/default.conf
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 
 RUN rm -rf /usr/share/nginx/html/*
 COPY --from=build /app/build-output /usr/share/nginx/html
 
-CMD sh -c "sed -i 's/PORT_PLACEHOLDER/'\"$PORT\"'/g' /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
+# Usando envsubst ao invés de sed
+CMD ["/bin/sh", "-c", "envsubst '${PORT}' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
