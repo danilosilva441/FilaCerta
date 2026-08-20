@@ -5,13 +5,13 @@ echo "======================================="
 echo "🚀 Iniciando configuração do Nginx"
 echo "======================================="
 
-# Define porta padrão se não estiver definida
-export PORT=${PORT:-8080}
-echo "✅ PORT definida como: $PORT"
+# Define BACKEND_URL padrão (Railway) se não estiver definida
+export BACKEND_URL=${BACKEND_URL:-http://eloquent-victory.railway.internal:8080/api/}
+echo "✅ BACKEND_URL definida como: $BACKEND_URL"
 
-# Gera configuração substituindo variáveis
+# Gera configuração substituindo variáveis (adicione o BACKEND_URL aqui)
 echo "🔧 Gerando configuração do Nginx..."
-envsubst '${PORT}' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf
+envsubst '${PORT} ${BACKEND_URL}' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf
 
 echo "✅ Configuração gerada com sucesso!"
 echo "---------------------------------------"

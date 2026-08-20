@@ -61,7 +61,7 @@ server {
         }
 
         # Proxy para o backend
-        proxy_pass http://eloquent-victory.railway.internal:8080/api/;
+        proxy_pass ${BACKEND_URL};
 
         # Timeouts
         proxy_connect_timeout 30s;
