@@ -2,7 +2,7 @@ CREATE TABLE caixa_diario (
     id BIGSERIAL PRIMARY KEY,
     data DATE NOT NULL UNIQUE,
     hora_abertura TIMESTAMP NOT NULL,
-    hora_fechamento TIME,
+    hora_fechamento TIMESTAMP,
     valor_inicial DECIMAL(10, 2),
     status VARCHAR(20) NOT NULL,
     total_dinheiro DECIMAL(10, 2) DEFAULT 0,
