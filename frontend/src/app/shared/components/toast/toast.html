@@ -1,0 +1,45 @@
+@if (toast) {
+  <div
+    class="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm px-4 animate-[slideDown_0.3s_ease-out]"
+  >
+    <div
+      class="rounded-xl shadow-lg border-l-4 p-4 flex items-start gap-3 bg-white"
+      [ngClass]="{
+        'border-green-500 text-green-800': toast.tipo === 'sucesso',
+        'border-red-500 text-red-800': toast.tipo === 'erro',
+        'border-yellow-500 text-yellow-800': toast.tipo === 'aviso',
+        'border-blue-500 text-blue-800': toast.tipo === 'info',
+      }"
+    >
+      <!-- Ícones -->
+      <div class="text-2xl">
+        @switch (toast.tipo) {
+          @case ('sucesso') {
+            ✅
+          }
+          @case ('erro') {
+            ❌
+          }
+          @case ('aviso') {
+            ⚠️
+          }
+          @default {
+            ℹ️
+          }
+        }
+      </div>
+
+      <div class="flex-1">
+        <h4 class="font-bold text-sm uppercase tracking-wider">{{ toast.titulo }}</h4>
+        <p class="text-gray-600 text-sm mt-1 font-medium">{{ toast.mensagem }}</p>
+      </div>
+
+      <button
+        (click)="fechar()"
+        class="text-gray-400 hover:text-gray-700 font-bold transition-colors"
+      >
+        ✕
+      </button>
+    </div>
+  </div>
+}

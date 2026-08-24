@@ -1,17 +1,22 @@
 package com.filacerta.application.mapper;
 
-import java.util.List;
-
-import org.mapstruct.Mapper;
-import org.mapstruct.ReportingPolicy;
-
 import com.filacerta.application.dto.response.ProdutoResponse;
 import com.filacerta.domain.entity.Produto;
+import org.springframework.stereotype.Component;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
-public interface ProdutoMapper {
-
-	ProdutoResponse toResponse(Produto produto);
-
-	List<ProdutoResponse> toResponseList(List<Produto> produtos);
+@Component
+public class ProdutoMapper {
+    
+    public static ProdutoResponse toResponse(Produto produto) {
+        if (produto == null) return null;
+        
+        return ProdutoResponse.builder()
+                .id(produto.getId())
+                .nome(produto.getNome())
+                .descricao(produto.getDescricao())
+                .preco(produto.getPreco())
+                .categoria(produto.getCategoria())
+                .tempoPreparoMinutos(produto.getTempoPreparoMinutos())
+                .build();
+    }
 }

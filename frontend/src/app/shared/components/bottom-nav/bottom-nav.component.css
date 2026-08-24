@@ -1,6 +1,0 @@
-:host {
-  display: block;
-}
-/* Todo o resto foi removido!
-   O touch-highlight, text-xxs, as animações e os safe-areas
-   agora são gerenciados nativamente pelo Tailwind no HTML. */

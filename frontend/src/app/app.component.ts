@@ -1,24 +1,17 @@
 // app.component.ts
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { ToastComponent } from './shared/components/toast/toast';
+import { NavbarComponent } from './shared/components/navbar/navbar';
+import { ConfirmModalComponent } from './shared/components/confirm-modal/confirm-modal';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
-  template: `<router-outlet />`, // <- O HTML fica só isso!
-  styles: [`
-    :host {
-      display: block;
-      min-height: 100dvh;
-      background-color: #f9fafb;
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: env(safe-area-inset-bottom);
-      padding-left: env(safe-area-inset-left);
-      padding-right: env(safe-area-inset-right);
-      -webkit-tap-highlight-color: transparent;
-      -webkit-text-size-adjust: 100%;
-    }
-  `],
+  imports: [RouterOutlet, ToastComponent, NavbarComponent, ConfirmModalComponent],
+  templateUrl: './app.component.html', // <- O HTML fica só isso!
+  styles: './app.component.css', // <- O CSS fica só isso!],
 })
-export class AppComponent {}
+export class AppComponent {
+  title = 'FilaCerta';
+}

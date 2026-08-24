@@ -1,14 +1,12 @@
 package com.filacerta.domain.entity;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.filacerta.domain.enums.MetodoPagamento;
 import com.filacerta.domain.enums.OrigemPedido;
 import com.filacerta.domain.enums.StatusItemPedido;
@@ -25,94 +23,89 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Entity
-@Table(name = "pedido")
-@Data
+@Getter
+@Setter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "pedidos")
 public class Pedido {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@Column(nullable = false)
-	private Integer numero;
+    @Column(nullable = false)
+    private Integer numero;
 
-	@Column(name = "nome_cliente", nullable = false, length = 100)
-	private String nomeCliente;
+    @Column(name = "nome_cliente", nullable = false, length = 100)
+    private String nomeCliente;
 
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	private TipoPedido tipo;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private TipoPedido tipo;
 
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	private OrigemPedido origem;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private OrigemPedido origem;
 
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	private StatusPedido status = StatusPedido.RECEBIDO;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private StatusPedido status = StatusPedido.RECEBIDO;
 
-	@Enumerated(EnumType.STRING)
-	@Column(name = "status_pagamento", nullable = false)
-	private StatusPagamento statusPagamento = StatusPagamento.AGUARDANDO;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status_pagamento", length = 20)
+    @Builder.Default
+    private StatusPagamento statusPagamento = StatusPagamento.AGUARDANDO;
 
-	@Enumerated(EnumType.STRING)
-	@Column(name = "metodo_pagamento")
-	private MetodoPagamento metodoPagamento;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "metodo_pagamento", length = 20)
+    private MetodoPagamento metodoPagamento;
 
-	@Column(name = "valor_total", nullable = false, precision = 10, scale = 2)
-	private BigDecimal valorTotal = BigDecimal.ZERO;
+    @Column(name = "valor_total", precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal valorTotal = BigDecimal.ZERO;
 
-	@Column(name = "data_hora_pedido", nullable = false)
-	private LocalDateTime dataHoraPedido = LocalDateTime.now();
+    @Column(name = "data_hora_pedido", nullable = false)
+    private LocalDateTime dataHoraPedido;
 
-	@Column(name = "data_hora_pronto")
-	private LocalDateTime dataHoraPronto;
+    @Column(name = "data_hora_pronto")
+    private LocalDateTime dataHoraPronto;
 
-	@Column(name = "data_hora_entrega")
-	private LocalDateTime dataHoraEntrega;
+    @Column(length = 300)
+    private String observacao;
 
-	@Column(name = "data_hora_pagamento")
-	private LocalDateTime dataHoraPagamento;
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    @Builder.Default
+    private List<ItemPedido> itens = new ArrayList<>();
 
-	@Column(length = 300)
-	private String observacao;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "caixa_diario_id")
+    @JsonBackReference
+    private CaixaDiario caixaDiario;
 
-	@CreationTimestamp
-	@Column(name = "created_at", nullable = false, updatable = false)
-	private LocalDateTime createdAt;
+    public void calcularValorTotal() {
+        this.valorTotal = itens.stream()
+            .map(item -> item.getPrecoUnitario()
+                .multiply(BigDecimal.valueOf(item.getQuantidade())))
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 
-	@UpdateTimestamp
-	@Column(name = "updated_at")
-	private LocalDateTime updatedAt;
-
-	// CORRIGIDO: Mudar para LocalDate
-	@Column(name = "caixa_diario_data", nullable = false)
-	private LocalDate caixaDiarioData = LocalDate.now();
-
-	@OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	private List<ItemPedido> itens = new ArrayList<>();
-
-	@OneToOne(mappedBy = "pedido", cascade = CascadeType.ALL)
-	private ComandaPedido comandaPedido;
-
-	public BigDecimal calcularValorTotal() {
-		return itens.stream().map(item -> item.getPrecoUnitario().multiply(BigDecimal.valueOf(item.getQuantidade())))
-				.reduce(BigDecimal.ZERO, BigDecimal::add);
-	}
-
-	public boolean todosItensProntos() {
-		if (itens == null || itens.isEmpty()) {
-			return false;
-		}
-		return itens.stream().allMatch(item -> item.getStatus() == StatusItemPedido.PRONTO);
-	}
-
+    public boolean todosItensProntos() {
+        return itens.stream()
+            .allMatch(item -> item.getStatus() == StatusItemPedido.PRONTO);
+    }
 }

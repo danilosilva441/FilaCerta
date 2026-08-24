@@ -17,24 +17,19 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
+@Data // Lombok: Gera Getters, Setters, toString, equals e hashCode
+@Builder // Lombok: Permite criar objetos com Produto.builder().nome("...").build()
+@NoArgsConstructor // Lombok: Construtor vazio (exigência do JPA)
+@AllArgsConstructor // Lombok: Construtor com todos os argumentos
 @Entity
-@Table(name = "produto")  
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Table(name = "produtos")
 public class Produto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Include
     private Long id;
 
     @Column(nullable = false, length = 100)
@@ -51,8 +46,7 @@ public class Produto {
     private CategoriaProduto categoria;
 
     @Column(name = "tempo_preparo_minutos", nullable = false)
-    @Builder.Default
-    private Integer tempoPreparoMinutos = 0;
+    private Integer tempoPreparoMinutos;
 
     @Column(nullable = false)
     @Builder.Default
@@ -64,14 +58,17 @@ public class Produto {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    // Callbacks do JPA para preencher as datas automaticamente
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now();
+        if (this.tempoPreparoMinutos == null) {
+            this.tempoPreparoMinutos = 0;
+        }
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 }

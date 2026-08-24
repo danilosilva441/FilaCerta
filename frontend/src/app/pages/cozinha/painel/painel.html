@@ -1,0 +1,94 @@
+<div class="min-h-screen bg-gray-200 p-4 font-sans">
+  <header
+    class="bg-gray-900 text-white p-4 rounded-xl mb-6 shadow flex justify-between items-center"
+  >
+    <h1 class="text-2xl font-bold">👨‍🍳 Painel da Cozinha</h1>
+    <p class="bg-gray-800 px-4 py-1 rounded-full font-medium">
+      {{ filaPedidos.length }} pedidos ativos
+    </p>
+  </header>
+
+  <!-- Estado Vazio -->
+  @if (filaPedidos.length === 0) {
+    <div class="flex flex-col items-center justify-center py-20 text-gray-400">
+      <span class="text-6xl mb-4">🍽️</span>
+      <p class="text-2xl font-medium">Nenhum pedido no momento</p>
+      <p>Aguardando novos tickets...</p>
+    </div>
+  }
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    @for (pedido of filaPedidos; track pedido.pedidoId) {
+      <!-- Card do Pedido (Borda Laranja se tiver Hambúrguer) -->
+      <div
+        class="bg-white rounded-xl shadow-md border-t-8 flex flex-col"
+        [ngClass]="temHamburguer(pedido) ? 'border-orange-500' : 'border-blue-500'"
+      >
+        <!-- Cabeçalho do Card -->
+        <div
+          class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-lg"
+        >
+          <div>
+            <span class="font-black text-2xl text-gray-800">#{{ pedido.numero }}</span>
+            <span class="ml-2 font-semibold text-gray-600">{{ pedido.nomeCliente }}</span>
+          </div>
+          <div
+            class="flex items-center text-sm font-bold text-gray-500 bg-white px-2 py-1 rounded shadow-sm border border-gray-200"
+          >
+            ⏳ {{ pedido.tempoEspera }}
+          </div>
+        </div>
+
+        <!-- Checklist de Itens -->
+        <div class="p-2 flex-1 space-y-2">
+          @for (item of pedido.itens; track item.itemId) {
+            <!-- Linha do Item clicável -->
+            <div
+              (click)="marcarItem(pedido.pedidoId, item.itemId, item.status)"
+              class="flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all border select-none"
+              [ngClass]="{
+                'bg-white border-gray-200 hover:bg-gray-50': item.status === 'PENDENTE',
+                'bg-orange-50 border-orange-200': item.status === 'PREPARANDO',
+                'bg-green-50 border-green-200 opacity-60': item.status === 'PRONTO',
+              }"
+            >
+              <div class="flex items-center gap-3">
+                <!-- Ícone de Checkbox Animado -->
+                <div
+                  class="w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors"
+                  [ngClass]="{
+                    'border-gray-300': item.status === 'PENDENTE',
+                    'border-orange-400 bg-orange-100 text-orange-600 animate-pulse':
+                      item.status === 'PREPARANDO',
+                    'border-green-500 bg-green-500 text-white': item.status === 'PRONTO',
+                  }"
+                >
+                  @if (item.status === 'PRONTO') {
+                    ✓
+                  } @else if (item.status === 'PREPARANDO') {
+                    🔥
+                  }
+                </div>
+
+                <div class="flex flex-col">
+                  <span
+                    class="font-bold text-gray-800 text-lg"
+                    [class.line-through]="item.status === 'PRONTO'"
+                  >
+                    {{ item.quantidade }}x {{ item.nomeProduto }}
+                  </span>
+                  @if (item.observacaoItem) {
+                    <span
+                      class="text-sm text-red-600 font-bold bg-red-50 px-1 rounded inline-block mt-1"
+                      >OBS: {{ item.observacaoItem }}</span
+                    >
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

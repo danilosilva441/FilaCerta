@@ -1,0 +1,44 @@
+<!-- fixed bottom-0 no celular, sm:sticky sm:top-0 nas telas grandes -->
+<nav
+  class="bg-gray-900 text-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] sm:shadow-lg fixed bottom-0 sm:bottom-auto sm:sticky sm:top-0 w-full z-40"
+>
+  <div class="max-w-7xl mx-auto px-2 sm:px-4">
+    <div class="flex justify-between items-center h-16 sm:h-14">
+      <!-- Logo Menor (Escondida no celular para dar espaço aos botões) -->
+      <div class="hidden sm:flex items-center gap-2">
+        <span class="text-2xl">🍔</span>
+        <span class="font-black tracking-wider">Fila Certa</span>
+      </div>
+
+      <!-- Links de Navegação -->
+      <div class="flex items-center justify-around w-full sm:w-auto sm:space-x-6">
+        <a
+          routerLink="/cliente/cardapio"
+          routerLinkActive="text-primary-400 bg-gray-800"
+          class="flex flex-col sm:flex-row items-center justify-center flex-1 sm:flex-none px-2 py-1.5 sm:py-1.5 rounded-xl sm:rounded-md font-semibold text-[11px] sm:text-sm hover:text-primary-300 transition-colors gap-1"
+        >
+          <span class="text-xl sm:hidden">📋</span>
+          <span>Cardápio</span>
+        </a>
+
+        <a
+          routerLink="/cozinha/painel"
+          routerLinkActive="text-primary-400 bg-gray-800"
+          class="flex flex-col sm:flex-row items-center justify-center flex-1 sm:flex-none px-2 py-1.5 sm:py-1.5 rounded-xl sm:rounded-md font-semibold text-[11px] sm:text-sm hover:text-primary-300 transition-colors gap-1"
+        >
+          <span class="text-xl sm:hidden">👨‍🍳</span>
+          <span>Cozinha</span>
+        </a>
+
+        <a
+          routerLink="/caixa/painel"
+          routerLinkActive="text-primary-400 bg-gray-800"
+          class="flex flex-col sm:flex-row items-center justify-center flex-1 sm:flex-none px-2 py-1.5 sm:py-1.5 rounded-xl sm:rounded-md font-semibold text-[11px] sm:text-sm hover:text-primary-300 transition-colors gap-1"
+        >
+          <span class="text-xl sm:hidden">💰</span>
+          <span>Caixa</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>

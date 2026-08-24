@@ -1,9 +1,8 @@
 package com.filacerta.domain.enums;
 
 public enum MetodoPagamento {
-    DINHEIRO,
-    CARTAO_DEBITO,
-    CARTAO_CREDITO,
-    PIX,
-    FIADO
+	
+	DINHEIRO, CARTAO_CREDITO, CARTAO_DEBITO, PIX
+	
+
 }

@@ -1,54 +1,43 @@
 package com.filacerta.presentation.controller;
 
-import java.util.List;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.filacerta.application.dto.response.ProdutoResponse;
+import com.filacerta.application.mapper.ProdutoMapper;
 import com.filacerta.application.service.ProdutoService;
+import com.filacerta.domain.entity.Produto;
 import com.filacerta.domain.enums.CategoriaProduto;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/produtos")
+@Tag(name = "Produtos", description = "Catálogo de produtos")
 @RequiredArgsConstructor
-@Tag(name = "Produtos", description = "API para gerenciamento de produtos")
 public class ProdutoController {
 
-	private final ProdutoService produtoService;
+    private final ProdutoService produtoService;
 
-	@GetMapping
-	@Operation(summary = "Listar todos os produtos")
-	public ResponseEntity<List<ProdutoResponse>> listarTodos() {
-		List<ProdutoResponse> response = produtoService.listarTodosProdutos();
-		return ResponseEntity.ok(response);
-	}
+    @GetMapping
+    @Operation(summary = "Listar todos os produtos disponíveis")
+    public ResponseEntity<List<ProdutoResponse>> listar(
+            @RequestParam(required = false) CategoriaProduto categoria) {
 
-	@GetMapping("/disponiveis")
-	@Operation(summary = "Listar produtos disponíveis")
-	public ResponseEntity<List<ProdutoResponse>> listarDisponiveis() {
-		List<ProdutoResponse> response = produtoService.listarProdutosDisponiveis();
-		return ResponseEntity.ok(response);
-	}
+        List<Produto> produtos;
+        if (categoria != null) {
+            produtos = produtoService.listarPorCategoria(categoria);
+        } else {
+            produtos = produtoService.listarTodos();
+        }
 
-	@GetMapping("/categoria/{categoria}")
-	@Operation(summary = "Listar produtos por categoria")
-	public ResponseEntity<List<ProdutoResponse>> listarPorCategoria(@PathVariable CategoriaProduto categoria) {
-		List<ProdutoResponse> response = produtoService.listarProdutosPorCategoria(categoria);
-		return ResponseEntity.ok(response);
-	}
+        List<ProdutoResponse> response = produtos.stream()
+            .map(ProdutoMapper::toResponse)
+            .collect(Collectors.toList());
 
-	@GetMapping("/{id}")
-	@Operation(summary = "Buscar produto por ID")
-	public ResponseEntity<ProdutoResponse> buscarPorId(@PathVariable Long id) {
-		ProdutoResponse response = produtoService.buscarProdutoPorId(id);
-		return ResponseEntity.ok(response);
-	}
+        return ResponseEntity.ok(response);
+    }
 }

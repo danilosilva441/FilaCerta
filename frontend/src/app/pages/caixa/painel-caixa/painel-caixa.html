@@ -1,0 +1,157 @@
+<div class="min-h-screen bg-gray-100 p-6 font-sans">
+  @if (estadoTela === 'CARREGANDO') {
+    <div class="flex items-center justify-center min-h-[60vh]">
+      <div class="text-2xl font-bold text-gray-500 animate-pulse">
+        ⏳ Verificando status do caixa...
+      </div>
+    </div>
+
+  } @else if (estadoTela === 'FECHADO') {
+    <!-- Tela de Abertura de Caixa -->
+    <div class="flex items-center justify-center min-h-[80vh]">
+      <div
+        class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200 max-w-md w-full text-center"
+      >
+        <div
+          class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4"
+        >
+          <span class="text-4xl">🔐</span>
+        </div>
+        <h2 class="text-2xl font-black text-gray-800 mb-2">Caixa Fechado</h2>
+        <p class="text-gray-500 mb-6">
+          Informe o valor inicial de troco para iniciar as operações de recebimento.
+        </p>
+
+        <div class="text-left mb-6">
+          <label class="block text-sm font-bold text-gray-700 mb-2">Valor Inicial (Troco):</label>
+          <div class="relative">
+            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">R$</span>
+            <input
+              type="number"
+              [(ngModel)]="valorAbertura"
+              class="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-xl font-bold text-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        <button
+          (click)="abrirCaixa()"
+          [disabled]="isProcessando"
+          class="w-full py-4 bg-primary-600 text-white rounded-xl font-bold text-lg hover:bg-primary-700 active:scale-95 transition-all disabled:opacity-50 flex justify-center items-center gap-2"
+        >
+          @if (isProcessando) {
+            ⏳ Processando...
+          } @else {
+            🔓 ABRIR CAIXA
+          }
+        </button>
+      </div>
+    </div>
+
+  } @else {
+    <!-- Tela do Caixa Operante -->
+    <header
+      class="bg-primary-700 text-white p-5 rounded-xl mb-6 shadow-md flex justify-between items-center"
+    >
+      <div class="flex items-center gap-3">
+        <span class="text-3xl">💰</span>
+        <div>
+          <h1 class="text-2xl font-bold">Frente de Caixa</h1>
+          <p class="text-primary-200 text-sm">
+            Caixa Aberto • Troco Inicial: R$ {{ caixaAtual?.valorInicial | number: '1.2-2' }}
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <div class="bg-primary-800 px-4 py-2 rounded-lg border border-primary-600">
+          <p class="font-semibold text-sm">Pendentes</p>
+          <p class="text-2xl font-black text-center">{{ pedidosPendentes.length }}</p>
+        </div>
+        <button
+          (click)="fecharCaixa()"
+          [disabled]="isProcessando"
+          class="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg font-bold shadow transition-colors h-full"
+        >
+          🔒 Fechar Caixa
+        </button>
+      </div>
+    </header>
+
+    <main>
+      @if (pedidosPendentes.length === 0) {
+        <div class="text-center py-20 bg-white rounded-xl shadow-sm border border-gray-200">
+          <p class="text-5xl mb-4 text-gray-300">💵</p>
+          <p class="text-xl text-gray-500 font-medium">Nenhum pagamento pendente no momento.</p>
+        </div>
+      }
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        @for (pedido of pedidosPendentes; track pedido.id) {
+          <div
+            class="bg-white rounded-xl shadow-md border-l-8 border-warning overflow-hidden flex flex-col justify-between"
+          >
+            <div class="p-5 border-b border-gray-100 flex justify-between items-start bg-gray-50">
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="font-black text-2xl text-gray-800">#{{ pedido.numero }}</span>
+                  <span
+                    class="bg-gray-200 text-gray-700 text-xs font-bold px-2 py-1 rounded uppercase"
+                  >
+                    {{ pedido.tipo === 'COMER_AQUI' ? 'Mesa' : 'Levar' }}
+                  </span>
+                </div>
+                <h2 class="text-lg font-bold text-gray-700">{{ pedido.nomeCliente }}</h2>
+                <p class="text-sm text-gray-500 mt-1">
+                  🕒 {{ pedido.dataHoraPedido | date: 'HH:mm' }}
+                </p>
+              </div>
+
+              <div class="text-right">
+                <p class="text-sm text-gray-500 uppercase font-bold tracking-wide">Total a Pagar</p>
+                <p class="text-3xl font-black text-primary-600">
+                  R$ {{ pedido.valorTotal | number: '1.2-2' }}
+                </p>
+              </div>
+            </div>
+
+            <div class="p-5 flex-1 text-sm text-gray-600 bg-white">
+              <p class="font-semibold text-gray-800 mb-2">Itens do pedido:</p>
+              <ul class="space-y-1 list-disc list-inside">
+                @for (item of pedido.itens; track item.id) {
+                  <li>
+                    <span class="font-bold">{{ item.quantidade }}x</span> {{ item.nomeProduto }}
+                  </li>
+                }
+              </ul>
+            </div>
+
+            <div class="p-4 bg-gray-50 border-t border-gray-100 flex gap-3">
+              <button
+                disabled
+                class="flex-1 py-3 bg-gray-200 text-gray-400 rounded-lg font-bold text-sm cursor-not-allowed"
+              >
+                CANCELAR
+              </button>
+
+              <button
+                (click)="confirmarPagamento(pedido.id)"
+                [disabled]="isProcessando"
+                class="flex-2 w-2/3 py-3 bg-success text-white rounded-lg font-bold text-lg shadow hover:bg-green-700 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                @if (isProcessando) {
+                  ⏳ Processando...
+                } @else {
+                  💵 CONFIRMAR PAGAMENTO
+                }
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </main>
+  }
+</div>

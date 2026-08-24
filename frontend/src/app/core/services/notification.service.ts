@@ -1,33 +1,28 @@
 import { Injectable } from '@angular/core';
+import { Subject } from 'rxjs';
 
-@Injectable({ providedIn: 'root' })
+export interface ToastMessage {
+  titulo: string;
+  mensagem: string;
+  tipo: 'sucesso' | 'erro' | 'aviso' | 'info';
+}
+
+@Injectable({
+  providedIn: 'root',
+})
 export class NotificationService {
+  private toastSubject = new Subject<ToastMessage>();
+  toast$ = this.toastSubject.asObservable();
 
-  tocarAlerta(tipo: 'novo-pedido' | 'pedido-pronto' | 'erro' = 'pedido-pronto'): void {
-    try {
-      const audio = new Audio(`assets/sounds/${tipo}.mp3`);
-      audio.volume = 0.7;
-      audio.play().catch(() => this.vibrar());
-    } catch {
-      this.vibrar();
-    }
+  sucesso(titulo: string, mensagem: string): void {
+    this.toastSubject.next({ titulo, mensagem, tipo: 'sucesso' });
   }
 
-  vibrar(padrao: number[] = [200, 100, 200]): void {
-    if ('vibrate' in navigator) {
-      navigator.vibrate(padrao);
-    }
+  erro(titulo: string, mensagem: string): void {
+    this.toastSubject.next({ titulo, mensagem, tipo: 'erro' });
   }
 
-  async notificarSistema(titulo: string, corpo: string): Promise<void> {
-    if (!('Notification' in window)) return;
-    const permissao = await Notification.requestPermission();
-    if (permissao === 'granted') {
-      new Notification(titulo, {
-        body: corpo,
-        icon: 'assets/icons/notification-icon.png',
-        tag: 'filacerta-notification',
-      });
-    }
+  aviso(titulo: string, mensagem: string): void {
+    this.toastSubject.next({ titulo, mensagem, tipo: 'aviso' });
   }
 }

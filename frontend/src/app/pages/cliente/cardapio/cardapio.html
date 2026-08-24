@@ -1,0 +1,244 @@
+<div class="min-h-screen bg-gray-50 pb-32 font-sans">
+  <!-- Header (Agora super limpo, apenas com a marca) -->
+  <header class="bg-primary-600 text-white p-4 sticky top-0 z-10 shadow-md">
+    <div class="flex justify-between items-center">
+      <h1 class="text-2xl font-bold tracking-tight">🍔 Fila Certa</h1>
+      <span class="text-primary-200 text-sm font-medium">Faça seu pedido</span>
+    </div>
+  </header>
+
+  <!-- Filtro de Categorias -->
+  <nav class="flex overflow-x-auto gap-2 p-4 bg-white shadow-sm hide-scrollbar">
+    @for (cat of categorias; track cat) {
+      <button
+        (click)="filtrarPorCategoria(cat)"
+        class="px-5 py-2 rounded-full whitespace-nowrap text-sm font-semibold transition-all border"
+        [class.bg-primary-600]="categoriaSelecionada === cat"
+        [class.text-white]="categoriaSelecionada === cat"
+        [class.border-primary-600]="categoriaSelecionada === cat"
+        [class.bg-white]="categoriaSelecionada !== cat"
+        [class.text-gray-600]="categoriaSelecionada !== cat"
+        [class.border-gray-200]="categoriaSelecionada !== cat"
+      >
+        {{ cat | titlecase }}
+      </button>
+    }
+  </nav>
+
+  <!-- Lista de Produtos -->
+  <main class="p-4 space-y-4">
+    @if (produtos.length === 0) {
+      <div class="text-center py-10 text-gray-400">
+        <p class="text-4xl mb-2">🍽️</p>
+        <p>Nenhum produto encontrado.</p>
+      </div>
+    }
+
+    @for (produto of produtos; track produto.id) {
+      <div
+        class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center"
+      >
+        <div class="flex-1 pr-4">
+          <h3 class="font-bold text-gray-800 text-lg">{{ produto.nome }}</h3>
+          <p class="text-sm text-gray-500 mt-1 line-clamp-2">{{ produto.descricao }}</p>
+          <div class="flex items-center gap-3 mt-2">
+            <p class="text-primary-600 font-black text-lg">
+              R$ {{ produto.preco | number: '1.2-2' }}
+            </p>
+            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-medium">
+              ⏱️ {{ produto.tempoPreparoMinutos }}min
+            </span>
+          </div>
+        </div>
+
+        <!-- Controles de Quantidade -->
+        <div
+          class="flex flex-col items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-100 min-w-[4rem]"
+        >
+          <button
+            (click)="adicionarItem(produto)"
+            class="w-8 h-8 rounded-full bg-primary-600 text-white font-bold text-lg hover:bg-primary-700 active:scale-95 transition-transform"
+          >
+            +
+          </button>
+
+          @if (getQuantidade(produto) > 0) {
+            <span class="font-bold text-gray-800">{{ getQuantidade(produto) }}</span>
+            <button
+              (click)="removerItem(produto)"
+              class="w-8 h-8 rounded-full bg-gray-200 text-gray-600 font-bold text-lg hover:bg-gray-300 active:scale-95 transition-transform"
+            >
+              −
+            </button>
+          }
+        </div>
+      </div>
+    }
+  </main>
+</div>
+
+<!-- Botão Flutuante do Carrinho -->
+@if (totalItens > 0) {
+  <button
+    (click)="abrirCarrinho()"
+    class="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 bg-primary-600 text-white rounded-full h-16 w-16 flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.3)] z-30 hover:bg-primary-700 hover:scale-105 active:scale-95 transition-all"
+  >
+    <span class="text-2xl">🛒</span>
+    <span
+      class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-black w-7 h-7 rounded-full flex items-center justify-center border-2 border-white shadow-sm"
+    >
+      {{ totalItens }}
+    </span>
+  </button>
+}
+
+<!-- Modal de Resumo e Confirmação do Pedido -->
+@if (isCarrinhoAberto) {
+  <div
+    class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity"
+  >
+    <div
+      class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl transform transition-all animate-[slideUp_0.3s_ease-out] flex flex-col max-h-[90vh]"
+    >
+      <!-- Cabeçalho do Modal -->
+      <div class="p-5 flex justify-between items-center border-b border-gray-100">
+        <h3 class="text-xl font-black text-gray-800 flex items-center gap-2">
+          <span>📋</span> Resumo do Pedido
+        </h3>
+        <button
+          (click)="fecharCarrinho()"
+          class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+        >
+          ✕
+        </button>
+      </div>
+
+      <!-- Corpo do Modal -->
+      <div class="p-5 overflow-y-auto">
+        <!-- Lista de Itens -->
+        <div class="space-y-3 mb-4">
+          @for (item of getItensCarrinho(); track item.produto.id) {
+            <div class="flex justify-between text-gray-700 font-medium text-sm">
+              <span>{{ item.quantidade }}x {{ item.produto.nome }}</span>
+              <span>R$ {{ item.produto.preco * item.quantidade | number: '1.2-2' }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- Total -->
+        <div
+          class="flex justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6"
+        >
+          <span class="font-bold text-gray-600 uppercase tracking-wider text-sm"
+            >Total a pagar:</span
+          >
+          <span class="text-2xl font-black text-primary-600">R$ {{ total | number: '1.2-2' }}</span>
+        </div>
+
+        <!-- Identificação do Cliente (Obrigatório) -->
+        <div class="space-y-2 mb-6">
+          <label class="block text-sm font-bold text-gray-700">
+            Como devemos te chamar? <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            [(ngModel)]="nomeCliente"
+            (input)="tentouEnviar = false"
+            placeholder="Digite seu nome (Ex: Danilo)"
+            [ngClass]="{
+              'border-red-500 focus:ring-red-500 focus:border-red-500 bg-red-50':
+                tentouEnviar && (!nomeCliente || nomeCliente.trim() === ''),
+              'border-gray-300 focus:ring-primary-500 focus:border-primary-500 bg-gray-50': !(
+                tentouEnviar &&
+                (!nomeCliente || nomeCliente.trim() === '')
+              ),
+            }"
+            class="w-full px-4 py-3 border rounded-xl font-semibold focus:ring-2 transition-all outline-none"
+          />
+          <!-- Mensagem de erro que só aparece se a validação falhar -->
+          @if (tentouEnviar && (!nomeCliente || nomeCliente.trim() === '')) {
+            <p class="text-red-500 text-xs font-bold flex items-center gap-1 animate-pulse">
+              <span>⚠️</span> O nome é obrigatório para o pedido!
+            </p>
+          }
+        </div>
+
+        <!-- Tipo de Pedido (Comer Aqui / Levar) -->
+        <div class="space-y-2 mb-6">
+          <label class="block text-sm font-bold text-gray-700">Onde você vai comer?</label>
+          <div class="flex gap-2 bg-gray-100 p-1 rounded-lg">
+            <button
+              (click)="tipoPedido = 'COMER_AQUI'"
+              [class.bg-white]="tipoPedido === 'COMER_AQUI'"
+              [class.text-primary-700]="tipoPedido === 'COMER_AQUI'"
+              [class.shadow-sm]="tipoPedido === 'COMER_AQUI'"
+              [class.text-gray-500]="tipoPedido !== 'COMER_AQUI'"
+              class="flex-1 py-3 rounded-md font-bold text-sm transition-all"
+            >
+              🍽️ Comer Aqui
+            </button>
+            <button
+              (click)="tipoPedido = 'LEVAR'"
+              [class.bg-white]="tipoPedido === 'LEVAR'"
+              [class.text-primary-700]="tipoPedido === 'LEVAR'"
+              [class.shadow-sm]="tipoPedido === 'LEVAR'"
+              [class.text-gray-500]="tipoPedido !== 'LEVAR'"
+              class="flex-1 py-3 rounded-md font-bold text-sm transition-all"
+            >
+              🏃 Levar
+            </button>
+          </div>
+        </div>
+
+        <!-- Forma de Pagamento (Visual) -->
+        <div class="space-y-2 mb-6">
+          <label class="block text-sm font-bold text-gray-700">Como prefere pagar no balcão?</label>
+          <div class="grid grid-cols-3 gap-3">
+            <button
+              (click)="formaPagamento = 'PIX'"
+              [class.border-primary-500]="formaPagamento === 'PIX'"
+              [class.bg-primary-50]="formaPagamento === 'PIX'"
+              class="border border-gray-200 rounded-xl p-3 flex flex-col items-center gap-1 transition-colors"
+            >
+              <span class="text-2xl">📱</span>
+              <span class="text-xs font-bold text-gray-700 mt-1">PIX</span>
+            </button>
+            <button
+              (click)="formaPagamento = 'CARTAO'"
+              [class.border-primary-500]="formaPagamento === 'CARTAO'"
+              [class.bg-primary-50]="formaPagamento === 'CARTAO'"
+              class="border border-gray-200 rounded-xl p-3 flex flex-col items-center gap-1 transition-colors"
+            >
+              <span class="text-2xl">💳</span>
+              <span class="text-xs font-bold text-gray-700 mt-1">Cartão</span>
+            </button>
+            <button
+              (click)="formaPagamento = 'DINHEIRO'"
+              [class.border-primary-500]="formaPagamento === 'DINHEIRO'"
+              [class.bg-primary-50]="formaPagamento === 'DINHEIRO'"
+              class="border border-gray-200 rounded-xl p-3 flex flex-col items-center gap-1 transition-colors"
+            >
+              <span class="text-2xl">💵</span>
+              <span class="text-xs font-bold text-gray-700 mt-1">Dinheiro</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botão Confirmar -->
+      <div class="p-5 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
+        <button
+          (click)="enviarPedido()"
+          [disabled]="isProcessando"
+          class="w-full py-4 bg-success text-white rounded-xl font-bold text-lg shadow hover:bg-green-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+        >
+          @if (isProcessando) {
+            ⏳ Enviando...
+          } @else {
+            ✅ CONFIRMAR PEDIDO
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

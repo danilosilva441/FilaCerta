@@ -1,1 +1,12 @@
-<router-outlet></router-outlet>
+<app-toast></app-toast>
+<app-confirm-modal></app-confirm-modal>
+
+<!-- O pb-20 (padding-bottom) garante que a Navbar no celular não cubra o final da tela -->
+<!-- sm:pb-0 remove esse espaçamento no desktop -->
+<div class="min-h-screen flex flex-col pb-20 sm:pb-0">
+  <app-navbar></app-navbar>
+
+  <main class="flex-1">
+    <router-outlet></router-outlet>
+  </main>
+</div>

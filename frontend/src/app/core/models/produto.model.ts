@@ -1,17 +1,8 @@
-export type CategoriaProduto =
-  | 'HAMBURGUER'
-  | 'CACHORRO_QUENTE'
-  | 'SALGADO'
-  | 'BEBIDA'
-  | 'PORCAO'
-  | 'ADICIONAL';
-
-export interface ProdutoResponse {
+export interface Produto {
   id: number;
   nome: string;
   descricao: string;
   preco: number;
-  categoria: CategoriaProduto;
+  categoria: 'HAMBURGUER' | 'CACHORRO_QUENTE' | 'SALGADO' | 'BEBIDA' | 'PORCAO' | 'ADICIONAL';
   tempoPreparoMinutos: number;
-  disponivel: boolean;
 }
