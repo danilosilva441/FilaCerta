@@ -7,9 +7,10 @@ export interface ItemPedidoRequest {
 export interface CriarPedidoRequest {
   nomeCliente: string;
   tipo: 'LEVAR' | 'COMER_AQUI';
-  origem: 'QR_CODE' | 'MANUAL';
+  origem: 'CLIENTE' | 'MANUAL';
+  formaPagamento: 'PIX' | 'CARTAO' | 'DINHEIRO' | 'NAO_INFORMADO';
   itens: ItemPedidoRequest[];
-  observacao?: string;
+  statusPagamento: string;
 }
 
 export interface ItemPedidoResponse {
@@ -27,8 +28,9 @@ export interface PedidoResponse {
   numero: number;
   nomeCliente: string;
   tipo: 'LEVAR' | 'COMER_AQUI';
-  status: 'RECEBIDO' | 'PREPARANDO' | 'PRONTO' | 'ENTREGUE' | 'CANCELADO';
-  statusPagamento: 'AGUARDANDO' | 'PAGO';
+  status: string;
+  statusPagamento: string;
+  formaPagamento: 'PIX' | 'CARTAO' | 'DINHEIRO' | 'NAO_INFORMADO'; // <-- NOVO
   valorTotal: number;
   dataHoraPedido: string;
   itens: ItemPedidoResponse[];

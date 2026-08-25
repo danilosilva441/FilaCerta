@@ -12,3 +12,14 @@ export interface CaixaDiarioResponse {
 export interface AbrirCaixaRequest {
   valorInicial: number;
 }
+
+export interface ResumoFechamentoResponse {
+  caixaId: number;
+  dataFechamento: string;
+  valorInicialTroco: number;
+  totalPix: number;
+  totalCartao: number;
+  totalDinheiro: number;
+  faturamentoTotal: number;
+  totalEmGaveta: number;
+}

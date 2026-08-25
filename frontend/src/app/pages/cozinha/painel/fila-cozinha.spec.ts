@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Painel } from './painel';
+import { Painel } from './fila-cozinha';
 
 describe('Painel', () => {
   let component: Painel;

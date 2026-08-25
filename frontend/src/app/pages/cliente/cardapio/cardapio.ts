@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CriarPedidoRequest, ItemPedidoRequest } from '../../../core/models/pedido.model';
 import { Produto } from '../../../core/models/produto.model';
+import { AuthService } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { PedidoService } from '../../../core/services/pedido.service';
 import { ProdutoService } from '../../../core/services/produto.service';
@@ -26,6 +27,8 @@ export class CardapioComponent implements OnInit {
   produtos: Produto[] = [];
   carrinho: Map<number, number> = new Map(); // produtoId -> quantidade
 
+  isDono = false; // Para mostrar o botão de "Finalizar Turno" apenas para o dono
+  jaPago = false; // Para mostrar o botão de "Finalizar Turno" apenas se o pagamento foi feito
   isProcessando = false;
   isCarrinhoAberto = false;
   tentouEnviar = false;
@@ -36,9 +39,11 @@ export class CardapioComponent implements OnInit {
     private router: Router,
     private cdr: ChangeDetectorRef,
     private notificationService: NotificationService,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
+    this.isDono = this.authService.isDono();
     this.produtoService.listar(this.categoriaSelecionada).subscribe({
       next: (data) => {
         this.produtos = data;
@@ -120,6 +125,7 @@ export class CardapioComponent implements OnInit {
   enviarPedido(): void {
     if (this.carrinho.size === 0) return;
 
+    // Se for o dono lançando, o nome não precisa ser obrigatório (pode ser "Balcão")
     if (!this.nomeCliente || this.nomeCliente.trim() === '') {
       this.tentouEnviar = true;
       this.notificationService.aviso(
@@ -137,10 +143,14 @@ export class CardapioComponent implements OnInit {
       itens.push({ produtoId, quantidade });
     });
 
+    // O payload muda dependendo de quem esta pedindo. Se for o dono, a origem é "MANUAL", se for o cliente, a origem é "CLIENTE"
     const request: CriarPedidoRequest = {
-      nomeCliente: this.nomeCliente.trim(),
+      nomeCliente: this.nomeCliente.trim() || (this.isDono ? 'Balcão' : ''), // Se for dono e não informar nome, coloca "Balcão"
       tipo: this.tipoPedido,
-      origem: 'MANUAL',
+      origem: this.isDono ? 'MANUAL' : 'CLIENTE',
+      formaPagamento: this.formaPagamento,
+      // Se for o dono, envia PAGO ou AGUARDANDO dependendo do botão. Se for cliente, envia AGUARDANDO.
+      statusPagamento: this.isDono ? (this.jaPago ? 'PAGO' : 'AGUARDANDO') : 'AGUARDANDO', // Se for dono, já marca como pago
       itens,
     };
 

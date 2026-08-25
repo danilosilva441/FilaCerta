@@ -42,6 +42,9 @@ public class CaixaDiario {
 
 	@Column(name = "hora_fechamento")
 	private LocalDateTime horaFechamento;
+	
+	@Column(name = "data_fechamento")
+	private LocalDateTime dataFechamento;
 
 	@Column(name = "valor_inicial", precision = 10, scale = 2)
 	private BigDecimal valorInicial;

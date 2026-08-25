@@ -3,15 +3,22 @@ package com.filacerta.application.service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.filacerta.application.dto.response.CaixaDiarioResponse;
+import com.filacerta.application.dto.response.ResumoFechamentoResponse;
 import com.filacerta.domain.entity.CaixaDiario;
+import com.filacerta.domain.entity.Pedido;
+import com.filacerta.domain.enums.FormaPagamento;
 import com.filacerta.domain.enums.StatusCaixa;
+import com.filacerta.domain.enums.StatusPagamento;
+import com.filacerta.domain.enums.StatusPedido;
 import com.filacerta.domain.exception.NegocioException;
 import com.filacerta.infrastructure.repository.CaixaDiarioRepository;
+import com.filacerta.infrastructure.repository.PedidoRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,6 +27,8 @@ import lombok.RequiredArgsConstructor;
 public class CaixaDiarioService {
 
 	private final CaixaDiarioRepository caixaDiarioRepository;
+	private final PedidoRepository pedidoRepository;
+	
 
 	@Transactional(readOnly = true)
 	public CaixaDiario buscarCaixaAberto() {
@@ -65,15 +74,52 @@ public class CaixaDiarioService {
 	}
 
 	@Transactional
-	public CaixaDiarioResponse fecharCaixa() {
-		CaixaDiario caixaAberto = caixaDiarioRepository.findByStatus(StatusCaixa.ABERTO)
-				.orElseThrow(() -> new NegocioException("Nenhum caixa aberto encontrado."));
+    public ResumoFechamentoResponse fecharCaixa(Long caixaId) {
+        CaixaDiario caixa = caixaDiarioRepository.findById(caixaId)
+                .orElseThrow(() -> new NegocioException("Caixa não encontrado."));
 
-		caixaAberto.setStatus(StatusCaixa.FECHADO); // Usando Enum
-		caixaAberto.setHoraFechamento(LocalDateTime.now());
+        if (caixa.getStatus() == StatusCaixa.FECHADO) {
+            throw new NegocioException("Este caixa já está fechado.");
+        }
 
-		return toResponse(caixaDiarioRepository.save(caixaAberto));
-	}
+        caixa.setStatus(StatusCaixa.FECHADO);
+        caixa.setDataFechamento(LocalDateTime.now());
+        caixaDiarioRepository.save(caixa);
+
+        // Busca todos os pedidos atrelados a este caixa
+        List<Pedido> pedidosDoCaixa = pedidoRepository.findByCaixaDiarioId(caixa.getId());
+
+        BigDecimal totalPix = BigDecimal.ZERO;
+        BigDecimal totalCartao = BigDecimal.ZERO;
+        BigDecimal totalDinheiro = BigDecimal.ZERO;
+
+        // Soma apenas os pedidos que foram PAGOS
+        for (Pedido p : pedidosDoCaixa) {
+            if (p.getStatusPagamento() == StatusPagamento.PAGO && p.getValorTotal() != null) {
+                if (p.getFormaPagamento() == FormaPagamento.PIX) {
+                    totalPix = totalPix.add(p.getValorTotal());
+                } else if (p.getFormaPagamento() == FormaPagamento.CARTAO) {
+                    totalCartao = totalCartao.add(p.getValorTotal());
+                } else if (p.getFormaPagamento() == FormaPagamento.DINHEIRO) {
+                    totalDinheiro = totalDinheiro.add(p.getValorTotal());
+                }
+            }
+        }
+
+        BigDecimal faturamentoTotal = totalPix.add(totalCartao).add(totalDinheiro);
+        BigDecimal totalEmGaveta = caixa.getValorInicial().add(totalDinheiro);
+
+        return ResumoFechamentoResponse.builder()
+                .caixaId(caixa.getId())
+                .dataFechamento(caixa.getDataFechamento())
+                .valorInicialTroco(caixa.getValorInicial())
+                .totalPix(totalPix)
+                .totalCartao(totalCartao)
+                .totalDinheiro(totalDinheiro)
+                .faturamentoTotal(faturamentoTotal)
+                .totalEmGaveta(totalEmGaveta)
+                .build();
+    }
 
 	private CaixaDiarioResponse toResponse(CaixaDiario caixa) {
 		return CaixaDiarioResponse.builder().id(caixa.getId()).data(caixa.getData())
@@ -81,4 +127,47 @@ public class CaixaDiarioService {
 				.valorInicial(caixa.getValorInicial()).totalDinheiro(caixa.getTotalDinheiro())
 				.totalPedidos(caixa.getTotalPedidos()).status(caixa.getStatus()).build();
 	}
+	
+	@Transactional(readOnly = true)
+    public ResumoFechamentoResponse obterResumoAtual(Long caixaId) {
+        CaixaDiario caixa = caixaDiarioRepository.findById(caixaId)
+                .orElseThrow(() -> new NegocioException("Caixa não encontrado."));
+
+        // Busca todos os pedidos atrelados a este caixa
+        List<Pedido> pedidosDoCaixa = pedidoRepository.findByCaixaDiarioId(caixa.getId());
+
+        BigDecimal totalPix = BigDecimal.ZERO;
+        BigDecimal totalCartao = BigDecimal.ZERO;
+        BigDecimal totalDinheiro = BigDecimal.ZERO;
+        int qtdPedidosConcluidos = 0;
+        int qtdPedidosCancelados = 0;
+
+        for (Pedido p : pedidosDoCaixa) {
+            // Contagem de status (Você pode ter um enum CANCELADO no futuro)
+            if (p.getStatus() == StatusPedido.PRONTO || p.getStatus() == StatusPedido.ENTREGUE) {
+                qtdPedidosConcluidos++;
+            }
+            
+            // Soma financeira
+            if (p.getStatusPagamento() == StatusPagamento.PAGO && p.getValorTotal() != null) {
+                if (p.getFormaPagamento() == FormaPagamento.PIX) totalPix = totalPix.add(p.getValorTotal());
+                else if (p.getFormaPagamento() == FormaPagamento.CARTAO) totalCartao = totalCartao.add(p.getValorTotal());
+                else if (p.getFormaPagamento() == FormaPagamento.DINHEIRO) totalDinheiro = totalDinheiro.add(p.getValorTotal());
+            }
+        }
+
+        BigDecimal faturamentoTotal = totalPix.add(totalCartao).add(totalDinheiro);
+        BigDecimal totalEmGaveta = caixa.getValorInicial().add(totalDinheiro);
+
+        return ResumoFechamentoResponse.builder()
+                .caixaId(caixa.getId())
+                .valorInicialTroco(caixa.getValorInicial())
+                .totalPix(totalPix)
+                .totalCartao(totalCartao)
+                .totalDinheiro(totalDinheiro)
+                .faturamentoTotal(faturamentoTotal)
+                .totalEmGaveta(totalEmGaveta)
+                // Se quiser, no futuro pode adicionar qtdPedidosConcluidos no DTO!
+                .build();
+    }
 }

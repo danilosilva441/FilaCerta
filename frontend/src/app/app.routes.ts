@@ -1,7 +1,11 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'cliente/cardapio', pathMatch: 'full' },
+  // A raiz do site agora carrega a Home de boas-vindas do Mikael Lanches
+  {
+    path: '',
+    loadComponent: () => import('./pages/cliente/home/home').then((m) => m.HomeComponent),
+  },
   {
     path: 'cliente/cardapio',
     loadComponent: () =>
@@ -16,7 +20,8 @@ export const routes: Routes = [
   },
   {
     path: 'cozinha/painel',
-    loadComponent: () => import('./pages/cozinha/painel/painel').then((m) => m.PainelComponent),
+    loadComponent: () =>
+      import('./pages/cozinha/painel/fila-cozinha').then((m) => m.PainelComponent),
   },
   {
     path: 'caixa/painel',

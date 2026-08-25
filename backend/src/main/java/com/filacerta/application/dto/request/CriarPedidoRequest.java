@@ -1,15 +1,18 @@
 package com.filacerta.application.dto.request;
 
+import java.util.List;
+
+import com.filacerta.domain.enums.FormaPagamento;
 import com.filacerta.domain.enums.OrigemPedido;
+import com.filacerta.domain.enums.StatusPagamento;
 import com.filacerta.domain.enums.TipoPedido;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-
-import java.util.List;
 
 @Data
 public class CriarPedidoRequest {
@@ -29,4 +32,18 @@ public class CriarPedidoRequest {
     private List<ItemPedidoRequest> itens;
 
     private String observacao;
+    
+    private StatusPagamento statusPagamento;
+    
+ // Adicione o campo:
+    private FormaPagamento formaPagamento;
+
+    // Adicione o Getter e Setter
+    public FormaPagamento getFormaPagamento() {
+        return formaPagamento;
+    }
+
+    public void setFormaPagamento(FormaPagamento formaPagamento) {
+        this.formaPagamento = formaPagamento;
+    }
 }

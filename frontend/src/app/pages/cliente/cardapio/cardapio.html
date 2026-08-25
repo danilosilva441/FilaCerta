@@ -163,6 +163,42 @@
           }
         </div>
 
+        <!-- CONTROLES EXCLUSIVOS DO DONO (Admin Mode) -->
+        @if (isDono) {
+          <div class="space-y-2 mb-4 p-4 bg-primary-50 rounded-xl border border-primary-200">
+            <label class="block text-sm font-black text-primary-800 flex items-center gap-1">
+              <span>👑</span> Modo Balcão (Você está logado)
+            </label>
+            <div
+              class="flex items-center justify-between bg-white p-3 rounded-lg border border-primary-100 shadow-sm mt-2"
+            >
+              <span class="font-bold text-gray-700 text-sm">O cliente já efetuou o pagamento?</span>
+
+              <!-- Toggle Sim/Não -->
+              <div class="flex bg-gray-100 rounded-lg p-1 gap-1">
+                <button
+                  (click)="jaPago = false"
+                  [class.bg-white]="!jaPago"
+                  [class.shadow]="!jaPago"
+                  [class.text-warning]="!jaPago"
+                  class="px-4 py-2 rounded-md font-bold text-xs text-gray-500 transition-all"
+                >
+                  NÃO
+                </button>
+                <button
+                  (click)="jaPago = true"
+                  [class.bg-success]="jaPago"
+                  [class.shadow]="jaPago"
+                  [class.text-white]="jaPago"
+                  class="px-4 py-2 rounded-md font-bold text-xs text-gray-500 transition-all"
+                >
+                  SIM, JÁ PAGOU
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+
         <!-- Tipo de Pedido (Comer Aqui / Levar) -->
         <div class="space-y-2 mb-6">
           <label class="block text-sm font-bold text-gray-700">Onde você vai comer?</label>

@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.filacerta.domain.enums.FormaPagamento;
 import com.filacerta.domain.enums.MetodoPagamento;
 import com.filacerta.domain.enums.OrigemPedido;
 import com.filacerta.domain.enums.StatusItemPedido;
@@ -96,6 +97,18 @@ public class Pedido {
     @JoinColumn(name = "caixa_diario_id")
     @JsonBackReference
     private CaixaDiario caixaDiario;
+    
+    @Enumerated(EnumType.STRING)
+    private FormaPagamento formaPagamento;
+
+    // Não esqueça de gerar o Getter e Setter para formaPagamento!
+    public FormaPagamento getFormaPagamento() {
+        return formaPagamento;
+    }
+
+    public void setFormaPagamento(FormaPagamento formaPagamento) {
+        this.formaPagamento = formaPagamento;
+    }
 
     public void calcularValorTotal() {
         this.valorTotal = itens.stream()

@@ -1,0 +1,95 @@
+<div
+  class="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4 font-sans relative"
+>
+  <!-- Cabeçalho / Logo -->
+  <div class="text-center mb-10 animate-[slideDown_0.5s_ease-out]">
+    <div
+      class="w-32 h-32 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl border-4 border-white"
+    >
+      <span class="text-6xl">🍔</span>
+    </div>
+    <h1 class="text-4xl font-black text-gray-900 tracking-tight">Mikael Lanches</h1>
+    <p class="text-2xl text-primary-600 font-bold italic mt-1">"Bora rochedo(a)!"</p>
+  </div>
+
+  <!-- Área de Status da Loja -->
+  <div class="w-full max-w-sm transition-all duration-300">
+    @if (carregando) {
+      <div
+        class="flex flex-col items-center text-gray-500 animate-pulse bg-white p-6 rounded-2xl shadow-md"
+      >
+        <span class="text-3xl mb-2">🔥</span>
+        <p class="font-medium text-center">Verificando se a chapa tá quente...</p>
+      </div>
+    } @else {
+      <!-- LOJA ABERTA -->
+      @if (isAberto) {
+        <div
+          class="bg-white p-6 rounded-2xl shadow-xl border-t-8 border-green-500 text-center transform hover:scale-105 transition-transform"
+        >
+          <span
+            class="inline-block bg-green-100 text-green-700 px-4 py-1.5 rounded-full text-sm font-black mb-4 tracking-wider"
+          >
+            🟢 ESTAMOS ABERTOS
+          </span>
+          <h2 class="text-2xl font-bold text-gray-800 mb-2">Bateu a fome?</h2>
+          <p class="text-gray-500 mb-6 font-medium">
+            Faça seu pedido agora e acompanhe o preparo em tempo real!
+          </p>
+
+          <!-- CORRIGIDO: Link atualizado para /cliente/cardapio -->
+          <a
+            routerLink="/cliente/cardapio"
+            class="block w-full py-4 bg-primary-600 text-white rounded-xl font-black text-lg hover:bg-primary-700 active:scale-95 transition-all shadow-md"
+          >
+            VER CARDÁPIO
+          </a>
+        </div>
+      }
+
+      <!-- LOJA FECHADA -->
+      @else {
+        <div class="bg-white p-6 rounded-2xl shadow-lg border-t-8 border-red-500 text-center">
+          <span
+            class="inline-block bg-red-100 text-red-700 px-4 py-1.5 rounded-full text-sm font-black mb-4 tracking-wider"
+          >
+            🔴 ESTAMOS FECHADOS
+          </span>
+          <h2 class="text-xl font-bold text-gray-800 mb-2">Poxa, a chapa esfriou!</h2>
+          <p class="text-gray-500 mb-5 font-medium">
+            Mas não fique triste, voltamos em breve com os melhores lanches.
+          </p>
+
+          <div class="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 border border-gray-200">
+            <p class="font-black text-gray-800 mb-2 flex items-center justify-center gap-2">
+              <span>⏰</span> Horário de Funcionamento
+            </p>
+            <p class="font-medium">Terça a Domingo</p>
+            <p class="text-primary-600 font-bold text-lg">18:00 às 23:30</p>
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- ATALHOS DO DONO (Ficam mais discretos no rodapé) -->
+  <div class="mt-12 text-center">
+    <p class="text-xs text-gray-400 mb-3 font-bold uppercase tracking-widest">
+      Área Restrita (Staff)
+    </p>
+    <div class="flex items-center justify-center gap-3">
+      <a
+        routerLink="/caixa/painel"
+        class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold transition-colors"
+      >
+        💰 Caixa
+      </a>
+      <a
+        routerLink="/cozinha/painel"
+        class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold transition-colors"
+      >
+        👨‍🍳 Cozinha
+      </a>
+    </div>
+  </div>
+</div>
