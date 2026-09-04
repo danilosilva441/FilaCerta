@@ -88,4 +88,17 @@ public class CaixaController {
         pedidoService.finalizarEntrega(id);
         return ResponseEntity.ok().build();
     }
+    
+    @PatchMapping("/{id}/pausar-cozinha")
+    @Operation(summary = "Pausa ou despausa o recebimento de novos pedidos na cozinha")
+    public ResponseEntity<CaixaDiarioResponse> alternarPausaCozinha(@PathVariable Long id) {
+        return ResponseEntity.ok(caixaDiarioService.alternarPausaCozinha(id));
+    }
+
+    @PatchMapping("/pedidos/{id}/cancelar")
+    @Operation(summary = "Cancela um pedido (Arquivo Morto)")
+    public ResponseEntity<Void> cancelarPedido(@PathVariable Long id) {
+        pedidoService.cancelarPedido(id);
+        return ResponseEntity.ok().build();
+    }
 }

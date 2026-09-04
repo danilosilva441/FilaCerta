@@ -193,4 +193,13 @@ public class PedidoService {
 
         pedidoRepository.save(pedido);
     }
+	
+	@Transactional
+    public void cancelarPedido(Long pedidoId) {
+        Pedido pedido = pedidoRepository.findById(pedidoId)
+                .orElseThrow(() -> new NegocioException("Pedido não encontrado: " + pedidoId));
+
+        pedido.setStatus(StatusPedido.CANCELADO);
+        pedidoRepository.save(pedido);
+    }
 }

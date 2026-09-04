@@ -1,9 +1,10 @@
 package com.filacerta.application.dto.response;
 
-import lombok.Builder;
-import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
+import lombok.Builder;
+import lombok.Data;
 
 @Data
 @Builder
@@ -16,4 +17,6 @@ public class ResumoFechamentoResponse {
     private BigDecimal totalDinheiro;
     private BigDecimal faturamentoTotal;
     private BigDecimal totalEmGaveta; // Troco Inicial + Vendas em Dinheiro
+    private Integer quantidadeCancelados;
+    private BigDecimal valorCancelado;
 }

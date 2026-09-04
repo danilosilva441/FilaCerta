@@ -62,6 +62,9 @@ public class CaixaDiario {
 
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private LocalDateTime createdAt;
+	
+	@Column(name = "cozinha_pausada")
+	private boolean cozinhaPausada = false;
 
 	@PrePersist
 	protected void onCreate() {

@@ -105,6 +105,8 @@ public class CaixaDiarioService {
                 }
             }
         }
+        
+        
 
         BigDecimal faturamentoTotal = totalPix.add(totalCartao).add(totalDinheiro);
         BigDecimal totalEmGaveta = caixa.getValorInicial().add(totalDinheiro);
@@ -141,6 +143,8 @@ public class CaixaDiarioService {
         BigDecimal totalDinheiro = BigDecimal.ZERO;
         int qtdPedidosConcluidos = 0;
         int qtdPedidosCancelados = 0;
+        
+
 
         for (Pedido p : pedidosDoCaixa) {
             // Contagem de status (Você pode ter um enum CANCELADO no futuro)
@@ -168,6 +172,26 @@ public class CaixaDiarioService {
                 .faturamentoTotal(faturamentoTotal)
                 .totalEmGaveta(totalEmGaveta)
                 // Se quiser, no futuro pode adicionar qtdPedidosConcluidos no DTO!
+                .build();
+        
+        
+    }
+	
+	@Transactional
+    public CaixaDiarioResponse alternarPausaCozinha(Long caixaId) {
+        CaixaDiario caixa = caixaDiarioRepository.findById(caixaId)
+                .orElseThrow(() -> new NegocioException("Caixa não encontrado"));
+        
+        caixa.setCozinhaPausada(!caixa.isCozinhaPausada());
+        caixa = caixaDiarioRepository.save(caixa);
+        
+        // Conversão manual usando o Builder (ajuste os nomes dos campos se necessário)
+        return CaixaDiarioResponse.builder()
+                .id(caixa.getId())
+                .valorInicial(caixa.getValorInicial())
+                .status(caixa.getStatus())
+                .cozinhaPausada(caixa.isCozinhaPausada())
+                // Se tiver data de abertura, adicione aqui também! ex: .dataAbertura(caixa.getDataAbertura())
                 .build();
     }
 }
