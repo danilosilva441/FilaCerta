@@ -1,6 +1,7 @@
 package com.filacerta.presentation.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +19,7 @@ import com.filacerta.application.dto.response.PedidoResponse;
 import com.filacerta.application.dto.response.ResumoFechamentoResponse;
 import com.filacerta.application.service.CaixaDiarioService;
 import com.filacerta.application.service.PedidoService;
+import com.filacerta.domain.enums.MotivoPausa;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -90,9 +92,19 @@ public class CaixaController {
     }
     
     @PatchMapping("/{id}/pausar-cozinha")
-    @Operation(summary = "Pausa ou despausa o recebimento de novos pedidos na cozinha")
-    public ResponseEntity<CaixaDiarioResponse> alternarPausaCozinha(@PathVariable Long id) {
-        return ResponseEntity.ok(caixaDiarioService.alternarPausaCozinha(id));
+    @Operation(summary = "Pausa ou despausa a cozinha informando o motivo")
+    public ResponseEntity<CaixaDiarioResponse> alterarPausaCozinha(
+            @PathVariable Long id, 
+            @RequestBody(required = false) Map<String, String> request) {
+        
+        MotivoPausa motivo = null;
+        
+        // Verifica se a tela enviou um motivo. Se não enviou, enviaremos 'null' (que vai reabrir a cozinha)
+        if (request != null && request.containsKey("motivo") && request.get("motivo") != null) {
+            motivo = MotivoPausa.valueOf(request.get("motivo"));
+        }
+        
+        return ResponseEntity.ok(caixaDiarioService.alterarPausaCozinha(id, motivo));
     }
 
     @PatchMapping("/pedidos/{id}/cancelar")

@@ -3,15 +3,13 @@ package com.filacerta.domain.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import com.filacerta.domain.enums.CategoriaProduto;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -41,10 +39,6 @@ public class Produto {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal preco;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
-    private CategoriaProduto categoria;
-
     @Column(name = "tempo_preparo_minutos", nullable = false)
     private Integer tempoPreparoMinutos;
 
@@ -57,6 +51,19 @@ public class Produto {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+    
+    @ManyToOne
+    @JoinColumn(name = "categoria_id")
+    private Categoria categoria;
+
+    @Column(name = "quantidade_disponivel")
+    private Integer quantidadeDisponivel;
+
+    @Column(name = "limite_diario")
+    private Integer limiteDiario;
+
+    @Column(name = "ativo", columnDefinition = "boolean default true")
+    private boolean ativo = true;
 
     // Callbacks do JPA para preencher as datas automaticamente
     @PrePersist

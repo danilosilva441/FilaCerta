@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.filacerta.domain.enums.MotivoPausa;
 import com.filacerta.domain.enums.StatusCaixa;
 
 import jakarta.persistence.Column;
@@ -66,6 +67,10 @@ public class CaixaDiario {
 	@Column(name = "cozinha_pausada")
 	@Builder.Default
 	private Boolean cozinhaPausada = false;
+	
+	@Enumerated(EnumType.STRING)
+	@Column(name = "motivo_pausa")
+	private MotivoPausa motivoPausa;
 
 	@PrePersist
 	protected void onCreate() {

@@ -15,7 +15,7 @@ import com.filacerta.domain.entity.Pedido;
 @Component
 public class PedidoMapper {
 
-	public static PedidoResponse toResponse(Pedido pedido) {
+    public static PedidoResponse toResponse(Pedido pedido) {
         if (pedido == null) return null;
 
         List<ItemPedidoResponse> itensResponse = pedido.getItens().stream()
@@ -32,7 +32,7 @@ public class PedidoMapper {
                 .tipo(pedido.getTipo())
                 .status(pedido.getStatus())
                 .statusPagamento(pedido.getStatusPagamento())
-                .formaPagamento(formaPag) // <-- Incluído direto no builder aqui!
+                .formaPagamento(formaPag)
                 .valorTotal(pedido.getValorTotal())
                 .dataHoraPedido(pedido.getDataHoraPedido())
                 .itens(itensResponse)
@@ -82,7 +82,8 @@ public class PedidoMapper {
                 .itemId(item.getId())
                 .nomeProduto(item.getProduto().getNome())
                 .quantidade(item.getQuantidade())
-                .categoria(item.getProduto().getCategoria())
+                // CORREÇÃO: Extraindo apenas o nome em texto de forma segura
+                .categoria(item.getProduto() != null && item.getProduto().getCategoria() != null ? item.getProduto().getCategoria().getNome() : "Sem Categoria")
                 .status(item.getStatus())
                 .observacaoItem(item.getObservacaoItem())
                 .build();

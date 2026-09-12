@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.filacerta.domain.enums.MotivoPausa;
 import com.filacerta.domain.enums.StatusCaixa;
 
 import lombok.Builder;
@@ -20,5 +21,6 @@ public class CaixaDiarioResponse {
     private BigDecimal totalDinheiro;
     private Integer totalPedidos;
     private StatusCaixa status;
-    private Boolean cozinhaPausada = false;
+    private Boolean cozinhaPausada; 
+    private MotivoPausa motivoPausa;
 }

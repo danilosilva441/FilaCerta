@@ -1,8 +1,9 @@
 package com.filacerta.application.mapper;
 
+import org.springframework.stereotype.Component;
+
 import com.filacerta.application.dto.response.ProdutoResponse;
 import com.filacerta.domain.entity.Produto;
-import org.springframework.stereotype.Component;
 
 @Component
 public class ProdutoMapper {
@@ -15,7 +16,8 @@ public class ProdutoMapper {
                 .nome(produto.getNome())
                 .descricao(produto.getDescricao())
                 .preco(produto.getPreco())
-                .categoria(produto.getCategoria())
+                // CORREÇÃO: Extraindo apenas o nome em texto
+                .categoria(produto.getCategoria() != null ? produto.getCategoria().getNome() : "Sem Categoria")
                 .tempoPreparoMinutos(produto.getTempoPreparoMinutos())
                 .build();
     }

@@ -15,10 +15,10 @@ import com.filacerta.application.dto.response.FilaCozinhaResponse;
 import com.filacerta.application.dto.response.PedidoResponse;
 import com.filacerta.application.mapper.PedidoMapper;
 import com.filacerta.domain.entity.CaixaDiario;
+import com.filacerta.domain.entity.Categoria;
 import com.filacerta.domain.entity.ItemPedido;
 import com.filacerta.domain.entity.Pedido;
 import com.filacerta.domain.entity.Produto;
-import com.filacerta.domain.enums.CategoriaProduto;
 import com.filacerta.domain.enums.FormaPagamento;
 import com.filacerta.domain.enums.StatusCaixa;
 import com.filacerta.domain.enums.StatusItemPedido;
@@ -122,8 +122,11 @@ public class PedidoService {
 	}
 
 	private boolean temHamburguer(Pedido pedido) {
-		return pedido.getItens().stream().anyMatch(
-				item -> item.getProduto().getCategoria() == CategoriaProduto.HAMBURGUER);
+		return pedido.getItens().stream().anyMatch(item -> 
+				item.getProduto() != null && 
+				item.getProduto().getCategoria() != null && 
+				"Hamburguer".equalsIgnoreCase(item.getProduto().getCategoria().getNome())
+		);
 	}
 
 	@Transactional

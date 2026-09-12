@@ -13,6 +13,7 @@ import com.filacerta.application.dto.response.ResumoFechamentoResponse;
 import com.filacerta.domain.entity.CaixaDiario;
 import com.filacerta.domain.entity.Pedido;
 import com.filacerta.domain.enums.FormaPagamento;
+import com.filacerta.domain.enums.MotivoPausa;
 import com.filacerta.domain.enums.StatusCaixa;
 import com.filacerta.domain.enums.StatusPagamento;
 import com.filacerta.domain.enums.StatusPedido;
@@ -133,7 +134,8 @@ public class CaixaDiarioService {
 				.totalDinheiro(caixa.getTotalDinheiro())
 				.totalPedidos(caixa.getTotalPedidos())
 				.status(caixa.getStatus())
-				.cozinhaPausada(caixa.getCozinhaPausada())
+				.cozinhaPausada(caixa.getMotivoPausa() != null)
+				.motivoPausa(caixa.getMotivoPausa())
 				.build();
 	}
 	
@@ -185,24 +187,14 @@ public class CaixaDiarioService {
     }
 	
 	@Transactional
-    public CaixaDiarioResponse alternarPausaCozinha(Long caixaId) {
+    public CaixaDiarioResponse alterarPausaCozinha(Long caixaId, MotivoPausa motivo) {
         CaixaDiario caixa = caixaDiarioRepository.findById(caixaId)
                 .orElseThrow(() -> new NegocioException("Caixa não encontrado"));
         
-        caixa.setCozinhaPausada(!caixa.getCozinhaPausada());
+        // Agora nós gravamos exatamente o motivo que veio da tela (ou null para abrir a cozinha)
+        caixa.setMotivoPausa(motivo);
         caixa = caixaDiarioRepository.save(caixa);
         
-        // Agora sim, passando os dados completos!
-        return CaixaDiarioResponse.builder()
-                .id(caixa.getId())
-                .data(caixa.getData())
-                .horaAbertura(caixa.getHoraAbertura())
-                .horaFechamento(caixa.getHoraFechamento())
-                .valorInicial(caixa.getValorInicial())
-                .totalDinheiro(caixa.getTotalDinheiro())
-                .totalPedidos(caixa.getTotalPedidos())
-                .status(caixa.getStatus())
-                .cozinhaPausada(caixa.getCozinhaPausada())
-                .build();
+        return toResponse(caixa);
     }
 }
