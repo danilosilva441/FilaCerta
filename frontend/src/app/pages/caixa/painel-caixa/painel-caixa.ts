@@ -141,4 +141,54 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.pararMonitoramentoResumo();
   }
+
+  // Coloque esta função logo abaixo da função fecharCaixa()
+  pausarCozinha(): void {
+    if (!this.caixaAtual) {
+      console.warn('Tentou pausar, mas não encontrou o caixa atual!');
+      return;
+    }
+
+    // 1. Avisa no console que o botão foi clicado
+    console.log(
+      'Apertou o botão! Enviando requisição para pausar a cozinha. ID:',
+      this.caixaAtual.id,
+    );
+
+    // 2. Trava o botão e muda o ícone para ⏳ (Feedback visual)
+    this.isProcessando = true;
+
+    this.caixaService.alternarPausaCozinha(this.caixaAtual.id).subscribe({
+      next: (caixaAtualizado) => {
+        // 3. Mostra no console o que o Spring Boot devolveu de verdade!
+        console.log('✅ Resposta do Spring Boot:', caixaAtualizado);
+
+        this.isProcessando = false;
+        this.caixaAtual = caixaAtualizado;
+
+        // 4. MÁGICA DE PREVENÇÃO: Às vezes o Java (Jackson) converte o boolean e envia como 'isCozinhaPausada'
+        const estaPausada =
+          caixaAtualizado.cozinhaPausada === true ||
+          (caixaAtualizado as any).isCozinhaPausada === true;
+
+        if (estaPausada) {
+          this.notificationService.sucesso('Cozinha Pausada!', 'Novos pedidos bloqueados.');
+        } else {
+          this.notificationService.sucesso('Cozinha Aberta!', 'Recebimento de pedidos retomado.');
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        // 5. Se der erro de rede, joga no console com letras garrafais!
+        console.error('❌ ERRO FATAL AO PAUSAR COZINHA:', err);
+
+        this.isProcessando = false;
+        this.notificationService.erro(
+          'Erro de Comunicação',
+          'Abra o F12 e olhe a aba Console para ver o erro.',
+        );
+        this.cdr.detectChanges();
+      },
+    });
+  }
 }

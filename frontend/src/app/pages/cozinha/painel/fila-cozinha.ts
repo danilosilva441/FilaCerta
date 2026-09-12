@@ -6,22 +6,28 @@ import { FilaCozinhaResponse } from '../../../core/models/cozinha.model';
 import { CaixaService } from '../../../core/services/caixa.service';
 import { CozinhaService } from '../../../core/services/cozinha.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { PedidoService } from '../../../core/services/pedido.service';
 
 @Component({
-  selector: 'app-painel',
+  selector: 'app-fila-cozinha',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './fila-cozinha.html',
 })
-export class PainelComponent implements OnInit, OnDestroy {
+export class FilaCozinhaComponent implements OnInit, OnDestroy {
   filaPedidos: FilaCozinhaResponse[] = [];
   private pollingSubscription?: Subscription;
+
+  somAtivado = false;
+  quantidadePedidosAnteriores = 0;
+  audio = new Audio('assets/audios/sino.mp3');
 
   constructor(
     private cozinhaService: CozinhaService,
     private cdr: ChangeDetectorRef,
     private notificationService: NotificationService,
     private caixaService: CaixaService,
+    private pedidoService: PedidoService,
   ) {}
 
   ngOnInit(): void {
@@ -31,10 +37,40 @@ export class PainelComponent implements OnInit, OnDestroy {
     this.iniciarPolling();
   }
 
+  // Método para o chapeiro ligar/desligar o som
+  alternarSom(): void {
+    this.somAtivado = !this.somAtivado;
+
+    if (this.somAtivado) {
+      // Macete: Tocamos e pausamos bem rápido só para o Chrome
+      // registrar que o usuário interagiu e liberar o áudio pro futuro!
+      this.audio.play().catch(() => console.log('Áudio bloqueado'));
+      this.audio.pause();
+      this.audio.currentTime = 0;
+    }
+  }
+
+  tocarSino(): void {
+    if (this.somAtivado) {
+      this.audio.currentTime = 0; // Volta o som pro começo
+      this.audio.play().catch((err) => console.error('Erro ao tocar áudio', err));
+    }
+  }
+
   // NOVA FUNÇÃO: Busca os pedidos e atualiza a tela apenas UMA VEZ
   carregarFila(): void {
     this.cozinhaService.listarFila().subscribe({
       next: (pedidos) => {
+        // Quantos pedidos temos AGORA nessa lista nova que chegou?
+        const novaQuantidade = pedidos.length;
+
+        // Se a quantidade nova for MAIOR que a antiga, significa que chegou pedido novo!
+        if (novaQuantidade > this.quantidadePedidosAnteriores) {
+          this.tocarSino();
+        }
+
+        // Atualiza a variável para a próxima checagem
+        this.quantidadePedidosAnteriores = novaQuantidade;
         this.filaPedidos = pedidos;
         this.cdr.detectChanges();
       },
@@ -49,7 +85,7 @@ export class PainelComponent implements OnInit, OnDestroy {
         tap((pedidos) => {
           // Toca alarme se a fila cresceu (chegou pedido novo)
           if (pedidos.length > this.filaPedidos.length && this.filaPedidos.length > 0) {
-            this.tocarAlertaNovoPedido();
+            this.tocarSino();
           }
           this.filaPedidos = pedidos;
           this.cdr.detectChanges();
@@ -58,13 +94,6 @@ export class PainelComponent implements OnInit, OnDestroy {
       .subscribe({
         error: (err) => console.error('Erro no polling da cozinha', err),
       });
-  }
-
-  tocarAlertaNovoPedido(): void {
-    try {
-      const audio = new Audio('assets/sounds/notification.mp3');
-      audio.play().catch(() => {});
-    } catch {}
   }
 
   marcarItem(pedidoId: number, itemId: number, statusAtual: string): void {
@@ -146,5 +175,24 @@ export class PainelComponent implements OnInit, OnDestroy {
         this.notificationService.erro('Erro', 'Não foi possível finalizar o pedido.');
       },
     });
+  }
+  // ... importe o ModalService e NotificationService se não tiver
+  cancelarPedido(pedidoId: number): void {
+    if (
+      confirm(
+        'Tem certeza que deseja CANCELAR este pedido? Ele irá para o arquivo morto e não será cobrado.',
+      )
+    ) {
+      this.pedidoService.cancelarPedido(pedidoId).subscribe({
+        next: () => {
+          this.notificationService.sucesso('Cancelado', 'Pedido enviado para o arquivo morto.');
+          this.carregarFila(); // Atualiza a tela para o pedido sumir
+        },
+        error: () => this.notificationService.erro('Erro', 'Não foi possível cancelar o pedido.'),
+      });
+    }
+  }
+  testarSom(): void {
+    this.notificationService.tocarSino();
   }
 }

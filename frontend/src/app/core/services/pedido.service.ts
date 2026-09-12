@@ -18,4 +18,8 @@ export class PedidoService {
   buscarPorId(id: number): Observable<PedidoResponse> {
     return this.http.get<PedidoResponse>(`${this.apiUrl}/${id}`);
   }
+  // Adicione este método junto com os outros (criarPedido, buscarPorId, etc)
+  cancelarPedido(pedidoId: number): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/${pedidoId}/cancelar`, {});
+  }
 }

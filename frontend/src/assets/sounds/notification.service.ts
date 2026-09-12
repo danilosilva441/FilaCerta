@@ -1,57 +1,69 @@
 import { Injectable } from '@angular/core';
+import { Subject } from 'rxjs';
 
-@Injectable({ providedIn: 'root' })
+export interface ToastMessage {
+  titulo: string;
+  mensagem: string;
+  tipo: 'sucesso' | 'erro' | 'aviso' | 'info';
+}
+
+@Injectable({
+  providedIn: 'root',
+})
 export class NotificationService {
+  // ==========================================
+  // 1. SISTEMA DE TOASTS (Avisos visuais)
+  // ==========================================
+  private toastSubject = new Subject<ToastMessage>();
+  toast$ = this.toastSubject.asObservable();
 
-  private audioContext: AudioContext | null = null;
-
-  private getContext(): AudioContext {
-    if (!this.audioContext) {
-      this.audioContext = new AudioContext();
-    }
-    return this.audioContext;
+  sucesso(titulo: string, mensagem: string): void {
+    this.toastSubject.next({ titulo, mensagem, tipo: 'sucesso' });
   }
 
-  tocarAlerta(tipo: 'novo-pedido' | 'pedido-pronto' | 'erro' = 'pedido-pronto'): void {
-    try {
-      const ctx = this.getContext();
-      const oscillator = ctx.createOscillator();
-      const gainNode = ctx.createGain();
+  erro(titulo: string, mensagem: string): void {
+    this.toastSubject.next({ titulo, mensagem, tipo: 'erro' });
+  }
 
-      oscillator.connect(gainNode);
-      gainNode.connect(ctx.destination);
-      oscillator.type = 'sine';
+  aviso(titulo: string, mensagem: string): void {
+    this.toastSubject.next({ titulo, mensagem, tipo: 'aviso' });
+  }
 
-      switch (tipo) {
-        case 'novo-pedido':
-          oscillator.frequency.setValueAtTime(880, ctx.currentTime);
-          oscillator.frequency.setValueAtTime(1100, ctx.currentTime + 0.1);
-          gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-          oscillator.start(ctx.currentTime);
-          oscillator.stop(ctx.currentTime + 0.3);
-          break;
-        case 'pedido-pronto':
-          oscillator.frequency.setValueAtTime(660, ctx.currentTime);
-          oscillator.frequency.setValueAtTime(880, ctx.currentTime + 0.15);
-          oscillator.frequency.setValueAtTime(1100, ctx.currentTime + 0.3);
-          gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
-          oscillator.start(ctx.currentTime);
-          oscillator.stop(ctx.currentTime + 0.6);
-          break;
-        case 'erro':
-          oscillator.frequency.setValueAtTime(200, ctx.currentTime);
-          oscillator.frequency.setValueAtTime(150, ctx.currentTime + 0.2);
-          gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
-          oscillator.start(ctx.currentTime);
-          oscillator.stop(ctx.currentTime + 0.4);
-          break;
-      }
-    } catch (e) {
-      this.vibrar();
+  // ==========================================
+  // 2. SISTEMA DE ÁUDIO E HARDWARE (MP3 e Vibração)
+  // ==========================================
+
+  // Aponta direto para o arquivo que você mostrou na imagem
+  private audio = new Audio('assets/sounds/notification.mp3');
+
+  // Método chamado no primeiro clique do usuário para o navegador não bloquear o som
+  desbloquearAudioBrowser(): void {
+    // 1. Força o celular a baixar o MP3 na hora do clique
+    this.audio.load();
+    this.audio.volume = 1.0; // Garante volume máximo no HTML5
+
+    // 2. Toca e pausa imediatamente de forma segura (tratando a Promise)
+    const playPromise = this.audio.play();
+
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          this.audio.pause();
+          this.audio.currentTime = 0;
+          console.log('✅ Áudio desbloqueado com sucesso no mobile!');
+        })
+        .catch((error) => {
+          console.warn('⚠️ Celular bloqueou o desbloqueio silencioso:', error);
+        });
     }
+  }
+
+  tocarSino(): void {
+    this.audio.currentTime = 0; // Volta para o início do som
+    this.audio.play().catch((e) => {
+      console.warn('O navegador bloqueou o áudio. Tentando vibrar como plano B.', e);
+      this.vibrar();
+    });
   }
 
   vibrar(padrao: number[] = [200, 100, 200]): void {

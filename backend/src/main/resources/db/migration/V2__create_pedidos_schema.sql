@@ -7,9 +7,11 @@ CREATE TABLE caixa_diario (
     status VARCHAR(20) NOT NULL,
     total_dinheiro DECIMAL(10, 2) DEFAULT 0,
     total_pedidos INTEGER DEFAULT 0,
+    cozinha_pausada BOOLEAN NOT NULL DEFAULT FALSE, -- <--- ADICIONAMOS AQUI
     created_at TIMESTAMP NOT NULL
 );
 
+-- (Mantenha as tabelas pedidos e itens_pedido exatamente como você já tinha feito)
 CREATE TABLE pedidos (
     id BIGSERIAL PRIMARY KEY,
     numero INTEGER NOT NULL,

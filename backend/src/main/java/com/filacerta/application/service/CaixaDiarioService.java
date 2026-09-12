@@ -124,10 +124,17 @@ public class CaixaDiarioService {
     }
 
 	private CaixaDiarioResponse toResponse(CaixaDiario caixa) {
-		return CaixaDiarioResponse.builder().id(caixa.getId()).data(caixa.getData())
-				.horaAbertura(caixa.getHoraAbertura()).horaFechamento(caixa.getHoraFechamento())
-				.valorInicial(caixa.getValorInicial()).totalDinheiro(caixa.getTotalDinheiro())
-				.totalPedidos(caixa.getTotalPedidos()).status(caixa.getStatus()).build();
+		return CaixaDiarioResponse.builder()
+				.id(caixa.getId())
+				.data(caixa.getData())
+				.horaAbertura(caixa.getHoraAbertura())
+				.horaFechamento(caixa.getHoraFechamento())
+				.valorInicial(caixa.getValorInicial())
+				.totalDinheiro(caixa.getTotalDinheiro())
+				.totalPedidos(caixa.getTotalPedidos())
+				.status(caixa.getStatus())
+				.cozinhaPausada(caixa.getCozinhaPausada())
+				.build();
 	}
 	
 	@Transactional(readOnly = true)
@@ -182,16 +189,20 @@ public class CaixaDiarioService {
         CaixaDiario caixa = caixaDiarioRepository.findById(caixaId)
                 .orElseThrow(() -> new NegocioException("Caixa não encontrado"));
         
-        caixa.setCozinhaPausada(!caixa.isCozinhaPausada());
+        caixa.setCozinhaPausada(!caixa.getCozinhaPausada());
         caixa = caixaDiarioRepository.save(caixa);
         
-        // Conversão manual usando o Builder (ajuste os nomes dos campos se necessário)
+        // Agora sim, passando os dados completos!
         return CaixaDiarioResponse.builder()
                 .id(caixa.getId())
+                .data(caixa.getData())
+                .horaAbertura(caixa.getHoraAbertura())
+                .horaFechamento(caixa.getHoraFechamento())
                 .valorInicial(caixa.getValorInicial())
+                .totalDinheiro(caixa.getTotalDinheiro())
+                .totalPedidos(caixa.getTotalPedidos())
                 .status(caixa.getStatus())
-                .cozinhaPausada(caixa.isCozinhaPausada())
-                // Se tiver data de abertura, adicione aqui também! ex: .dataAbertura(caixa.getDataAbertura())
+                .cozinhaPausada(caixa.getCozinhaPausada())
                 .build();
     }
 }

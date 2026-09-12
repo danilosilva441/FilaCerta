@@ -1,26 +1,40 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Observable, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  constructor() {}
+  private apiUrl = `${environment.apiUrl}/auth`;
 
-  // Simula se o usuário está logado como dono
+  constructor(private http: HttpClient) {}
+
+  login(username: string, password: string): Observable<string> {
+    // O responseType: 'text' é porque o backend devolve o token puro, não um JSON
+    return this.http
+      .post(this.apiUrl + '/login', { username, password }, { responseType: 'text' })
+      .pipe(tap((token) => this.salvarToken(token)));
+  }
+
+  salvarToken(token: string): void {
+    localStorage.setItem('token', token);
+  }
+
+  obterToken(): string | null {
+    return localStorage.getItem('token');
+  }
+
+  isLogado(): boolean {
+    return !!this.obterToken(); // Se tem token, tá logado!
+  }
+
+  logout(): void {
+    localStorage.removeItem('token');
+  }
+
   isDono(): boolean {
-    // Por enquanto, vamos fingir que se tem qualquer coisa no localStorage chamada 'dono_token', ele é o dono.
-    // Depois, na Fase 3, colocaremos o JWT de verdade aqui.
-    return !!localStorage.getItem('dono_token');
-  }
-
-  // Função provisória para você testar (chame ela no console do navegador para virar dono)
-  loginMock(): void {
-    localStorage.setItem('dono_token', 'sou_o_chefe');
-    window.location.reload();
-  }
-
-  logoutMock(): void {
-    localStorage.removeItem('dono_token');
-    window.location.reload();
+    return this.isLogado(); // No nosso sistema, se logou, é o dono!
   }
 }

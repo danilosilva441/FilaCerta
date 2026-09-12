@@ -1,10 +1,54 @@
 <app-toast></app-toast>
 <app-confirm-modal></app-confirm-modal>
 
-<!-- O pb-20 (padding-bottom) garante que a Navbar no celular não cubra o final da tela -->
-<!-- sm:pb-0 remove esse espaçamento no desktop -->
-<div class="min-h-screen flex flex-col pb-20 sm:pb-0">
-  <app-navbar></app-navbar>
+<!-- O pb-20 garante que a Navbar no celular não cubra o final da tela, sm:pb-0 remove no desktop -->
+<div class="min-h-screen flex flex-col pb-20 sm:pb-0 bg-gray-50">
+  @if (mostrarNavbar) {
+    <!-- Barra de Navegação Superior Fixa -->
+    <header class="bg-gray-900 text-white shadow-lg sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <!-- Logo / Título -->
+          <div class="flex-shrink-0 flex items-center gap-2 cursor-pointer" routerLink="/">
+            <span class="text-2xl">🍔</span>
+            <span class="font-black text-xl tracking-tight hidden sm:block">Painel Fila Certa</span>
+          </div>
+
+          <!-- Menu de Navegação (Links centrais) -->
+          <nav class="flex gap-2 sm:gap-4">
+            <!-- O routerLinkActive acende o botão (fica azul) quando você está na página -->
+            <a
+              routerLink="/caixa/painel"
+              routerLinkActive="bg-primary-600 text-white shadow-inner"
+              [routerLinkActiveOptions]="{ exact: false }"
+              class="px-4 py-2 rounded-lg text-sm font-bold text-gray-300 hover:bg-gray-700 hover:text-white transition-all flex items-center gap-2"
+            >
+              <span class="text-lg">💰</span> <span class="hidden sm:inline">Caixa</span>
+            </a>
+
+            <a
+              routerLink="/cozinha/painel"
+              routerLinkActive="bg-primary-600 text-white shadow-inner"
+              [routerLinkActiveOptions]="{ exact: false }"
+              class="px-4 py-2 rounded-lg text-sm font-bold text-gray-300 hover:bg-gray-700 hover:text-white transition-all flex items-center gap-2"
+            >
+              <span class="text-lg">🍳</span> <span class="hidden sm:inline">Cozinha</span>
+            </a>
+          </nav>
+
+          <!-- Botão Sair -->
+          <div class="flex items-center">
+            <button
+              (click)="logout()"
+              class="ml-2 sm:ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-sm font-bold rounded-lg transition-all flex items-center gap-2 shadow-sm border border-red-500"
+            >
+              <span class="text-lg">🚪</span> <span class="hidden sm:inline">Sair</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+  }
 
   <main class="flex-1">
     <router-outlet></router-outlet>

@@ -22,8 +22,31 @@
         <p class="font-medium text-center">Verificando se a chapa tá quente...</p>
       </div>
     } @else {
-      <!-- LOJA ABERTA -->
-      @if (isAberto) {
+      <!-- LOJA ABERTA MAS COM A COZINHA PAUSADA -->
+      @if (isAberto && isPausado) {
+        <div
+          class="bg-white p-6 rounded-2xl shadow-xl border-t-8 border-orange-500 text-center transform hover:scale-105 transition-transform"
+        >
+          <span
+            class="inline-block bg-orange-100 text-orange-700 px-4 py-1.5 rounded-full text-sm font-black mb-4 tracking-wider"
+          >
+            🟠 ALTA DEMANDA
+          </span>
+          <h2 class="text-2xl font-bold text-gray-800 mb-2">Estamos a todo vapor!</h2>
+          <p class="text-gray-500 mb-6 font-medium">
+            Nossa cozinha está temporariamente pausada para novos pedidos. Voltamos em instantes!
+          </p>
+
+          <button
+            disabled
+            class="block w-full py-4 bg-gray-300 text-gray-500 rounded-xl font-black text-lg shadow-inner cursor-not-allowed"
+          >
+            CARDÁPIO BLOQUEADO
+          </button>
+        </div>
+      }
+      <!-- LOJA ABERTA E FUNCIONANDO NORMAL -->
+      @else if (isAberto && !isPausado) {
         <div
           class="bg-white p-6 rounded-2xl shadow-xl border-t-8 border-green-500 text-center transform hover:scale-105 transition-transform"
         >
@@ -37,7 +60,6 @@
             Faça seu pedido agora e acompanhe o preparo em tempo real!
           </p>
 
-          <!-- CORRIGIDO: Link atualizado para /cliente/cardapio -->
           <a
             routerLink="/cliente/cardapio"
             class="block w-full py-4 bg-primary-600 text-white rounded-xl font-black text-lg hover:bg-primary-700 active:scale-95 transition-all shadow-md"
@@ -46,8 +68,7 @@
           </a>
         </div>
       }
-
-      <!-- LOJA FECHADA -->
+      <!-- LOJA 100% FECHADA (CAIXA ENCERRADO) -->
       @else {
         <div class="bg-white p-6 rounded-2xl shadow-lg border-t-8 border-red-500 text-center">
           <span

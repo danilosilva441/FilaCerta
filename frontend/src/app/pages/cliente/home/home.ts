@@ -1,37 +1,56 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { CaixaService } from '../../../core/services/caixa.service';
+import { Subscription, timer } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-home',
   standalone: true,
   imports: [CommonModule, RouterModule],
-  templateUrl: './home.html', // ou apenas './home.html' dependendo de como você nomeou
+  templateUrl: './home.html',
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
   isAberto = false;
+  isPausado = false;
   carregando = true;
+  private pollingSubscription?: Subscription;
 
-  constructor(private caixaService: CaixaService) {}
+  constructor(
+    private caixaService: CaixaService,
+    private cdr: ChangeDetectorRef,
+  ) {}
 
   ngOnInit(): void {
-    this.verificarStatusLoja();
+    this.iniciarMonitoramentoLoja();
   }
 
-  verificarStatusLoja(): void {
-    // Consulta o mesmo endpoint que o dono usa para saber se o caixa tá aberto
-    this.caixaService.buscarCaixaAtual().subscribe({
-      next: (caixa) => {
-        // Se retornar um caixa e o status for ABERTO, a loja tá on!
-        this.isAberto = !!caixa && caixa.status === 'ABERTO';
-        this.carregando = false;
-      },
-      error: () => {
-        // Se der erro (ex: 404 sem caixa aberto), assume que tá fechado
-        this.isAberto = false;
-        this.carregando = false;
-      },
-    });
+  iniciarMonitoramentoLoja(): void {
+    // Começa no tempo 0, e depois repete a cada 10 segundos (10000ms)
+    this.pollingSubscription = timer(0, 10000)
+      .pipe(switchMap(() => this.caixaService.buscarCaixaAtual()))
+      .subscribe({
+        next: (caixa) => {
+          this.isAberto = !!caixa && caixa.status === 'ABERTO';
+          this.isPausado = this.isAberto && caixa?.cozinhaPausada === true;
+          this.carregando = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Erro ao buscar status do caixa', err);
+          this.isAberto = false;
+          this.isPausado = false;
+          this.carregando = false;
+          this.cdr.detectChanges();
+        },
+      });
+  }
+
+  ngOnDestroy(): void {
+    // Desliga o radar se o cliente sair da página inicial
+    if (this.pollingSubscription) {
+      this.pollingSubscription.unsubscribe();
+    }
   }
 }

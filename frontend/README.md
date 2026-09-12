@@ -1,59 +1,49 @@
-# Frontend
+---
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.0.7.
+### 2. 💻 README do Frontend (`frontend/README.md`)
 
-## Development server
+Crie o arquivo `README.md` dentro da pasta `frontend/` (ou na raiz do seu projeto Angular) e cole o código abaixo:
 
-To start a local development server, run:
+```markdown
+# 💻 Fila Certa - Aplicação Web (Frontend)
 
+Interface de usuário do **Fila Certa**, desenvolvida para atender dois públicos distintos: o cliente final (foco em experiência Mobile) e a administração do restaurante (foco em controle e monitoramento em tempo real).
+
+## 🛠️ Tecnologias e Padrões
+*   **Framework:** Angular 17+ (Standalone Components)
+*   **Estilização:** Tailwind CSS (Mobile-first e Utilitário)
+*   **Reatividade:** RxJS (Observables, Subjects, Operators)
+*   **Linguagem:** TypeScript
+
+## ✨ Destaques Técnicos
+
+### 🔄 Polling e Reatividade (RxJS)
+Para evitar o uso precoce de WebSockets complexos, o sistema implementa chamadas assíncronas em segundo plano utilizando os operadores `timer` e `switchMap` do RxJS. 
+Isso permite que telas como a **Fila da Cozinha** e o **Status do Pedido** sejam atualizadas quase em tempo real sem interações do usuário, oferecendo feedback instantâneo.
+
+### 🛡️ Interceptors e Guards (Segurança JWT)
+A comunicação segura com o Backend é abstraída pelo framework:
+*   **AuthInterceptor:** Intercepta todas as requisições HTTP de saída e anexa invisivelmente o Token JWT no cabeçalho `Authorization`, caso o usuário seja um administrador logado.
+*   **AuthGuard:** Protege o ciclo de vida das rotas. Impede que usuários não autenticados acessem as URLs `/caixa` e `/cozinha`, redirecionando-os para a tela de login.
+
+### 🔊 Integração com Hardware Mobile
+O serviço `NotificationService` foi projetado para lidar com as restrições rigorosas dos navegadores mobile. Ele contorna bloqueios de áudio exigindo uma interação inicial (clique) para "desbloquear" a tag de áudio no Chrome/Safari, combinando notificações visuais (Toasts), sonoras (arquivos MP3 via Audio API) e físicas (Vibration API como fallback).
+
+## 📂 Estrutura de Diretórios
+*   `core/`: Serviços globais singleton (`AuthService`, `CaixaService`), Guards e Interceptors.
+*   `shared/`: Componentes reutilizáveis (Modais de confirmação, Toasts).
+*   `pages/`: Componentes que representam telas inteiras (Home, Cardápio, Cozinha, Caixa), organizados com rotas filhas.
+
+## 🚀 Como Executar
+1. Certifique-se de que a API (Backend) esteja rodando na porta 8080.
+2. Instale as dependências:
 ```bash
+npm install
+
+    Inicie o servidor de desenvolvimento:
+
+Bash
+
 ng serve
-```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Acesse a aplicação em http://localhost:4200.

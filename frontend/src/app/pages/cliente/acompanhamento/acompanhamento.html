@@ -23,6 +23,10 @@
           @case ('PRONTO') {
             ✅
           }
+          @case ('ENTREGUE') {
+            🛍️
+          }
+          <!-- Adicionado! -->
           @case ('CANCELADO') {
             ❌
           }
@@ -80,31 +84,103 @@
 
     <!-- Fechamento de Conta -->
     <div
-      class="text-center bg-white w-full max-w-sm rounded-xl shadow-sm border border-gray-100 p-5"
+      class="text-center bg-white w-full max-w-sm rounded-2xl shadow-md border border-gray-200 p-4 sm:p-5 mt-4 sm:mt-6"
     >
-      <p class="text-gray-500 text-sm font-medium uppercase tracking-wide">Valor Total</p>
-      <p class="text-4xl font-black text-primary-600 mt-1">
+      <p class="text-gray-500 text-xs sm:text-sm font-medium uppercase tracking-wide">
+        Valor Total
+      </p>
+      <p
+        class="text-3xl sm:text-4xl font-black text-primary-600 mt-1"
+        [ngClass]="{ 'line-through text-gray-400': pedido.status === 'CANCELADO' }"
+      >
         R$ {{ pedido.valorTotal | number: '1.2-2' }}
       </p>
-      <div
-        class="mt-2 text-sm font-bold"
-        [ngClass]="{
-          'text-green-600': pedido.statusPagamento === 'PAGO',
-          'text-yellow-600': pedido.statusPagamento === 'AGUARDANDO',
-        }"
-      >
-        Pagamento: {{ pedido.statusPagamento }}
-      </div>
+
+      <!-- Só mostra o status de pagamento se NÃO estiver cancelado -->
+      <!-- Modificamos o IF para garantir que mostre PAGO se o pedido estiver ENTREGUE -->
+      @if (pedido.status !== 'CANCELADO') {
+        <div
+          class="mt-3 text-sm sm:text-base font-bold flex items-center justify-center gap-2"
+          [ngClass]="{
+            'text-green-600': pedido.statusPagamento === 'PAGO' || pedido.status === 'ENTREGUE',
+            'text-yellow-600':
+              pedido.statusPagamento === 'AGUARDANDO' && pedido.status !== 'ENTREGUE',
+          }"
+        >
+          <span
+            class="inline-block w-2 h-2 rounded-full"
+            [ngClass]="{
+              'bg-green-600': pedido.statusPagamento === 'PAGO' || pedido.status === 'ENTREGUE',
+              'bg-yellow-600 animate-pulse':
+                pedido.statusPagamento === 'AGUARDANDO' && pedido.status !== 'ENTREGUE',
+            }"
+          ></span>
+          Pagamento: {{ pedido.status === 'ENTREGUE' ? 'PAGO' : pedido.statusPagamento }}
+        </div>
+      }
     </div>
 
-    <!-- Botão Novo Pedido (Aparece quando pronto/cancelado) -->
-    @if (pedido.status === 'PRONTO' || pedido.status === 'CANCELADO') {
-      <button
-        routerLink="/cliente/cardapio"
-        class="mt-8 px-8 py-4 bg-primary-600 text-white rounded-xl font-bold text-lg shadow-md hover:bg-primary-700 active:scale-95 transition-all w-full max-w-sm"
+    <!-- Status do Pagamento (Reativo) -->
+    <div
+      class="mt-4 p-4 rounded-xl border transition-all duration-500 flex items-center justify-between"
+      [ngClass]="
+        pedido.statusPagamento === 'PAGO'
+          ? 'bg-green-50 border-green-200'
+          : 'bg-yellow-50 border-yellow-200'
+      "
+    >
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">
+          {{ pedido.statusPagamento === 'PAGO' ? '💸' : '⏳' }}
+        </span>
+        <div>
+          <p class="text-sm font-bold text-gray-500 uppercase tracking-wider">Pagamento</p>
+          <p
+            class="font-black text-lg"
+            [ngClass]="pedido.statusPagamento === 'PAGO' ? 'text-green-700' : 'text-yellow-700'"
+          >
+            {{ pedido.statusPagamento === 'PAGO' ? 'CONFIRMADO' : 'AGUARDANDO NO CAIXA' }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Mostra a forma de pagamento -->
+      <span
+        class="bg-white px-3 py-1 rounded-lg text-xs font-bold text-gray-500 shadow-sm border border-gray-100"
       >
-        FAZER NOVO PEDIDO
+        {{ pedido.formaPagamento }}
+      </span>
+    </div>
+
+    <!-- O botão aparece se for AGUARDANDO ou RECEBIDO -->
+    @if (pedido.status === 'AGUARDANDO' || pedido.status === 'RECEBIDO') {
+      <button
+        (click)="cancelarPedidoPeloCliente()"
+        class="w-full mt-6 py-3 bg-white text-red-600 border-2 border-red-100 hover:bg-red-50 hover:border-red-200 rounded-xl font-bold text-sm transition-all shadow-sm"
+      >
+        Desistir e Cancelar Pedido
       </button>
     }
+
+    <!-- Se já estiver cancelado, mostra uma tela de aviso -->
+    @if (pedido.status === 'CANCELADO') {
+      <div class="mt-6 bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-center">
+        <p class="font-black text-lg mb-1">Pedido Cancelado 🚫</p>
+        <p class="text-sm">Este pedido foi cancelado e não será preparado.</p>
+      </div>
+    }
+  }
+  <!-- Botão Novo Pedido (Aparece quando pronto, entregue ou cancelado) -->
+  @if (
+    pedido?.statusPagamento === 'PRONTO' ||
+    pedido?.statusPagamento === 'ENTREGUE' ||
+    pedido?.statusPagamento === 'CANCELADO'
+  ) {
+    <button
+      routerLink="/cliente/cardapio"
+      class="mt-6 sm:mt-8 px-6 sm:px-8 py-4 bg-primary-600 text-white rounded-2xl font-bold text-base sm:text-lg shadow-md hover:bg-primary-700 active:scale-95 transition-all w-full max-w-sm min-h-[52px] sm:min-h-[56px] flex items-center justify-center gap-2"
+    >
+      <span class="text-xl sm:text-2xl">🍔</span> FAZER NOVO PEDIDO
+    </button>
   }
 </div>

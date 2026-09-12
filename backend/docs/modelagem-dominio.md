@@ -265,7 +265,7 @@ Produto 1 ──────── N ItemPedido N ──────── 1 Ped
 Pedido 1 ──────── 1 ComandaPedido N ──────── 1 Comanda
 Pedido N ──────── 1 CaixaDiario (por data)
 Tecnologias Utilizadas
-Java 17
+Java 25
 
 Spring Boot 3.2.0
 

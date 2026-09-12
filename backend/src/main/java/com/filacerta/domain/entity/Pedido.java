@@ -43,82 +43,80 @@ import lombok.Setter;
 @Table(name = "pedidos")
 public class Pedido {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    @Column(nullable = false)
-    private Integer numero;
+	@Column(nullable = false)
+	private Integer numero;
 
-    @Column(name = "nome_cliente", nullable = false, length = 100)
-    private String nomeCliente;
+	@Column(name = "nome_cliente", nullable = false, length = 100)
+	private String nomeCliente;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private TipoPedido tipo;
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false, length = 20)
+	private TipoPedido tipo;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private OrigemPedido origem;
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false, length = 20)
+	private OrigemPedido origem;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    @Builder.Default
-    private StatusPedido status = StatusPedido.RECEBIDO;
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false, length = 20)
+	@Builder.Default
+	private StatusPedido status = StatusPedido.RECEBIDO;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status_pagamento", length = 20)
-    @Builder.Default
-    private StatusPagamento statusPagamento = StatusPagamento.AGUARDANDO;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "status_pagamento", length = 20)
+	@Builder.Default
+	private StatusPagamento statusPagamento = StatusPagamento.AGUARDANDO;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "metodo_pagamento", length = 20)
-    private MetodoPagamento metodoPagamento;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "metodo_pagamento", length = 20)
+	private MetodoPagamento metodoPagamento;
 
-    @Column(name = "valor_total", precision = 10, scale = 2)
-    @Builder.Default
-    private BigDecimal valorTotal = BigDecimal.ZERO;
+	@Column(name = "valor_total", precision = 10, scale = 2)
+	@Builder.Default
+	private BigDecimal valorTotal = BigDecimal.ZERO;
 
-    @Column(name = "data_hora_pedido", nullable = false)
-    private LocalDateTime dataHoraPedido;
+	@Column(name = "data_hora_pedido", nullable = false)
+	private LocalDateTime dataHoraPedido;
 
-    @Column(name = "data_hora_pronto")
-    private LocalDateTime dataHoraPronto;
+	@Column(name = "data_hora_pronto")
+	private LocalDateTime dataHoraPronto;
 
-    @Column(length = 300)
-    private String observacao;
+	@Column(length = 300)
+	private String observacao;
 
-    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
-    @Builder.Default
-    private List<ItemPedido> itens = new ArrayList<>();
+	@OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
+	@JsonManagedReference
+	@Builder.Default
+	private List<ItemPedido> itens = new ArrayList<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "caixa_diario_id")
-    @JsonBackReference
-    private CaixaDiario caixaDiario;
-    
-    @Enumerated(EnumType.STRING)
-    private FormaPagamento formaPagamento;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "caixa_diario_id")
+	@JsonBackReference
+	private CaixaDiario caixaDiario;
 
-    // Não esqueça de gerar o Getter e Setter para formaPagamento!
-    public FormaPagamento getFormaPagamento() {
-        return formaPagamento;
-    }
+	@Enumerated(EnumType.STRING)
+	private FormaPagamento formaPagamento;
 
-    public void setFormaPagamento(FormaPagamento formaPagamento) {
-        this.formaPagamento = formaPagamento;
-    }
+	// Não esqueça de gerar o Getter e Setter para formaPagamento!
+	public FormaPagamento getFormaPagamento() {
+		return formaPagamento;
+	}
 
-    public void calcularValorTotal() {
-        this.valorTotal = itens.stream()
-            .map(item -> item.getPrecoUnitario()
-                .multiply(BigDecimal.valueOf(item.getQuantidade())))
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
+	public void setFormaPagamento(FormaPagamento formaPagamento) {
+		this.formaPagamento = formaPagamento;
+	}
 
-    public boolean todosItensProntos() {
-        return itens.stream()
-            .allMatch(item -> item.getStatus() == StatusItemPedido.PRONTO);
-    }
+	public void calcularValorTotal() {
+		this.valorTotal = itens.stream()
+				.map(item -> item.getPrecoUnitario().multiply(BigDecimal.valueOf(item.getQuantidade())))
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
+	}
+
+	public boolean todosItensProntos() {
+		return itens.stream().allMatch(item -> item.getStatus() == StatusItemPedido.PRONTO);
+	}
 }

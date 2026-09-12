@@ -7,6 +7,7 @@ export interface CaixaDiarioResponse {
   totalDinheiro: number;
   totalPedidos: number;
   status: 'ABERTO' | 'FECHADO';
+  cozinhaPausada?: Boolean;
 }
 
 export interface AbrirCaixaRequest {
@@ -22,4 +23,6 @@ export interface ResumoFechamentoResponse {
   totalDinheiro: number;
   faturamentoTotal: number;
   totalEmGaveta: number;
+  quantidadeCancelados?: number;
+  valorCancelados?: number;
 }

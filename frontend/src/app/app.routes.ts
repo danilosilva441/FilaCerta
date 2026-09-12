@@ -1,10 +1,15 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth.guard'; // <-- IMPORTANTE
 
 export const routes: Routes = [
-  // A raiz do site agora carrega a Home de boas-vindas do Mikael Lanches
+  // Rotas Públicas (Cliente)
   {
-    path: '',
+    path: '', // Home
     loadComponent: () => import('./pages/cliente/home/home').then((m) => m.HomeComponent),
+  },
+  {
+    path: 'login', // A nossa nova tela de login
+    loadComponent: () => import('./pages/login/login').then((m) => m.LoginComponent),
   },
   {
     path: 'cliente/cardapio',
@@ -18,14 +23,31 @@ export const routes: Routes = [
         (m) => m.AcompanhamentoComponent,
       ),
   },
+
+  // Rotas PROTEGIDAS (Dono / Funcionário)
   {
-    path: 'cozinha/painel',
-    loadComponent: () =>
-      import('./pages/cozinha/painel/fila-cozinha').then((m) => m.PainelComponent),
+    path: 'caixa',
+    canActivate: [authGuard], // <-- A MÁGICA AQUI! O Guarda fica na porta!
+    children: [
+      {
+        path: 'painel',
+        loadComponent: () =>
+          import('./pages/caixa/painel-caixa/painel-caixa').then((m) => m.PainelCaixaComponent),
+      },
+    ],
   },
   {
-    path: 'caixa/painel',
-    loadComponent: () =>
-      import('./pages/caixa/painel-caixa/painel-caixa').then((m) => m.PainelCaixaComponent),
+    path: 'cozinha',
+    canActivate: [authGuard], // <-- E AQUI TAMBÉM!
+    children: [
+      {
+        path: 'painel',
+        loadComponent: () =>
+          import('./pages/cozinha/painel/fila-cozinha').then((m) => m.FilaCozinhaComponent),
+      },
+    ],
   },
+
+  // Redireciona qualquer rota que não existe para a Home
+  { path: '**', redirectTo: '' },
 ];

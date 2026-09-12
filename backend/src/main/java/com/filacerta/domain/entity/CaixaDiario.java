@@ -64,7 +64,8 @@ public class CaixaDiario {
 	private LocalDateTime createdAt;
 	
 	@Column(name = "cozinha_pausada")
-	private boolean cozinhaPausada = false;
+	@Builder.Default
+	private Boolean cozinhaPausada = false;
 
 	@PrePersist
 	protected void onCreate() {
