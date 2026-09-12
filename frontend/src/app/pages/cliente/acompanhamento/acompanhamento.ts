@@ -32,20 +32,29 @@ export class AcompanhamentoComponent implements OnInit, OnDestroy {
   }
 
   iniciarPolling(pedidoId: number): void {
-    // RxJS: Começa no tempo 0 e depois roda a cada 5000ms (5 segundos)
     this.pollingSubscription = timer(0, 5000)
       .pipe(
         switchMap(() => this.pedidoService.buscarPorId(pedidoId)),
         tap((pedido) => {
           const statusAnterior = this.pedido?.status;
+          const statusPagamentoAnterior = this.pedido?.statusPagamento;
+
           this.pedido = pedido;
           this.atualizarMensagem(pedido);
 
-          // Se mudou de PREPARANDO para PRONTO, toca o alarme
+          // Avisa se o pagamento foi confirmado
+          if (statusPagamentoAnterior === 'AGUARDANDO' && pedido.statusPagamento === 'PAGO') {
+            console.log('✅ Pagamento confirmado pelo caixa!');
+          }
+
+          // Se mudou para PRONTO, toca o alarme MAS CONTINUA ESCUTANDO!
           if (statusAnterior !== 'PRONTO' && pedido.status === 'PRONTO') {
             this.tocarAlerta();
-            this.pararPolling(); // Pedido pronto, não precisa mais checar o banco
+
+            // ❌ APAGAMOS o this.pararPolling() que ficava aqui!
+            // Deixe o radar ligado para ele perceber quando o caixa marcar como PAGO.
           } else if (pedido.status === 'CANCELADO' || pedido.status === 'ENTREGUE') {
+            // ✅ Aqui sim! O pedido chegou ao fim da vida. Podemos desligar o radar.
             this.pararPolling();
           }
 
@@ -91,5 +100,21 @@ export class AcompanhamentoComponent implements OnInit, OnDestroy {
   // Boa prática: sempre desligar o loop quando sair da tela
   ngOnDestroy(): void {
     this.pararPolling();
+  }
+
+  cancelarPedidoPeloCliente(): void {
+    if (!this.pedido) return;
+
+    if (confirm('Poxa, tem certeza que deseja cancelar seu pedido?')) {
+      this.pedidoService.cancelarPedido(this.pedido.id).subscribe({
+        next: () => {
+          this.pedido!.status = 'CANCELADO';
+          this.atualizarMensagem(this.pedido!); // Atualiza o texto na tela
+          this.pararPolling(); // Para de perguntar ao servidor a cada 5s
+          this.cdr.detectChanges();
+        },
+        error: () => alert('Erro ao cancelar. Talvez a cozinha já tenha começado!'),
+      });
+    }
   }
 }

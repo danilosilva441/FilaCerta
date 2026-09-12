@@ -7,7 +7,7 @@ export interface ItemPedidoRequest {
 export interface CriarPedidoRequest {
   nomeCliente: string;
   tipo: 'LEVAR' | 'COMER_AQUI';
-  origem: 'CLIENTE' | 'MANUAL';
+  origem: 'QR_CODE' | 'MANUAL';
   formaPagamento: 'PIX' | 'CARTAO' | 'DINHEIRO' | 'NAO_INFORMADO';
   itens: ItemPedidoRequest[];
   statusPagamento: string;

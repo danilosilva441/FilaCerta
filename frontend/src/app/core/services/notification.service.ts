@@ -11,6 +11,12 @@ export interface ToastMessage {
   providedIn: 'root',
 })
 export class NotificationService {
+  desbloquearAudioBrowser() {
+    throw new Error('Method not implemented.');
+  }
+  tocarSino() {
+    throw new Error('Method not implemented.');
+  }
   private toastSubject = new Subject<ToastMessage>();
   toast$ = this.toastSubject.asObservable();
 

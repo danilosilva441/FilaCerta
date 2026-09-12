@@ -20,5 +20,5 @@ public class CaixaDiarioResponse {
     private BigDecimal totalDinheiro;
     private Integer totalPedidos;
     private StatusCaixa status;
-    private boolean cozinhaPausada = false;
+    private Boolean cozinhaPausada = false;
 }

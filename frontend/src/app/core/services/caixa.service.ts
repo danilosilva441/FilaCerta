@@ -54,4 +54,12 @@ export class CaixaService {
   finalizarEntrega(pedidoId: number): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/pedidos/${pedidoId}/entregar`, {});
   }
+
+  alternarPausaCozinha(caixaId: number): Observable<CaixaDiarioResponse> {
+    return this.http.patch<CaixaDiarioResponse>(`${this.apiUrl}/${caixaId}/pausar-cozinha`, {});
+  }
+
+  cancelarPedido(pedidoId: number): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/pedidos/${pedidoId}/cancelar`, {});
+  }
 }

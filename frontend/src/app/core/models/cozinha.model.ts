@@ -8,6 +8,7 @@ export interface ItemCozinhaResponse {
 }
 
 export interface FilaCozinhaResponse {
+  id: number;
   pedidoId: number;
   numero: number;
   nomeCliente: string;
