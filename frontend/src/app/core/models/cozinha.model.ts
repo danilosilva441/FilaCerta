@@ -3,7 +3,7 @@ export interface ItemCozinhaResponse {
   nomeProduto: string;
   quantidade: number;
   categoria: string;
-  status: 'PENDENTE' | 'PREPARANDO' | 'PRONTO';
+  status: 'PENDENTE' | 'PREPARANDO' | 'PRONTO' | 'CANCELADO' | 'ENTREGUE';
   observacaoItem?: string;
 }
 

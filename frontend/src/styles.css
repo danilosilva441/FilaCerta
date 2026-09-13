@@ -21,12 +21,15 @@
   }
 
   /* Permite selecionar texto APENAS onde faz sentido (inputs e textareas) */
-  input, textarea, select {
+  input,
+  textarea,
+  select {
     -webkit-user-select: auto;
     user-select: auto;
   }
 
-  button, a {
+  button,
+  a {
     @apply touch-manipulation;
   }
 }
@@ -81,7 +84,10 @@
   .bottom-sheet {
     @apply fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100
            p-4 z-40 rounded-t-3xl shadow-[0_-8px_30px_rgb(0,0,0,0.12)];
-    padding-bottom: max(1rem, env(safe-area-inset-bottom)); /* Respeita a barra de gestos do iPhone */
+    padding-bottom: max(
+      1rem,
+      env(safe-area-inset-bottom)
+    ); /* Respeita a barra de gestos do iPhone */
   }
 
   /* Espaçamento dinâmico para não esconder conteúdo atrás do menu inferior */
@@ -117,7 +123,9 @@
 
 /* Impedir zoom automático indesejado em inputs no Safari (iOS) */
 @media screen and (max-width: 768px) {
-  input, select, textarea {
+  input,
+  select,
+  textarea {
     font-size: 16px !important;
   }
 }
@@ -130,4 +138,105 @@
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
   }
+}
+
+/* Animações usadas no modal */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Animações base (se ainda não tiver) */
+@keyframes slideDown {
+  from {
+    transform: translateY(-16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-16px);
+    opacity: 0;
+  }
+}
+
+/* Barra de progresso do toast */
+@keyframes progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+/* Animação de saída do modal */
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleOut {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+}
+
+/* Previne o "bounce" e recalculo de viewport no iOS/Android */
+html,
+body {
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+body {
+  position: relative;
+  min-height: 100dvh;
+  /* Fallback pra navegadores antigos */
+  min-height: -webkit-fill-available;
 }

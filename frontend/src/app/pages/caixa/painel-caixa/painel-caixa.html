@@ -1,265 +1,634 @@
-<div class="min-h-screen bg-gray-100 p-6 font-sans">
-  @if (estadoTela === 'CARREGANDO') {
-    <div class="flex items-center justify-center min-h-[60vh]">
-      <div class="text-2xl font-bold text-gray-500 animate-pulse">
-        ⏳ Verificando status do caixa...
+<div
+  class="min-h-[100dvh] bg-gray-100 font-sans antialiased"
+  style="
+    padding-top: max(1.5rem, env(safe-area-inset-top));
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  "
+>
+  <div class="px-4 sm:px-6 max-w-7xl mx-auto">
+    <!-- CARREGANDO -->
+    @if (estadoTela() === 'CARREGANDO') {
+      <div class="flex items-center justify-center min-h-[60vh]">
+        <div class="flex flex-col items-center gap-3 text-gray-500">
+          <svg
+            class="w-8 h-8 animate-spin"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+          >
+            <path d="M21 12a9 9 0 1 1-6.22-8.56" />
+          </svg>
+          <span class="font-bold text-lg">Verificando status do caixa...</span>
+        </div>
       </div>
-    </div>
-  } @else if (estadoTela === 'FECHADO') {
-    <!-- Tela de Abertura de Caixa -->
-    <div class="flex items-center justify-center min-h-[80vh]">
-      <div
-        class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200 max-w-md w-full text-center"
-      >
+    }
+
+    <!-- CAIXA FECHADO -->
+    @else if (estadoTela() === 'FECHADO') {
+      <div class="flex items-center justify-center min-h-[80vh]">
         <div
-          class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4"
+          class="bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-gray-200 max-w-md w-full text-center"
         >
-          <span class="text-4xl">🔐</span>
-        </div>
-        <h2 class="text-2xl font-black text-gray-800 mb-2">Caixa Fechado</h2>
-        <p class="text-gray-500 mb-6">
-          Informe o valor inicial de troco para iniciar as operações de recebimento.
-        </p>
-
-        <div class="text-left mb-6">
-          <label class="block text-sm font-bold text-gray-700 mb-2">Valor Inicial (Troco):</label>
-          <div class="relative">
-            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">R$</span>
-            <input
-              type="number"
-              [(ngModel)]="valorAbertura"
-              class="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-xl font-bold text-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
-              placeholder="0.00"
-              min="0"
-              step="0.01"
-            />
+          <div
+            class="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4"
+            aria-hidden="true"
+          >
+            <svg
+              class="w-8 h-8 sm:w-10 sm:h-10 text-gray-500"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
           </div>
-        </div>
 
-        <button
-          (click)="abrirCaixa()"
-          [disabled]="isProcessando"
-          class="w-full py-4 bg-primary-600 text-white rounded-xl font-bold text-lg hover:bg-primary-700 active:scale-95 transition-all disabled:opacity-50 flex justify-center items-center gap-2"
-        >
-          @if (isProcessando) {
-            ⏳ Processando...
-          } @else {
-            🔓 ABRIR CAIXA
-          }
-        </button>
-      </div>
-    </div>
-  } @else {
-    <!-- Tela do Caixa Operante -->
-    <header
-      class="bg-primary-700 text-white p-5 rounded-xl mb-6 shadow-md flex justify-between items-center"
-    >
-      <div class="flex items-center gap-3">
-        <span class="text-3xl">💰</span>
-        <div>
-          <h1 class="text-2xl font-bold">Dashboard Financeiro</h1>
-          <p class="text-primary-200 text-sm">
-            Caixa Aberto • Troco Inicial: R$ {{ caixaAtual?.valorInicial | number: '1.2-2' }}
+          <h2 class="text-2xl font-black text-gray-800 mb-2">Caixa Fechado</h2>
+
+          <p class="text-gray-500 mb-6 text-sm sm:text-base">
+            Informe o valor inicial de troco para iniciar as operações de recebimento.
           </p>
-        </div>
-      </div>
 
-      <div class="flex items-center gap-4">
-        <!-- O NOVO BOTÃO DE PÂNICO -->
-        <button
-          (click)="pausarCozinha()"
-          [disabled]="isProcessando"
-          class="px-5 py-3 rounded-lg font-bold shadow transition-colors border-2"
-          [ngClass]="
-            caixaAtual?.cozinhaPausada
-              ? 'bg-orange-600 border-orange-500 hover:bg-orange-700 text-white'
-              : 'bg-transparent border-white hover:bg-white hover:text-primary-800 text-white'
-          "
-        >
-          @if (caixaAtual?.cozinhaPausada) {
-            ▶️ Retomar Pedidos
-          } @else {
-            ⏸️ Pausar Cozinha
-          }
-        </button>
+          <div class="text-left mb-6">
+            <label for="valor-abertura" class="block text-sm font-bold text-gray-700 mb-2">
+              Valor Inicial (Troco)
+            </label>
 
-        <!-- Botão antigo de fechar caixa -->
-        <button
-          (click)="fecharCaixa()"
-          [disabled]="isProcessando"
-          class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-bold shadow transition-colors"
-        >
-          🔒 Encerrar Turno
-        </button>
-      </div>
-    </header>
-    <main>
-      @if (!resumoAtual) {
-        <div class="flex items-center justify-center py-20 text-gray-500 animate-pulse">
-          Calculando faturamento em tempo real...
-        </div>
-      } @else {
-        <!-- GRIDS DO DASHBOARD -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <!-- Faturamento Total -->
-          <div
-            class="md:col-span-2 lg:col-span-4 bg-gradient-to-r from-primary-700 to-primary-900 rounded-2xl p-6 text-white shadow-lg flex items-center justify-between"
-          >
-            <div>
-              <p class="text-primary-200 font-bold uppercase tracking-wider text-sm mb-1">
-                Faturamento Total do Dia
-              </p>
-              <h2 class="text-4xl lg:text-5xl font-black">
-                R$ {{ resumoAtual.faturamentoTotal | number: '1.2-2' }}
-              </h2>
-            </div>
-            <div class="text-6xl opacity-50 hidden sm:block">📈</div>
-          </div>
-
-          <!-- Total Pix -->
-          <div class="bg-white rounded-xl p-5 border-t-4 border-teal-500 shadow-md">
-            <div class="flex items-center gap-3 mb-2">
-              <div
-                class="w-10 h-10 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center text-xl"
+            <div class="relative">
+              <span
+                class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold pointer-events-none"
               >
-                📱
-              </div>
-              <h3 class="font-bold text-gray-700">Total PIX</h3>
-            </div>
-            <p class="text-2xl font-black text-gray-900">
-              R$ {{ resumoAtual.totalPix | number: '1.2-2' }}
-            </p>
-          </div>
+                R$
+              </span>
 
-          <!-- Total Cartão -->
-          <div class="bg-white rounded-xl p-5 border-t-4 border-blue-500 shadow-md">
-            <div class="flex items-center gap-3 mb-2">
-              <div
-                class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl"
-              >
-                💳
-              </div>
-              <h3 class="font-bold text-gray-700">Total Cartão</h3>
-            </div>
-            <p class="text-2xl font-black text-gray-900">
-              R$ {{ resumoAtual.totalCartao | number: '1.2-2' }}
-            </p>
-          </div>
-
-          <!-- Total Dinheiro -->
-          <div class="bg-white rounded-xl p-5 border-t-4 border-green-500 shadow-md">
-            <div class="flex items-center gap-3 mb-2">
-              <div
-                class="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xl"
-              >
-                💵
-              </div>
-              <h3 class="font-bold text-gray-700">Total Dinheiro</h3>
-            </div>
-            <p class="text-2xl font-black text-gray-900">
-              R$ {{ resumoAtual.totalDinheiro | number: '1.2-2' }}
-            </p>
-          </div>
-
-          <!-- Gaveta Real -->
-          <div
-            class="bg-yellow-50 rounded-xl p-5 border border-yellow-200 shadow-sm flex flex-col justify-center items-center text-center"
-          >
-            <p class="text-yellow-800 font-bold text-sm uppercase tracking-wider">
-              Dinheiro Físico na Gaveta
-            </p>
-            <p class="text-3xl font-black text-yellow-900 my-1">
-              R$ {{ resumoAtual.totalEmGaveta | number: '1.2-2' }}
-            </p>
-            <p class="text-xs text-yellow-600">
-              (Troco Inicial: R$ {{ resumoAtual.valorInicialTroco | number: '1.2-2' }} + Vendas 💵)
-            </p>
-          </div>
-        </div>
-      }
-    </main>
-  }
-
-  <!-- Modal de Resumo de Fechamento -->
-  @if (resumoFechamento) {
-    <div
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm p-4"
-    >
-      <div
-        class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden transform transition-all animate-[slideUp_0.3s_ease-out]"
-      >
-        <div class="bg-gray-900 p-5 text-center">
-          <div
-            class="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-2 border-2 border-gray-700"
-          >
-            <span class="text-3xl">🧾</span>
-          </div>
-          <h3 class="text-xl font-black text-white">Fechamento de Caixa</h3>
-          <p class="text-gray-400 text-sm">Turno encerrado com sucesso!</p>
-        </div>
-
-        <div class="p-6 bg-gray-50 space-y-4">
-          <!-- Entradas -->
-          <div class="space-y-2">
-            <div class="flex justify-between text-sm">
-              <span class="text-gray-500 font-medium">Troco Inicial:</span>
-              <span class="text-gray-800 font-bold"
-                >R$ {{ resumoFechamento.valorInicialTroco | number: '1.2-2' }}</span
-              >
-            </div>
-            <div class="flex justify-between text-sm">
-              <span class="text-gray-500 font-medium">Total 📱 Pix:</span>
-              <span class="text-gray-800 font-bold"
-                >R$ {{ resumoFechamento.totalPix | number: '1.2-2' }}</span
-              >
-            </div>
-            <div class="flex justify-between text-sm">
-              <span class="text-gray-500 font-medium">Total 💳 Cartão:</span>
-              <span class="text-gray-800 font-bold"
-                >R$ {{ resumoFechamento.totalCartao | number: '1.2-2' }}</span
-              >
-            </div>
-            <div class="flex justify-between text-sm">
-              <span class="text-gray-500 font-medium">Total 💵 Dinheiro:</span>
-              <span class="text-gray-800 font-bold"
-                >R$ {{ resumoFechamento.totalDinheiro | number: '1.2-2' }}</span
-              >
+              <input
+                id="valor-abertura"
+                type="number"
+                inputmode="decimal"
+                [ngModel]="valorAbertura()"
+                (ngModelChange)="valorAbertura.set($event)"
+                min="0"
+                step="0.01"
+                placeholder="0,00"
+                class="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-300 rounded-xl font-bold text-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all outline-none"
+              />
             </div>
           </div>
 
-          <div class="border-t border-dashed border-gray-300 my-2"></div>
-
-          <!-- Faturamento -->
-          <div class="flex justify-between items-center text-sm">
-            <span class="text-gray-600 font-bold uppercase tracking-wider"
-              >Faturamento do Dia:</span
-            >
-            <span class="text-lg font-black text-primary-600"
-              >R$ {{ resumoFechamento.faturamentoTotal | number: '1.2-2' }}</span
-            >
-          </div>
-
-          <!-- O que importa: A Gaveta -->
-          <div class="bg-warning/20 border border-warning/50 p-4 rounded-xl text-center mt-4">
-            <p class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-1">
-              Dinheiro em Gaveta
-            </p>
-            <p class="text-3xl font-black text-gray-900">
-              R$ {{ resumoFechamento.totalEmGaveta | number: '1.2-2' }}
-            </p>
-            <p class="text-[10px] text-gray-500 mt-1">(Troco inicial + Vendas em dinheiro)</p>
-          </div>
-        </div>
-
-        <div class="p-4 bg-white border-t border-gray-100">
           <button
-            (click)="finalizarTurno()"
-            class="w-full py-4 bg-gray-900 text-white rounded-xl font-bold text-lg hover:bg-gray-800 active:scale-95 transition-all"
+            type="button"
+            (click)="abrirCaixa()"
+            [disabled]="isProcessando()"
+            class="w-full py-4 bg-primary-600 text-white rounded-xl font-bold text-lg hover:bg-primary-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2 touch-manipulation select-none min-h-[56px]"
           >
-            OK, ENTENDIDO
+            @if (isProcessando()) {
+              <svg
+                class="w-5 h-5 animate-spin"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+              >
+                <path d="M21 12a9 9 0 1 1-6.22-8.56" />
+              </svg>
+              Processando...
+            } @else {
+              <svg
+                class="w-5 h-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="3" y="11" width="18" height="11" rx="2" />
+                <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+              </svg>
+              ABRIR CAIXA
+            }
           </button>
         </div>
       </div>
-    </div>
-  }
+    }
+
+    <!-- CAIXA ABERTO -->
+    @else {
+      <!-- HEADER -->
+      <header
+        class="bg-primary-700 text-white p-4 sm:p-5 rounded-xl mb-6 shadow-md flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4"
+      >
+        <div class="flex items-start gap-3 w-full lg:w-auto">
+          <div
+            class="w-12 h-12 bg-primary-800 rounded-full flex items-center justify-center flex-shrink-0"
+            aria-hidden="true"
+          >
+            <svg
+              class="w-6 h-6"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="2" y="6" width="20" height="12" rx="2" />
+              <path d="M2 10h20" />
+              <circle cx="16" cy="14" r="1.5" />
+            </svg>
+          </div>
+
+          <div class="min-w-0 flex-1">
+            <h1 class="text-xl sm:text-2xl font-bold">Dashboard Financeiro</h1>
+
+            <p class="text-primary-200 text-xs sm:text-sm">
+              Caixa Aberto • Troco Inicial: R$ {{ caixaAtual()?.valorInicial | number: '1.2-2' }}
+            </p>
+
+            <!-- STATUS DA COZINHA -->
+            @if (isPausado()) {
+              <span
+                class="inline-flex mt-2 items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-500 text-white text-[11px] font-bold"
+              >
+                <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                COZINHA PAUSADA
+              </span>
+            } @else {
+              <span
+                class="inline-flex mt-2 items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500 text-white text-[11px] font-bold"
+              >
+                <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                COZINHA RECEBENDO PEDIDOS
+              </span>
+            }
+          </div>
+        </div>
+
+        <div
+          class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full lg:w-auto"
+        >
+          <!-- PAUSAR / RETOMAR -->
+          <button
+            type="button"
+            (click)="pausarCozinha()"
+            [disabled]="isProcessando()"
+            class="px-4 py-3 rounded-lg font-bold shadow transition-all border-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 touch-manipulation select-none min-h-[48px] flex items-center justify-center gap-2"
+            [ngClass]="
+              isPausado()
+                ? 'bg-orange-600 border-orange-500 hover:bg-orange-700 text-white'
+                : 'bg-transparent border-white hover:bg-white hover:text-primary-800 text-white'
+            "
+          >
+            @if (isPausado()) {
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <polygon points="5 3 19 12 5 21 5 3" />
+              </svg>
+              Retomar Pedidos
+            } @else {
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <rect x="6" y="4" width="4" height="16" />
+                <rect x="14" y="4" width="4" height="16" />
+              </svg>
+              Pausar Cozinha
+            }
+          </button>
+
+          <!-- FECHAR CAIXA -->
+          <button
+            type="button"
+            (click)="fecharCaixa()"
+            [disabled]="isProcessando()"
+            class="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-lg font-bold shadow transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 touch-manipulation select-none min-h-[48px] flex items-center justify-center gap-2"
+          >
+            <svg
+              class="w-4 h-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            Encerrar Turno
+          </button>
+        </div>
+      </header>
+
+      <!-- GESTÃO DE BALCÃO -->
+      <section class="mt-8 sm:mt-10" aria-labelledby="titulo-balcao">
+        <h2
+          id="titulo-balcao"
+          class="text-xl sm:text-2xl font-black text-gray-800 mb-5 flex items-center gap-2"
+        >
+          <svg
+            class="w-6 h-6 text-primary-600"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M3 3h18v4H3z" />
+            <path d="M5 7v13a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7" />
+            <path d="M10 11h4" />
+          </svg>
+          Gestão de Balcão e Entregas
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
+          @for (pedido of pedidosBalcao(); track pedido.id) {
+            <article
+              class="relative bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-200 flex flex-col overflow-hidden"
+            >
+              <!-- Faixa lateral -->
+              <div
+                class="absolute left-0 top-0 bottom-0 w-1.5"
+                [ngClass]="pedido.tipo === 'COMER_AQUI' ? 'bg-blue-500' : 'bg-orange-500'"
+              ></div>
+
+              <div class="flex justify-between items-start mb-4 pl-3">
+                <div class="min-w-0">
+                  <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded font-black text-sm">
+                    #{{ pedido.numero }}
+                  </span>
+                  <h3 class="font-bold text-base sm:text-lg mt-1 text-gray-800 truncate">
+                    {{ pedido.nomeCliente }}
+                  </h3>
+                </div>
+
+                <span
+                  class="px-3 py-1 rounded-md text-[10px] font-black tracking-wider uppercase flex-shrink-0"
+                  [ngClass]="
+                    pedido.tipo === 'COMER_AQUI'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'bg-orange-100 text-orange-700'
+                  "
+                >
+                  {{ pedido.tipo === 'COMER_AQUI' ? '🍽️ Mesa' : '🛍️ Levar' }}
+                </span>
+              </div>
+
+              <div
+                class="flex justify-between items-center bg-gray-50 p-3 rounded-lg mb-4 border border-gray-100 pl-4"
+              >
+                <span class="text-xs font-bold text-gray-500 uppercase">Total conta</span>
+                <span class="text-lg sm:text-xl font-black text-primary-600 tabular-nums">
+                  R$ {{ pedido.valorTotal | number: '1.2-2' }}
+                </span>
+              </div>
+
+              <div class="mt-auto space-y-2 pl-3">
+                <!-- Confirmar pagamento -->
+                @if (pedido.statusPagamento === 'AGUARDANDO') {
+                  <button
+                    type="button"
+                    (click)="confirmarPagamento(pedido.id)"
+                    class="w-full py-3 bg-green-100 hover:bg-green-200 text-green-700 font-black rounded-xl transition-all active:scale-95 touch-manipulation select-none min-h-[48px] flex items-center justify-center gap-2"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <rect x="2" y="6" width="20" height="12" rx="2" />
+                      <path d="M2 10h20" />
+                    </svg>
+                    CONFIRMAR RECEBIMENTO
+                  </button>
+                }
+
+                <!-- Avançar fluxo -->
+                @if (pedido.status === 'PRONTO') {
+                  <button
+                    type="button"
+                    (click)="avancarFluxoBalcao(pedido.id)"
+                    class="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-black rounded-xl transition-all active:scale-95 touch-manipulation select-none min-h-[48px] flex items-center justify-center gap-2"
+                  >
+                    {{ pedido.tipo === 'COMER_AQUI' ? '🍽️ SERVIR NA MESA' : '🛍️ ENTREGAR PACOTE' }}
+                  </button>
+                }
+
+                @if (pedido.status === 'SERVIDO') {
+                  <button
+                    type="button"
+                    (click)="avancarFluxoBalcao(pedido.id)"
+                    class="w-full py-3 bg-gray-800 hover:bg-gray-900 text-white font-black rounded-xl transition-all active:scale-95 touch-manipulation select-none min-h-[48px] flex items-center justify-center gap-2"
+                  >
+                    👋 CLIENTE LIBERADO (ENCERRAR MESA)
+                  </button>
+                }
+
+                <button
+                  type="button"
+                  (click)="cancelarPedido(pedido.id)"
+                  class="w-full py-2 text-red-400 font-bold hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors text-sm min-h-[40px] touch-manipulation select-none"
+                >
+                  Descartar Pedido
+                </button>
+              </div>
+            </article>
+          }
+
+          @if (pedidosBalcao().length === 0) {
+            <div
+              class="col-span-full flex flex-col items-center justify-center py-16 text-gray-400 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200"
+            >
+              <svg
+                class="w-12 h-12 mb-3"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M22 12h-6l-2 3h-4l-2-3H2" />
+                <path
+                  d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"
+                />
+              </svg>
+              <span class="font-bold text-lg">Balcão limpo</span>
+              <span class="text-sm">Nenhum pedido aguardando recebimento ou entrega.</span>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- RESUMO FINANCEIRO -->
+      <section class="mt-8 sm:mt-10" aria-labelledby="titulo-resumo">
+        <h2 id="titulo-resumo" class="sr-only">Resumo financeiro</h2>
+
+        @if (!resumoAtual()) {
+          <div class="flex items-center justify-center py-20 text-gray-500">
+            <svg
+              class="w-6 h-6 animate-spin mr-3"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+            >
+              <path d="M21 12a9 9 0 1 1-6.22-8.56" />
+            </svg>
+            Calculando faturamento em tempo real...
+          </div>
+        } @else {
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <!-- FATURAMENTO TOTAL -->
+            <div
+              class="md:col-span-2 lg:col-span-4 bg-gradient-to-r from-primary-700 to-primary-900 rounded-2xl p-5 sm:p-6 text-white shadow-lg flex items-center justify-between"
+            >
+              <div>
+                <p
+                  class="text-primary-200 font-bold uppercase tracking-wider text-xs sm:text-sm mb-1"
+                >
+                  Faturamento Total do Dia
+                </p>
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black tabular-nums">
+                  R$ {{ resumoAtual()!.faturamentoTotal | number: '1.2-2' }}
+                </h2>
+              </div>
+
+              <svg
+                class="w-16 h-16 opacity-40 hidden sm:block"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+                <polyline points="16 7 22 7 22 13" />
+              </svg>
+            </div>
+
+            <!-- PIX -->
+            <div class="bg-white rounded-xl p-5 border-t-4 border-teal-500 shadow-md">
+              <div class="flex items-center gap-3 mb-2">
+                <div
+                  class="w-10 h-10 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center"
+                  aria-hidden="true"
+                >
+                  <svg
+                    class="w-5 h-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect x="6" y="3" width="12" height="18" rx="2" />
+                    <path d="M11 18h2" />
+                  </svg>
+                </div>
+                <h3 class="font-bold text-gray-700 text-sm">Total PIX</h3>
+              </div>
+              <p class="text-xl sm:text-2xl font-black text-gray-900 tabular-nums">
+                R$ {{ resumoAtual()!.totalPix | number: '1.2-2' }}
+              </p>
+            </div>
+
+            <!-- CARTÃO -->
+            <div class="bg-white rounded-xl p-5 border-t-4 border-blue-500 shadow-md">
+              <div class="flex items-center gap-3 mb-2">
+                <div
+                  class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"
+                  aria-hidden="true"
+                >
+                  <svg
+                    class="w-5 h-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect x="2" y="6" width="20" height="12" rx="2" />
+                    <path d="M2 10h20" />
+                  </svg>
+                </div>
+                <h3 class="font-bold text-gray-700 text-sm">Total Cartão</h3>
+              </div>
+              <p class="text-xl sm:text-2xl font-black text-gray-900 tabular-nums">
+                R$ {{ resumoAtual()!.totalCartao | number: '1.2-2' }}
+              </p>
+            </div>
+
+            <!-- DINHEIRO -->
+            <div class="bg-white rounded-xl p-5 border-t-4 border-green-500 shadow-md">
+              <div class="flex items-center gap-3 mb-2">
+                <div
+                  class="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center"
+                  aria-hidden="true"
+                >
+                  <svg
+                    class="w-5 h-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect x="2" y="6" width="20" height="12" rx="2" />
+                    <circle cx="12" cy="12" r="2" />
+                    <path d="M6 12h.01M18 12h.01" />
+                  </svg>
+                </div>
+                <h3 class="font-bold text-gray-700 text-sm">Total Dinheiro</h3>
+              </div>
+              <p class="text-xl sm:text-2xl font-black text-gray-900 tabular-nums">
+                R$ {{ resumoAtual()!.totalDinheiro | number: '1.2-2' }}
+              </p>
+            </div>
+
+            <!-- GAVETA -->
+            <div
+              class="bg-yellow-50 rounded-xl p-5 border border-yellow-200 shadow-sm flex flex-col justify-center items-center text-center"
+            >
+              <p class="text-yellow-800 font-bold text-xs uppercase tracking-wider">
+                Dinheiro Físico na Gaveta
+              </p>
+              <p class="text-2xl sm:text-3xl font-black text-yellow-900 my-1 tabular-nums">
+                R$ {{ resumoAtual()!.totalEmGaveta | number: '1.2-2' }}
+              </p>
+              <p class="text-[11px] text-yellow-700">
+                Troco Inicial: R$ {{ resumoAtual()!.valorInicialTroco | number: '1.2-2' }} + Vendas
+                💵
+              </p>
+            </div>
+          </div>
+        }
+      </section>
+    }
+
+    <!-- MODAL DE FECHAMENTO -->
+    @if (resumoFechamento(); as resumo) {
+      <div
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-[fadeIn_0.2s_ease-out]"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-fechamento"
+      >
+        <div
+          class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-[slideUp_0.3s_ease-out] flex flex-col max-h-[92dvh]"
+        >
+          <!-- HEADER -->
+          <div class="bg-gray-900 p-5 text-center flex-shrink-0">
+            <div
+              class="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-2 border-2 border-gray-700"
+              aria-hidden="true"
+            >
+              <svg
+                class="w-8 h-8 text-white"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z" />
+                <path d="M8 7h8" />
+                <path d="M8 11h8" />
+                <path d="M8 15h5" />
+              </svg>
+            </div>
+            <h3 id="titulo-fechamento" class="text-xl font-black text-white">
+              Fechamento de Caixa
+            </h3>
+            <p class="text-gray-400 text-sm">Turno encerrado com sucesso!</p>
+          </div>
+
+          <!-- RESUMO -->
+          <div class="p-6 bg-gray-50 space-y-4 overflow-y-auto flex-1">
+            <div class="space-y-2">
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-500 font-medium">Troco Inicial:</span>
+                <span class="text-gray-800 font-bold tabular-nums">
+                  R$ {{ resumo.valorInicialTroco | number: '1.2-2' }}
+                </span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-500 font-medium">📱 Pix:</span>
+                <span class="text-gray-800 font-bold tabular-nums">
+                  R$ {{ resumo.totalPix | number: '1.2-2' }}
+                </span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-500 font-medium">💳 Cartão:</span>
+                <span class="text-gray-800 font-bold tabular-nums">
+                  R$ {{ resumo.totalCartao | number: '1.2-2' }}
+                </span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-500 font-medium">💵 Dinheiro:</span>
+                <span class="text-gray-800 font-bold tabular-nums">
+                  R$ {{ resumo.totalDinheiro | number: '1.2-2' }}
+                </span>
+              </div>
+            </div>
+
+            <div class="border-t border-dashed border-gray-300"></div>
+
+            <div class="flex justify-between items-center text-sm">
+              <span class="text-gray-600 font-bold uppercase tracking-wider">
+                Faturamento do Dia:
+              </span>
+              <span class="text-lg font-black text-primary-600 tabular-nums">
+                R$ {{ resumo.faturamentoTotal | number: '1.2-2' }}
+              </span>
+            </div>
+
+            <div class="bg-yellow-50 border border-yellow-200 p-4 rounded-xl text-center mt-4">
+              <p class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-1">
+                Dinheiro em Gaveta
+              </p>
+              <p class="text-2xl sm:text-3xl font-black text-gray-900 tabular-nums">
+                R$ {{ resumo.totalEmGaveta | number: '1.2-2' }}
+              </p>
+              <p class="text-[10px] text-gray-500 mt-1">Troco inicial + Vendas em dinheiro</p>
+            </div>
+          </div>
+
+          <!-- FOOTER -->
+          <div
+            class="p-4 bg-white border-t border-gray-100 flex-shrink-0"
+            style="padding-bottom: max(1rem, env(safe-area-inset-bottom))"
+          >
+            <button
+              type="button"
+              (click)="finalizarTurno()"
+              class="w-full py-4 bg-gray-900 text-white rounded-xl font-bold text-lg hover:bg-gray-800 active:scale-95 transition-all touch-manipulation select-none min-h-[56px]"
+            >
+              OK, ENTENDIDO
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
 </div>

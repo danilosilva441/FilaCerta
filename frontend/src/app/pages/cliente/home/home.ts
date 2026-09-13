@@ -1,9 +1,10 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { CaixaService } from '../../../core/services/caixa.service';
 import { Subscription, timer } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+
+import { CaixaService } from '../../../core/services/caixa.service';
 
 @Component({
   selector: 'app-home',
@@ -15,42 +16,53 @@ export class HomeComponent implements OnInit, OnDestroy {
   isAberto = false;
   isPausado = false;
   carregando = true;
+
   private pollingSubscription?: Subscription;
 
   constructor(
-    private caixaService: CaixaService,
-    private cdr: ChangeDetectorRef,
+    private readonly caixaService: CaixaService,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
     this.iniciarMonitoramentoLoja();
   }
 
-  iniciarMonitoramentoLoja(): void {
-    // Começa no tempo 0, e depois repete a cada 10 segundos (10000ms)
-    this.pollingSubscription = timer(0, 10000)
+  private iniciarMonitoramentoLoja(): void {
+    this.pararMonitoramentoLoja();
+
+    this.pollingSubscription = timer(0, 5000)
       .pipe(switchMap(() => this.caixaService.buscarCaixaAtual()))
       .subscribe({
-        next: (caixa) => {
-          this.isAberto = !!caixa && caixa.status === 'ABERTO';
-          this.isPausado = this.isAberto && caixa?.cozinhaPausada === true;
-          this.carregando = false;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('Erro ao buscar status do caixa', err);
-          this.isAberto = false;
-          this.isPausado = false;
-          this.carregando = false;
-          this.cdr.detectChanges();
-        },
+        next: (caixa) => this.atualizarEstadoLoja(caixa),
+        error: (erro) => this.tratarErroMonitoramento(erro),
       });
   }
 
+  private atualizarEstadoLoja(caixa: any): void {
+    this.isAberto = caixa?.status === 'ABERTO';
+    this.isPausado = this.isAberto && caixa?.cozinhaPausada === true;
+    this.carregando = false;
+
+    this.cdr.detectChanges();
+  }
+
+  private tratarErroMonitoramento(erro: unknown): void {
+    console.error('Erro ao buscar status da loja:', erro);
+
+    this.isAberto = false;
+    this.isPausado = false;
+    this.carregando = false;
+
+    this.cdr.detectChanges();
+  }
+
+  private pararMonitoramentoLoja(): void {
+    this.pollingSubscription?.unsubscribe();
+    this.pollingSubscription = undefined;
+  }
+
   ngOnDestroy(): void {
-    // Desliga o radar se o cliente sair da página inicial
-    if (this.pollingSubscription) {
-      this.pollingSubscription.unsubscribe();
-    }
+    this.pararMonitoramentoLoja();
   }
 }

@@ -58,6 +58,9 @@ public class ProdutoService {
         entity.setNome(dto.getNome());
         entity.setDescricao(dto.getDescricao());
         entity.setPreco(dto.getPreco());
+        entity.setTempoPreparoMinutos(dto.getTempoPreparoMinutos());
+        entity.setQuantidadeDisponivel(dto.getQuantidadeDisponivel());
+        entity.setLimiteDiario(dto.getLimiteDiario());
         
         Categoria categoria = categoriaRepository.getReferenceById(dto.getCategoriaId());
         entity.setCategoria(categoria);

@@ -49,6 +49,7 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.GET, "/api/pedidos/**").permitAll()
 						.requestMatchers(HttpMethod.PATCH, "/api/pedidos/*/cancelar").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/caixa/atual").permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/categorias").permitAll()
 
 						// Qualquer outra requisição precisará do Token JWT (Acesso restrito do Dono)
 						.anyRequest().authenticated())

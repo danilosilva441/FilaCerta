@@ -1,79 +1,113 @@
-<div class="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 font-sans">
-  @if (!pedido) {
-    <div class="animate-pulse text-gray-500 font-medium">Buscando seu pedido...</div>
+<div
+  class="min-h-[100dvh] bg-gray-50 flex flex-col items-center justify-center px-4 py-6 font-sans antialiased"
+  style="
+    padding-top: max(1.5rem, env(safe-area-inset-top));
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  "
+  aria-live="polite"
+  aria-atomic="true"
+>
+  @if (!pedido()) {
+    <!-- CARREGANDO -->
+    <div class="flex flex-col items-center gap-3 text-gray-500">
+      <svg
+        class="w-8 h-8 animate-spin"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+      >
+        <path d="M21 12a9 9 0 1 1-6.22-8.56" />
+      </svg>
+      <span class="font-medium">Buscando seu pedido...</span>
+    </div>
   } @else {
-    <!-- Header: Status Visual -->
+    @let p = pedido()!;
+
+    <!-- HEADER: STATUS VISUAL -->
     <div class="text-center w-full max-w-sm">
       <div
-        class="w-32 h-32 rounded-full mx-auto mb-6 flex items-center justify-center text-5xl shadow-lg transition-all duration-500"
-        [ngClass]="{
-          'bg-yellow-100 text-yellow-600': pedido.status === 'RECEBIDO',
-          'bg-orange-100 text-orange-600 animate-bounce': pedido.status === 'PREPARANDO',
-          'bg-green-100 text-green-600 scale-110 shadow-green-200': pedido.status === 'PRONTO',
-          'bg-red-100 text-red-600': pedido.status === 'CANCELADO',
-        }"
+        class="w-28 h-28 sm:w-32 sm:h-32 rounded-full mx-auto mb-6 flex items-center justify-center text-5xl shadow-lg transition-all duration-500"
+        [ngClass]="getCorCirculo(p.status)"
       >
-        @switch (pedido.status) {
-          @case ('RECEBIDO') {
-            📋
-          }
-          @case ('PREPARANDO') {
-            🔥
-          }
-          @case ('PRONTO') {
-            ✅
-          }
-          @case ('ENTREGUE') {
-            🛍️
-          }
-          <!-- Adicionado! -->
-          @case ('CANCELADO') {
-            ❌
-          }
-          @default {
-            ⏳
-          }
-        }
+        {{ getIconeStatus(p.status) }}
       </div>
 
-      <h1 class="text-3xl font-black mb-2 text-gray-800">Pedido #{{ pedido.numero }}</h1>
+      <h1 class="text-3xl font-black mb-2 text-gray-800">Pedido #{{ p.numero }}</h1>
+
       <p
         class="text-lg font-medium mb-8"
         [ngClass]="{
-          'text-green-600': pedido.status === 'PRONTO',
-          'text-gray-600': pedido.status !== 'PRONTO',
+          'text-green-600': p.status === 'PRONTO' || p.status === 'SERVIDO',
+          'text-red-600': p.status === 'CANCELADO',
+          'text-gray-600':
+            p.status !== 'PRONTO' && p.status !== 'SERVIDO' && p.status !== 'CANCELADO',
         }"
       >
-        {{ statusMensagem }}
+        {{ statusMensagem() }}
       </p>
     </div>
 
-    <!-- Lista de Itens (O que foi pedido) -->
-    <div class="w-full max-w-sm bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
-      <h2 class="font-bold text-gray-700 mb-4 border-b pb-2">Resumo dos itens:</h2>
+    <!-- AVISO DE ERRO DE REDE -->
+    @if (erroRede()) {
+      <div
+        class="w-full max-w-sm mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-xl text-xs text-yellow-800 flex items-start gap-2"
+      >
+        <svg
+          class="w-4 h-4 flex-shrink-0 mt-0.5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+          />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+        <span class="text-left"> Sem conexão. Tentando novamente em instantes... </span>
+      </div>
+    }
+
+    <!-- LISTA DE ITENS -->
+    <div class="w-full max-w-sm bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-4">
+      <h2 class="font-bold text-gray-700 mb-4 border-b pb-2 text-sm uppercase tracking-wide">
+        Resumo dos itens
+      </h2>
 
       <div class="space-y-3">
-        @for (item of pedido.itens; track item.id) {
-          <div class="flex justify-between items-center">
-            <span class="text-gray-800 font-medium"
-              >{{ item.quantidade }}x {{ item.nomeProduto }}</span
-            >
-            <span class="text-sm">
+        @for (item of p.itens; track item.id) {
+          <div class="flex justify-between items-center gap-2">
+            <span class="text-gray-800 font-medium text-sm sm:text-base min-w-0 truncate">
+              {{ item.quantidade }}x {{ item.nomeProduto }}
+            </span>
+
+            <span class="flex-shrink-0">
               @switch (item.status) {
                 @case ('PRONTO') {
-                  <span class="bg-green-100 text-green-700 px-2 py-1 rounded-md font-bold text-xs"
-                    >Pronto</span
+                  <span
+                    class="bg-green-100 text-green-700 px-2 py-1 rounded-md font-bold text-[10px] uppercase tracking-wide"
                   >
+                    Pronto
+                  </span>
                 }
                 @case ('PREPARANDO') {
-                  <span class="bg-orange-100 text-orange-700 px-2 py-1 rounded-md font-bold text-xs"
-                    >Na Chapa</span
+                  <span
+                    class="bg-orange-100 text-orange-700 px-2 py-1 rounded-md font-bold text-[10px] uppercase tracking-wide"
                   >
+                    Na chapa
+                  </span>
                 }
                 @default {
-                  <span class="bg-gray-100 text-gray-500 px-2 py-1 rounded-md font-bold text-xs"
-                    >Fila</span
+                  <span
+                    class="bg-gray-100 text-gray-500 px-2 py-1 rounded-md font-bold text-[10px] uppercase tracking-wide"
                   >
+                    Fila
+                  </span>
                 }
               }
             </span>
@@ -82,105 +116,106 @@
       </div>
     </div>
 
-    <!-- Fechamento de Conta -->
-    <div
-      class="text-center bg-white w-full max-w-sm rounded-2xl shadow-md border border-gray-200 p-4 sm:p-5 mt-4 sm:mt-6"
-    >
-      <p class="text-gray-500 text-xs sm:text-sm font-medium uppercase tracking-wide">
+    <!-- VALOR TOTAL -->
+    <div class="w-full max-w-sm bg-white rounded-2xl shadow-md border border-gray-200 p-4 sm:p-5">
+      <p class="text-gray-500 text-xs font-medium uppercase tracking-wide text-center">
         Valor Total
       </p>
+
       <p
-        class="text-3xl sm:text-4xl font-black text-primary-600 mt-1"
-        [ngClass]="{ 'line-through text-gray-400': pedido.status === 'CANCELADO' }"
+        class="text-3xl sm:text-4xl font-black text-primary-600 mt-1 text-center tabular-nums"
+        [ngClass]="{ 'line-through text-gray-400': isCancelado() }"
       >
-        R$ {{ pedido.valorTotal | number: '1.2-2' }}
+        R$ {{ p.valorTotal | number: '1.2-2' }}
       </p>
+    </div>
 
-      <!-- Só mostra o status de pagamento se NÃO estiver cancelado -->
-      <!-- Modificamos o IF para garantir que mostre PAGO se o pedido estiver ENTREGUE -->
-      @if (pedido.status !== 'CANCELADO') {
-        <div
-          class="mt-3 text-sm sm:text-base font-bold flex items-center justify-center gap-2"
-          [ngClass]="{
-            'text-green-600': pedido.statusPagamento === 'PAGO' || pedido.status === 'ENTREGUE',
-            'text-yellow-600':
-              pedido.statusPagamento === 'AGUARDANDO' && pedido.status !== 'ENTREGUE',
-          }"
+    <!-- STATUS DO PAGAMENTO -->
+    @if (!isCancelado()) {
+      <div
+        class="w-full max-w-sm mt-4 p-4 rounded-xl border transition-all duration-500 flex items-center justify-between gap-3"
+        [ngClass]="
+          p.statusPagamento === 'PAGO' || p.status === 'ENTREGUE'
+            ? 'bg-green-50 border-green-200'
+            : 'bg-yellow-50 border-yellow-200'
+        "
+      >
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="text-2xl flex-shrink-0" aria-hidden="true">
+            {{ p.statusPagamento === 'PAGO' || p.status === 'ENTREGUE' ? '💸' : '⏳' }}
+          </span>
+
+          <div class="min-w-0">
+            <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Pagamento</p>
+            <p
+              class="font-black text-base sm:text-lg truncate"
+              [ngClass]="
+                p.statusPagamento === 'PAGO' || p.status === 'ENTREGUE'
+                  ? 'text-green-700'
+                  : 'text-yellow-700'
+              "
+            >
+              {{
+                p.statusPagamento === 'PAGO' || p.status === 'ENTREGUE'
+                  ? 'CONFIRMADO'
+                  : 'AGUARDANDO NO CAIXA'
+              }}
+            </p>
+          </div>
+        </div>
+
+        <span
+          class="bg-white px-3 py-1 rounded-lg text-xs font-bold text-gray-500 shadow-sm border border-gray-100 flex-shrink-0"
         >
-          <span
-            class="inline-block w-2 h-2 rounded-full"
-            [ngClass]="{
-              'bg-green-600': pedido.statusPagamento === 'PAGO' || pedido.status === 'ENTREGUE',
-              'bg-yellow-600 animate-pulse':
-                pedido.statusPagamento === 'AGUARDANDO' && pedido.status !== 'ENTREGUE',
-            }"
-          ></span>
-          Pagamento: {{ pedido.status === 'ENTREGUE' ? 'PAGO' : pedido.statusPagamento }}
-        </div>
-      }
-    </div>
-
-    <!-- Status do Pagamento (Reativo) -->
-    <div
-      class="mt-4 p-4 rounded-xl border transition-all duration-500 flex items-center justify-between"
-      [ngClass]="
-        pedido.statusPagamento === 'PAGO'
-          ? 'bg-green-50 border-green-200'
-          : 'bg-yellow-50 border-yellow-200'
-      "
-    >
-      <div class="flex items-center gap-3">
-        <span class="text-2xl">
-          {{ pedido.statusPagamento === 'PAGO' ? '💸' : '⏳' }}
+          {{ p.formaPagamento }}
         </span>
-        <div>
-          <p class="text-sm font-bold text-gray-500 uppercase tracking-wider">Pagamento</p>
-          <p
-            class="font-black text-lg"
-            [ngClass]="pedido.statusPagamento === 'PAGO' ? 'text-green-700' : 'text-yellow-700'"
-          >
-            {{ pedido.statusPagamento === 'PAGO' ? 'CONFIRMADO' : 'AGUARDANDO NO CAIXA' }}
-          </p>
-        </div>
       </div>
+    }
 
-      <!-- Mostra a forma de pagamento -->
-      <span
-        class="bg-white px-3 py-1 rounded-lg text-xs font-bold text-gray-500 shadow-sm border border-gray-100"
-      >
-        {{ pedido.formaPagamento }}
-      </span>
-    </div>
-
-    <!-- O botão aparece se for AGUARDANDO ou RECEBIDO -->
-    @if (pedido.status === 'AGUARDANDO' || pedido.status === 'RECEBIDO') {
+    <!-- BOTÃO CANCELAR -->
+    @if (podeCancelar()) {
       <button
+        type="button"
         (click)="cancelarPedidoPeloCliente()"
-        class="w-full mt-6 py-3 bg-white text-red-600 border-2 border-red-100 hover:bg-red-50 hover:border-red-200 rounded-xl font-bold text-sm transition-all shadow-sm"
+        class="w-full max-w-sm mt-6 py-3.5 bg-white text-red-600 border-2 border-red-100 hover:bg-red-50 hover:border-red-200 rounded-xl font-bold text-sm transition-all shadow-sm active:scale-95 touch-manipulation select-none min-h-[52px] flex items-center justify-center gap-2"
       >
-        Desistir e Cancelar Pedido
+        <svg
+          class="w-4 h-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <line x1="15" y1="9" x2="9" y2="15" />
+          <line x1="9" y1="9" x2="15" y2="15" />
+        </svg>
+        Desistir e cancelar pedido
       </button>
     }
 
-    <!-- Se já estiver cancelado, mostra uma tela de aviso -->
-    @if (pedido.status === 'CANCELADO') {
-      <div class="mt-6 bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-center">
-        <p class="font-black text-lg mb-1">Pedido Cancelado 🚫</p>
+    <!-- AVISO DE CANCELADO -->
+    @if (isCancelado()) {
+      <div
+        class="w-full max-w-sm mt-6 bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-center"
+      >
+        <p class="font-black text-lg mb-1">Pedido Cancelado</p>
         <p class="text-sm">Este pedido foi cancelado e não será preparado.</p>
       </div>
     }
-  }
-  <!-- Botão Novo Pedido (Aparece quando pronto, entregue ou cancelado) -->
-  @if (
-    pedido?.statusPagamento === 'PRONTO' ||
-    pedido?.statusPagamento === 'ENTREGUE' ||
-    pedido?.statusPagamento === 'CANCELADO'
-  ) {
-    <button
-      routerLink="/cliente/cardapio"
-      class="mt-6 sm:mt-8 px-6 sm:px-8 py-4 bg-primary-600 text-white rounded-2xl font-bold text-base sm:text-lg shadow-md hover:bg-primary-700 active:scale-95 transition-all w-full max-w-sm min-h-[52px] sm:min-h-[56px] flex items-center justify-center gap-2"
-    >
-      <span class="text-xl sm:text-2xl">🍔</span> FAZER NOVO PEDIDO
-    </button>
+
+    <!-- BOTÃO NOVO PEDIDO -->
+    @if (mostrarNovoPedido()) {
+      <a
+        routerLink="/cliente/cardapio"
+        class="w-full max-w-sm mt-6 px-6 py-4 bg-primary-600 text-white rounded-2xl font-bold text-base sm:text-lg shadow-md hover:bg-primary-700 active:scale-95 transition-all min-h-[56px] flex items-center justify-center gap-2 touch-manipulation select-none focus:outline-none focus:ring-4 focus:ring-primary-300"
+      >
+        <span class="text-xl sm:text-2xl" aria-hidden="true">🍔</span>
+        FAZER NOVO PEDIDO
+      </a>
+    }
   }
 </div>

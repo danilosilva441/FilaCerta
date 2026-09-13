@@ -1,43 +1,76 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NotificationService, ToastMessage } from '../../../core/services/notification.service';
 import { Subscription } from 'rxjs';
+import { NotificationService, ToastMessage } from '../../../core/services/notification.service';
+
+interface ToastItem extends ToastMessage {
+  id: number;
+  saindo?: boolean;
+  timeoutId?: ReturnType<typeof setTimeout>;
+}
 
 @Component({
   selector: 'app-toast',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './toast.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ToastComponent implements OnInit, OnDestroy {
-  toast: ToastMessage | null = null;
+  private readonly notificationService = inject(NotificationService);
   private subscription?: Subscription;
-  private timeoutId?: any;
+  private proximoId = 1;
 
-  constructor(private notificationService: NotificationService) {}
+  private readonly DURACAO = 4000;
+  private readonly DURACAO_COM_ACAO = 12000; // 👈 12s se tiver botões
+
+  toasts: ToastItem[] = [];
 
   ngOnInit(): void {
     this.subscription = this.notificationService.toast$.subscribe((mensagem) => {
-      this.toast = mensagem;
-
-      // Limpa o toast anterior se houver
-      if (this.timeoutId) {
-        clearTimeout(this.timeoutId);
-      }
-
-      // Faz o toast sumir após 4 segundos
-      this.timeoutId = setTimeout(() => {
-        this.fechar();
-      }, 4000);
+      this.adicionarToast(mensagem);
     });
   }
 
-  fechar(): void {
-    this.toast = null;
+  private adicionarToast(mensagem: ToastMessage): void {
+    const novoToast: ToastItem = {
+      ...mensagem,
+      id: this.proximoId++,
+    };
+
+    this.toasts = [novoToast, ...this.toasts];
+
+    // Duração maior se tiver ação
+    const duracao = mensagem.textoAcao ? this.DURACAO_COM_ACAO : this.DURACAO;
+
+    novoToast.timeoutId = setTimeout(() => {
+      this.removerToast(novoToast.id);
+    }, duracao);
+  }
+
+  removerToast(id: number): void {
+    const toast = this.toasts.find((t) => t.id === id);
+    if (!toast || toast.saindo) return;
+
+    toast.saindo = true;
+
+    if (toast.timeoutId) clearTimeout(toast.timeoutId);
+
+    setTimeout(() => {
+      this.toasts = this.toasts.filter((t) => t.id !== id);
+    }, 300);
+  }
+
+  /** Executa a ação e fecha o toast */
+  executarAcao(item: ToastItem): void {
+    item.onAcao?.();
+    this.removerToast(item.id);
   }
 
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
-    if (this.timeoutId) clearTimeout(this.timeoutId);
+    this.toasts.forEach((t) => {
+      if (t.timeoutId) clearTimeout(t.timeoutId);
+    });
   }
 }

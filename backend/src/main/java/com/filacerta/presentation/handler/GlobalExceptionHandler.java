@@ -16,6 +16,8 @@ import com.filacerta.domain.exception.ProdutoNaoEncontradoException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+	
+	private static final long serialVersionUID = 1L;
 
 	// Trata o erro 404 quando um produto não existe
 	@ExceptionHandler(ProdutoNaoEncontradoException.class)
@@ -56,6 +58,10 @@ public class GlobalExceptionHandler {
 		ErrorResponse error = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Erro Interno do Servidor",
 				"Ocorreu um erro inesperado. Tente novamente mais tarde.", LocalDateTime.now());
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+	}
+
+	public static long getSerialversionuid() {
+		return serialVersionUID;
 	}
 
 }

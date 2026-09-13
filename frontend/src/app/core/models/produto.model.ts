@@ -3,6 +3,10 @@ export interface Produto {
   nome: string;
   descricao: string;
   preco: number;
-  categoria: 'HAMBURGUER' | 'CACHORRO_QUENTE' | 'SALGADO' | 'BEBIDA' | 'PORCAO' | 'ADICIONAL';
+  categoria: string;
   tempoPreparoMinutos: number;
+
+  quantidadeDisponivel?: number; // Adicionando a propriedade quantidadeDisponivel como opcional
+  limiteDiario?: number; // Adicionando a propriedade limiteDiario como opcional
+  ativo?: boolean; // Adicionando a propriedade ativo como opcional
 }

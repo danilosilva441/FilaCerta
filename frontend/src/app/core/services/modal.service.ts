@@ -1,11 +1,14 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 
+export type ModalTipo = 'aviso' | 'perigo' | 'info' | 'sucesso';
+
 export interface ModalConfig {
   titulo: string;
   mensagem: string;
   textoConfirmar?: string;
   textoCancelar?: string;
+  tipo?: ModalTipo;
   onConfirm: () => void;
 }
 
@@ -13,13 +16,28 @@ export interface ModalConfig {
   providedIn: 'root',
 })
 export class ModalService {
-  private modalSubject = new Subject<ModalConfig | null>();
-  modal$ = this.modalSubject.asObservable();
+  private readonly modalSubject = new Subject<ModalConfig | null>();
 
-  confirmar(config: ModalConfig): void {
+  /** Observable que o componente `ConfirmModalComponent` escuta */
+  readonly modal$ = this.modalSubject.asObservable();
+
+  /**
+   * Abre o modal de confirmação.
+   * Este é o método principal — use este nome.
+   */
+  abrir(config: ModalConfig): void {
     this.modalSubject.next(config);
   }
 
+  /**
+   * Alias para `abrir()`. Mantido por compatibilidade com código antigo.
+   * @deprecated Use `abrir()`
+   */
+  confirmar(config: ModalConfig): void {
+    this.abrir(config);
+  }
+
+  /** Fecha o modal atual */
   fechar(): void {
     this.modalSubject.next(null);
   }

@@ -19,6 +19,8 @@ public class ProdutoMapper {
                 // CORREÇÃO: Extraindo apenas o nome em texto
                 .categoria(produto.getCategoria() != null ? produto.getCategoria().getNome() : "Sem Categoria")
                 .tempoPreparoMinutos(produto.getTempoPreparoMinutos())
+                .quantidadeDisponivel(produto.getQuantidadeDisponivel())
+                .ativo(produto.isAtivo())
                 .build();
     }
 }

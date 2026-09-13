@@ -1,7 +1,6 @@
 package com.filacerta.presentation.controller;
 
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +18,6 @@ import com.filacerta.application.dto.response.PedidoResponse;
 import com.filacerta.application.dto.response.ResumoFechamentoResponse;
 import com.filacerta.application.service.CaixaDiarioService;
 import com.filacerta.application.service.PedidoService;
-import com.filacerta.domain.enums.MotivoPausa;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -85,30 +83,21 @@ public class CaixaController {
     }
     
     @PostMapping("/pedidos/{id}/entregar")
-    @Operation(summary = "Marca o pedido como entregue e o pagamento como recebido")
+    @Operation(summary = "Avança o status do pedido de forma inteligente (Comer Aqui vs Levar)")
     public ResponseEntity<Void> finalizarEntrega(@PathVariable Long id) {
-        pedidoService.finalizarEntrega(id);
+        pedidoService.avancarStatusPedido(id); // <-- Atualizado para o novo método inteligente!
         return ResponseEntity.ok().build();
     }
     
     @PatchMapping("/{id}/pausar-cozinha")
-    @Operation(summary = "Pausa ou despausa a cozinha informando o motivo")
-    public ResponseEntity<CaixaDiarioResponse> alterarPausaCozinha(
-            @PathVariable Long id, 
-            @RequestBody(required = false) Map<String, String> request) {
-        
-        MotivoPausa motivo = null;
-        
-        // Verifica se a tela enviou um motivo. Se não enviou, enviaremos 'null' (que vai reabrir a cozinha)
-        if (request != null && request.containsKey("motivo") && request.get("motivo") != null) {
-            motivo = MotivoPausa.valueOf(request.get("motivo"));
-        }
-        
-        return ResponseEntity.ok(caixaDiarioService.alterarPausaCozinha(id, motivo));
+    @Operation(summary = "Alterna o status de recebimento de pedidos da cozinha (Liga/Desliga)")
+    public ResponseEntity<CaixaDiarioResponse> alterarPausaCozinha(@PathVariable Long id) {
+        // <-- Agora não espera mais motivo algum, apenas chama o interruptor!
+        return ResponseEntity.ok(caixaDiarioService.alternarPausaCozinha(id));
     }
 
     @PatchMapping("/pedidos/{id}/cancelar")
-    @Operation(summary = "Cancela um pedido (Arquivo Morto)")
+    @Operation(summary = "Cancela um pedido com devolução automática de estoque")
     public ResponseEntity<Void> cancelarPedido(@PathVariable Long id) {
         pedidoService.cancelarPedido(id);
         return ResponseEntity.ok().build();

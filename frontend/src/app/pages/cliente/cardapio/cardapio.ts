@@ -1,7 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Subscription, timer } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
+
 import { CriarPedidoRequest, ItemPedidoRequest } from '../../../core/models/pedido.model';
 import { Produto } from '../../../core/models/produto.model';
 import { AuthService } from '../../../core/services/auth.service';
@@ -9,6 +12,7 @@ import { NotificationService } from '../../../core/services/notification.service
 import { PedidoService } from '../../../core/services/pedido.service';
 import { ProdutoService } from '../../../core/services/produto.service';
 import { CaixaService } from '../../../core/services/caixa.service';
+import { CategoriaService } from '../../../core/services/categoria.service';
 
 @Component({
   selector: 'app-cardapio',
@@ -17,23 +21,33 @@ import { CaixaService } from '../../../core/services/caixa.service';
   templateUrl: './cardapio.html',
   styleUrls: ['./cardapio.css'],
 })
-export class CardapioComponent implements OnInit {
+export class CardapioComponent implements OnInit, OnDestroy {
   nomeCliente = '';
   tipoPedido: 'LEVAR' | 'COMER_AQUI' = 'COMER_AQUI';
   formaPagamento: 'PIX' | 'CARTAO' | 'DINHEIRO' = 'PIX';
 
-  // 1. Ajustamos as categorias para baterem EXATAMENTE com o banco de dados (V4)
-  categorias = ['TODOS', 'HAMBURGUER', 'CACHORRO_QUENTE', 'BEBIDA', 'ACOMPANHAMENTO'];
-  categoriaSelecionada = 'TODOS';
+  categorias: { id?: number; nome: string }[] = [{ nome: 'Todos' }];
+
+  categoriaSelecionada?: number = undefined;
 
   produtos: Produto[] = [];
-  carrinho: Map<number, number> = new Map();
+
+  carrinho: {
+    produto: Produto;
+    quantidade: number;
+    observacao: string;
+  }[] = [];
 
   isDono = false;
   jaPago = false;
   isProcessando = false;
   isCarrinhoAberto = false;
   tentouEnviar = false;
+
+  // Estado da cozinha
+  cozinhaDisponivel = false;
+
+  private monitoramentoSubscription?: Subscription;
 
   constructor(
     private produtoService: ProdutoService,
@@ -43,136 +57,266 @@ export class CardapioComponent implements OnInit {
     private notificationService: NotificationService,
     private authService: AuthService,
     private caixaService: CaixaService,
+    private categoriaService: CategoriaService,
   ) {}
 
   ngOnInit(): void {
-    this.blindarCardapio();
     this.isDono = this.authService.isDono();
 
-    // 2. Usamos a própria função carregarProdutos para evitar código duplicado
+    this.carregarCategorias();
     this.carregarProdutos();
+
+    // Começa a vigiar o caixa/cozinha
+    this.iniciarMonitoramentoCaixa();
   }
 
-  filtrarPorCategoria(cat: string): void {
-    if (this.categoriaSelecionada === cat) return;
+  ngOnDestroy(): void {
+    this.monitoramentoSubscription?.unsubscribe();
+  }
 
-    this.categoriaSelecionada = cat;
+  /**
+   * Mantém o cardápio sincronizado com o caixa.
+   *
+   * Se o dono abrir/fechar/pausar/retomar,
+   * o cliente percebe em até 5 segundos.
+   */
+  iniciarMonitoramentoCaixa(): void {
+    this.monitoramentoSubscription = timer(0, 5000)
+      .pipe(switchMap(() => this.caixaService.buscarCaixaAtual()))
+      .subscribe({
+        next: (caixa) => {
+          const disponivel = !!caixa && caixa.status === 'ABERTO' && caixa.cozinhaPausada !== true;
+
+          const mudouEstado = this.cozinhaDisponivel !== disponivel;
+
+          this.cozinhaDisponivel = disponivel;
+
+          if (mudouEstado) {
+            this.cdr.detectChanges();
+          }
+
+          // Se a cozinha foi fechada/pausada enquanto o cliente
+          // estava no cardápio, limpa o carrinho e bloqueia o pedido.
+          if (!disponivel && this.carrinho.length > 0) {
+            this.carrinho = [];
+            this.isCarrinhoAberto = false;
+
+            this.notificationService.aviso(
+              'Cozinha indisponível',
+              'A cozinha foi pausada ou o caixa foi encerrado. Seu carrinho foi limpo.',
+            );
+          }
+
+          // Se ficou indisponível, volta para a home.
+          if (!disponivel) {
+            this.router.navigate(['/']);
+          }
+        },
+
+        error: (err) => {
+          console.error('Erro ao verificar disponibilidade da cozinha', err);
+        },
+      });
+  }
+
+  carregarCategorias(): void {
+    this.categoriaService.listarTodas().subscribe({
+      next: (dados) => {
+        this.categorias = [{ nome: 'Todos' }, ...dados];
+
+        this.cdr.detectChanges();
+      },
+
+      error: (err) => {
+        console.error('Erro ao buscar categorias', err);
+      },
+    });
+  }
+
+  filtrarPorCategoria(id?: number): void {
+    if (this.categoriaSelecionada === id) {
+      return;
+    }
+
+    this.categoriaSelecionada = id;
     this.produtos = [];
-    this.cdr.detectChanges();
 
     this.carregarProdutos();
   }
 
   carregarProdutos(): void {
-    // 3. A MÁGICA: Se for 'TODOS', mandamos vazio (ou undefined) para o backend não filtrar nada!
-    const categoriaParaBackend =
-      this.categoriaSelecionada === 'TODOS' ? '' : this.categoriaSelecionada;
-
-    this.produtoService.listar(categoriaParaBackend).subscribe({
+    this.produtoService.listar(this.categoriaSelecionada).subscribe({
       next: (data) => {
-        console.log(`Chegaram ${data.length} produtos da categoria ${this.categoriaSelecionada}`);
         this.produtos = data;
         this.cdr.detectChanges();
       },
-      error: (err) => console.error('Erro ao carregar produtos', err),
+
+      error: (err) => {
+        console.error('Erro ao carregar produtos', err);
+      },
     });
   }
 
   adicionarItem(produto: Produto): void {
-    const qtd = this.carrinho.get(produto.id) || 0;
-    this.carrinho.set(produto.id, qtd + 1);
+    // Proteção adicional no frontend
+    if (!this.cozinhaDisponivel) {
+      this.notificationService.aviso('Cozinha indisponível', 'A cozinha está pausada no momento.');
+
+      return;
+    }
+
+    if (produto.quantidadeDisponivel === 0) {
+      this.notificationService.aviso('Esgotado', 'Poxa, este item acabou agora mesmo!');
+
+      return;
+    }
+
+    const itemExistente = this.carrinho.find((item) => item.produto.id === produto.id);
+
+    const qtdAtual = itemExistente ? itemExistente.quantidade : 0;
+
+    if (
+      produto.quantidadeDisponivel !== undefined &&
+      produto.quantidadeDisponivel !== null &&
+      qtdAtual >= produto.quantidadeDisponivel
+    ) {
+      this.notificationService.aviso(
+        'Limite Atingido',
+        `Temos apenas ${produto.quantidadeDisponivel} unidades disponíveis no momento.`,
+      );
+
+      return;
+    }
+
+    if (itemExistente) {
+      itemExistente.quantidade++;
+    } else {
+      this.carrinho.push({
+        produto,
+        quantidade: 1,
+        observacao: '',
+      });
+    }
   }
 
   removerItem(produto: Produto): void {
-    const qtd = this.carrinho.get(produto.id) || 0;
-    if (qtd <= 1) {
-      this.carrinho.delete(produto.id);
+    const index = this.carrinho.findIndex((item) => item.produto.id === produto.id);
+
+    if (index === -1) {
+      return;
+    }
+
+    if (this.carrinho[index].quantidade <= 1) {
+      this.carrinho.splice(index, 1);
     } else {
-      this.carrinho.set(produto.id, qtd - 1);
+      this.carrinho[index].quantidade--;
     }
   }
 
   getQuantidade(produto: Produto): number {
-    return this.carrinho.get(produto.id) || 0;
+    const item = this.carrinho.find((i) => i.produto.id === produto.id);
+
+    return item ? item.quantidade : 0;
   }
 
   get totalItens(): number {
-    let total = 0;
-    this.carrinho.forEach((qtd) => (total += qtd));
-    return total;
+    return this.carrinho.reduce((acc, item) => acc + item.quantidade, 0);
   }
 
   get total(): number {
-    let total = 0;
-    this.carrinho.forEach((qtd, produtoId) => {
-      const produto = this.produtos.find((p) => p.id === produtoId);
-      if (produto) total += produto.preco * qtd;
-    });
-    return total;
+    return this.carrinho.reduce((acc, item) => acc + item.produto.preco * item.quantidade, 0);
   }
 
-  getItensCarrinho(): { produto: Produto; quantidade: number }[] {
-    const itens: { produto: Produto; quantidade: number }[] = [];
-    this.carrinho.forEach((quantidade, produtoId) => {
-      const produto = this.produtos.find((p) => p.id === produtoId);
-      if (produto) {
-        itens.push({ produto, quantidade });
-      }
-    });
-    return itens;
+  /**
+   * CORRIGIDO.
+   *
+   * carrinho já é um array.
+   * Não precisa fazer find dentro de produtos.
+   */
+  getItensCarrinho(): {
+    produto: Produto;
+    quantidade: number;
+    observacao: string;
+  }[] {
+    return this.carrinho;
   }
 
   podeEnviar(): boolean {
-    return this.nomeCliente.trim().length >= 2 && this.carrinho.size > 0 && !this.isProcessando;
+    return (
+      this.cozinhaDisponivel &&
+      this.nomeCliente.trim().length >= 2 &&
+      this.carrinho.length > 0 &&
+      !this.isProcessando
+    );
   }
 
   enviarPedido(): void {
-    if (this.carrinho.size === 0) return;
+    // Segurança extra: verifica novamente antes de enviar
+    if (!this.cozinhaDisponivel) {
+      this.notificationService.aviso(
+        'Cozinha indisponível',
+        'A cozinha foi pausada. Não é possível enviar o pedido.',
+      );
 
-    // Se for o dono lançando, o nome não precisa ser obrigatório (pode ser "Balcão")
+      return;
+    }
+
+    if (this.carrinho.length === 0) {
+      return;
+    }
+
     if (!this.nomeCliente || this.nomeCliente.trim() === '') {
       this.tentouEnviar = true;
+
       this.notificationService.aviso(
         'Atenção',
         'Por favor, informe seu nome para chamarmos quando estiver pronto!',
       );
+
       return;
     }
 
     this.isProcessando = true;
     this.tentouEnviar = false;
 
-    const itens: ItemPedidoRequest[] = [];
-    this.carrinho.forEach((quantidade, produtoId) => {
-      itens.push({ produtoId, quantidade });
-    });
+    const itens: ItemPedidoRequest[] = this.carrinho.map((item) => ({
+      produtoId: item.produto.id,
+      quantidade: item.quantidade,
+      observacaoItem: item.observacao.trim() || undefined,
+    }));
 
-    // O payload muda dependendo de quem esta pedindo. Se for o dono, a origem é "MANUAL", se for o cliente, a origem é "CLIENTE"
     const request: CriarPedidoRequest = {
-      nomeCliente: this.nomeCliente.trim() || (this.isDono ? 'Balcão' : ''), // Se for dono e não informar nome, coloca "Balcão"
+      nomeCliente: this.nomeCliente.trim(),
+
       tipo: this.tipoPedido,
+
       origem: this.isDono ? 'MANUAL' : 'QR_CODE',
+
       formaPagamento: this.formaPagamento,
-      // Se for o dono, envia PAGO ou AGUARDANDO dependendo do botão. Se for cliente, envia AGUARDANDO.
-      statusPagamento: this.isDono ? (this.jaPago ? 'PAGO' : 'AGUARDANDO') : 'AGUARDANDO', // Se for dono, já marca como pago
+
+      statusPagamento: this.isDono ? (this.jaPago ? 'PAGO' : 'AGUARDANDO') : 'AGUARDANDO',
+
       itens,
     };
 
     this.pedidoService.criarPedido(request).subscribe({
       next: (response) => {
-        this.carrinho.clear();
+        this.carrinho = [];
         this.nomeCliente = '';
         this.isProcessando = false;
         this.isCarrinhoAberto = false;
-        // Redireciona o usuário para a tela que criamos agora!
+
         this.router.navigate(['/cliente/acompanhamento', response.id]);
       },
+
       error: (err) => {
         console.error(err);
+
         this.notificationService.erro(
           'Erro ao enviar pedido',
           'O pedido não pôde ser enviado. Tente novamente.',
         );
+
         this.isProcessando = false;
         this.cdr.detectChanges();
       },
@@ -180,10 +324,18 @@ export class CardapioComponent implements OnInit {
   }
 
   abrirCarrinho(): void {
-    if (this.totalItens === 0) {
-      this.notificationService.aviso('Carrinho Vazio', 'Adicione itens antes de fechar o pedido.');
+    if (!this.cozinhaDisponivel) {
+      this.notificationService.aviso('Cozinha indisponível', 'A cozinha está pausada no momento.');
+
       return;
     }
+
+    if (this.totalItens === 0) {
+      this.notificationService.aviso('Carrinho Vazio', 'Adicione itens antes de fechar o pedido.');
+
+      return;
+    }
+
     this.isCarrinhoAberto = true;
   }
 
@@ -192,19 +344,9 @@ export class CardapioComponent implements OnInit {
     this.tentouEnviar = false;
   }
 
-  blindarCardapio(): void {
-    this.caixaService.buscarCaixaAtual().subscribe({
-      next: (caixa) => {
-        // Se não tiver caixa, se não estiver ABERTO, ou se a cozinha estiver PAUSADA:
-        if (!caixa || caixa.status !== 'ABERTO' || caixa.cozinhaPausada === true) {
-          // Expulsa o cliente de volta pra Home!
-          this.router.navigate(['/']);
-        }
-      },
-      error: () => {
-        // Se der erro (ex: backend desligado ou caixa inexistente), expulsa também!
-        this.router.navigate(['/']);
-      },
-    });
+  permiteObservacao(produto: Produto): boolean {
+    const categoriasBloqueadas = ['Bebidas', 'Acompanhamentos', 'Sobremesas'];
+
+    return !categoriasBloqueadas.includes(produto.categoria);
   }
 }

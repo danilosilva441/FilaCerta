@@ -62,4 +62,22 @@ export class CaixaService {
   cancelarPedido(pedidoId: number): Observable<void> {
     return this.http.patch<void>(`${this.apiUrl}/pedidos/${pedidoId}/cancelar`, {});
   }
+
+  listarPedidosBalcao() {
+    return this.http.get<PedidoResponse[]>(`${this.apiUrl}/pagamentos-pendentes`);
+  }
+
+  confirmarPagamento(pedidoId: number) {
+    return this.http.patch(`${this.apiUrl}/pedidos/${pedidoId}/pagamento`, {
+      statusPagamento: 'PAGO',
+    });
+  }
+
+  avancarPedido(pedidoId: number) {
+    return this.http.post(`${this.apiUrl}/pedidos/${pedidoId}/entregar`, {});
+  }
+
+  cancelarPedidoBalcao(pedidoId: number) {
+    return this.http.patch(`${this.apiUrl}/pedidos/${pedidoId}/cancelar`, {});
+  }
 }

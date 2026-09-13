@@ -1,6 +1,5 @@
 package com.filacerta.application.dto.response;
 
-import com.filacerta.domain.entity.Categoria;
 import com.filacerta.domain.enums.StatusItemPedido;
 
 import lombok.Builder;
@@ -12,7 +11,7 @@ public class ItemCozinhaResponse {
     private Long itemId;
     private String nomeProduto;
     private Integer quantidade;
-    private Categoria categoria;
+    private String categoria;
     private StatusItemPedido status;
     private String observacaoItem;
 }

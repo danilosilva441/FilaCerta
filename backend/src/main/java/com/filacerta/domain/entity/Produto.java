@@ -63,6 +63,7 @@ public class Produto {
     private Integer limiteDiario;
 
     @Column(name = "ativo", columnDefinition = "boolean default true")
+    @Builder.Default
     private boolean ativo = true;
 
     // Callbacks do JPA para preencher as datas automaticamente

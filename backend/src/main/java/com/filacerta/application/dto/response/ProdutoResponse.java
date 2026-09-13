@@ -2,8 +2,6 @@ package com.filacerta.application.dto.response;
 
 import java.math.BigDecimal;
 
-import com.filacerta.domain.entity.Categoria;
-
 import lombok.Builder;
 import lombok.Data;
 
@@ -14,6 +12,8 @@ public class ProdutoResponse {
     private String nome;
     private String descricao;
     private BigDecimal preco;
-    private Categoria categoria;
+    private String categoria;
     private Integer tempoPreparoMinutos;
+    private Integer quantidadeDisponivel;
+    private boolean ativo;
 }
