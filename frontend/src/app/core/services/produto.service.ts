@@ -1,28 +1,32 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 import { Produto } from '../models/produto.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProdutoService {
-  private apiUrl = '/api/produtos';
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = `${environment.apiUrl}/produtos`;
 
-  constructor(private http: HttpClient) {}
-
+  // === ROTA DE LISTAGEM CORRIGIDA === //
   listar(categoriaId?: number): Observable<Produto[]> {
-    // Força a trazer 100 itens para não precisar paginar no front agora
-    let params = new HttpParams().set('size', '100');
+    const params = categoriaId ? `?categoriaId=${categoriaId}` : '';
+    return this.http.get<Produto[]>(`${this.apiUrl}${params}`);
+  }
 
-    if (categoriaId) {
-      params = params.set('categoriaId', categoriaId.toString());
-    }
+  // === ROTAS DO PAINEL ADMINISTRATIVO === //
+  criar(produto: any): Observable<Produto> {
+    return this.http.post<Produto>(this.apiUrl, produto);
+  }
 
-    return this.http.get<any>(this.apiUrl, { params }).pipe(
-      // A mágica que resolve o erro Symbol.iterator:
-      map((response) => response.content),
-    );
+  atualizar(id: number, produto: any): Observable<Produto> {
+    return this.http.put<Produto>(`${this.apiUrl}/${id}`, produto);
+  }
+
+  inativar(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

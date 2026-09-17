@@ -31,7 +31,8 @@ export class AppComponent {
       .subscribe((event) => {
         const url = event.urlAfterRedirects || event.url;
         const isDono = this.authService.isDono();
-        const isRotaAdmin = url.includes('/caixa') || url.includes('/cozinha');
+        const isRotaAdmin =
+          url.includes('/caixa') || url.includes('/cozinha') || url.includes('/admin');
         const isCardapio = url.includes('/cardapio');
 
         this.mostrarNavbar = isRotaAdmin || (isCardapio && isDono);

@@ -1,5 +1,8 @@
 package com.filacerta.application.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -10,10 +13,10 @@ import com.filacerta.application.dto.response.ProdutoResponse;
 import com.filacerta.application.mapper.ProdutoMapper;
 import com.filacerta.domain.entity.Categoria;
 import com.filacerta.domain.entity.Produto;
+import com.filacerta.domain.exception.NegocioException;
 import com.filacerta.infrastructure.repository.CategoriaRepository;
 import com.filacerta.infrastructure.repository.ProdutoRepository;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -29,46 +32,70 @@ public class ProdutoService {
         return page.map(ProdutoMapper::toResponse);
     }
 
-    @Transactional
-    public ProdutoResponse inserir(ProdutoRequest dto) {
-        Produto entity = new Produto();
-        copiarDtoParaEntidade(dto, entity);
-        entity = produtoRepository.save(entity);
-        return ProdutoMapper.toResponse(entity);
-    }
-
-    @Transactional
-    public ProdutoResponse atualizar(Long id, ProdutoRequest dto) {
-        try {
-            // getReferenceById é a versão moderna do getOne()
-            Produto entity = produtoRepository.getReferenceById(id);
-            copiarDtoParaEntidade(dto, entity);
-            entity = produtoRepository.save(entity);
-            return ProdutoMapper.toResponse(entity);
-        } catch (EntityNotFoundException e) {
-            throw new RuntimeException("Produto não encontrado: " + id);
-        }
-    }
-
-    public void deletar(Long id) {
-        produtoRepository.deleteById(id);
-    }
-
-    private void copiarDtoParaEntidade(ProdutoRequest dto, Produto entity) {
-        entity.setNome(dto.getNome());
-        entity.setDescricao(dto.getDescricao());
-        entity.setPreco(dto.getPreco());
-        entity.setTempoPreparoMinutos(dto.getTempoPreparoMinutos());
-        entity.setQuantidadeDisponivel(dto.getQuantidadeDisponivel());
-        entity.setLimiteDiario(dto.getLimiteDiario());
+    // NOVO: Lista simples sem paginação (usada pelo cardápio e painel)
+    @Transactional(readOnly = true)
+    public List<ProdutoResponse> listar(Long categoriaId) {
+        List<Produto> produtos = produtoRepository.findAll();
         
-        Categoria categoria = categoriaRepository.getReferenceById(dto.getCategoriaId());
-        entity.setCategoria(categoria);
+        return produtos.stream()
+                .filter(Produto::isAtivo) // Traz apenas os que não foram deletados
+                .filter(p -> categoriaId == null || (p.getCategoria() != null && p.getCategoria().getId().equals(categoriaId)))
+                .map(ProdutoMapper::toResponse)
+                .collect(Collectors.toList());
     }
     
+    @Transactional(readOnly = true)
     public Produto buscarPorId(Long id) {
         return produtoRepository.findById(id)
-            // Caso ainda tenha a sua classe ProdutoNaoEncontradoException, pode utilizá-la aqui
-            .orElseThrow(() -> new RuntimeException("Produto não encontrado com ID: " + id)); 
+            .orElseThrow(() -> new NegocioException("Produto não encontrado com ID: " + id)); 
+    }
+    
+    @Transactional
+    public ProdutoResponse criar(ProdutoRequest request) {
+        Categoria categoria = categoriaRepository.findById(request.getCategoriaId())
+                .orElseThrow(() -> new NegocioException("Categoria não encontrada"));
+
+        Produto produto = Produto.builder()
+                .nome(request.getNome())
+                .descricao(request.getDescricao())
+                .preco(request.getPreco())
+                .categoria(categoria)
+                .tempoPreparoMinutos(request.getTempoPreparoMinutos() != null ? request.getTempoPreparoMinutos() : 0)
+                .quantidadeDisponivel(request.getQuantidadeDisponivel())
+                .limiteDiario(request.getLimiteDiario())
+                .disponivel(request.getDisponivel() != null ? request.getDisponivel() : true)
+                .ativo(true) // Todo produto novo nasce ativo
+                .build();
+
+        return ProdutoMapper.toResponse(produtoRepository.save(produto));
+    }
+
+    @Transactional
+    public ProdutoResponse atualizar(Long id, ProdutoRequest request) {
+        Produto produto = produtoRepository.findById(id)
+                .orElseThrow(() -> new NegocioException("Produto não encontrado"));
+
+        Categoria categoria = categoriaRepository.findById(request.getCategoriaId())
+                .orElseThrow(() -> new NegocioException("Categoria não encontrada"));
+
+        produto.setNome(request.getNome());
+        produto.setDescricao(request.getDescricao());
+        produto.setPreco(request.getPreco());
+        produto.setCategoria(categoria);
+        produto.setTempoPreparoMinutos(request.getTempoPreparoMinutos() != null ? request.getTempoPreparoMinutos() : 0);
+        produto.setDisponivel(request.getDisponivel() != null ? request.getDisponivel() : true);
+        produto.setQuantidadeDisponivel(request.getQuantidadeDisponivel());
+        produto.setLimiteDiario(request.getLimiteDiario());
+
+        return ProdutoMapper.toResponse(produtoRepository.save(produto));
+    }
+
+    @Transactional
+    public void inativar(Long id) {
+        Produto produto = produtoRepository.findById(id)
+                .orElseThrow(() -> new NegocioException("Produto não encontrado"));
+        
+        produto.setAtivo(false); // Inativação Lógica (Soft Delete) para não sumir dos pedidos velhos
+        produtoRepository.save(produto);
     }
 }

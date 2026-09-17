@@ -41,6 +41,12 @@ public class PedidoService {
 		// 1. Validar caixa aberto
 		CaixaDiario caixa = caixaDiarioService.buscarCaixaAberto();
 
+		if (Boolean.TRUE.equals(caixa.getCozinhaPausada())) {
+			if (request.getOrigem() == null || !request.getOrigem().name().equals("MANUAL")) {
+				throw new NegocioException("A cozinha está Pausada no momento. Não é possĩvel aceitar novos pedidos.");
+			}
+		}
+		
 		// 2. Instanciar pedido com dados básicos
 		Pedido pedido = new Pedido();
 		pedido.setNomeCliente(request.getNomeCliente());

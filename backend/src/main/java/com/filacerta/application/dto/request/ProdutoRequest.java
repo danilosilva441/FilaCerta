@@ -28,6 +28,9 @@ public class ProdutoRequest {
     @PositiveOrZero(message = "O tempo de preparo não pode ser negativo")
     private Integer tempoPreparoMinutos;
 
+    // Faltava este campo para o botão de "Pausar Produto":
+    private Boolean disponivel = true;
+
     // Campos opcionais para o controle de estoque
     @PositiveOrZero(message = "A quantidade disponível não pode ser negativa")
     private Integer quantidadeDisponivel;

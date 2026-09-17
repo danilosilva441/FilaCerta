@@ -48,6 +48,18 @@ export const routes: Routes = [
     ],
   },
 
+  {
+    path: 'estoque',
+    canActivate: [authGuard], // <-- E AQUI TAMBÉM!
+    children: [
+      {
+        path: 'painel',
+        loadComponent: () =>
+          import('./pages/admin/painel-produtos').then((m) => m.PainelProdutosComponent),
+      },
+    ],
+  },
+
   // Redireciona qualquer rota que não existe para a Home
   { path: '**', redirectTo: '' },
 ];

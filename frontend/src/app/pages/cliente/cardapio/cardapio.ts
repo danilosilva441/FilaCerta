@@ -147,12 +147,14 @@ export class CardapioComponent implements OnInit, OnDestroy {
   carregarProdutos(): void {
     this.produtoService.listar(this.categoriaSelecionada).subscribe({
       next: (data) => {
-        this.produtos = data;
+        // Trava de segurança: se vier undefined, assume array vazio []
+        this.produtos = data || [];
         this.cdr.detectChanges();
       },
-
       error: (err) => {
         console.error('Erro ao carregar produtos', err);
+        this.produtos = []; // Garante que a tela não quebre no erro
+        this.cdr.detectChanges();
       },
     });
   }
@@ -347,6 +349,9 @@ export class CardapioComponent implements OnInit, OnDestroy {
   permiteObservacao(produto: Produto): boolean {
     const categoriasBloqueadas = ['Bebidas', 'Acompanhamentos', 'Sobremesas'];
 
-    return !categoriasBloqueadas.includes(produto.categoria);
+    // Pega o nome vindo do objeto novo, ou o texto antigo
+    const nomeCategoria = produto.categoria?.nome || produto.categoria;
+
+    return !categoriasBloqueadas.includes(nomeCategoria);
   }
 }
