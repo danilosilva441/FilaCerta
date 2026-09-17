@@ -1,10 +1,10 @@
 @if (config) {
   <!-- BACKDROP (clicável para fechar) -->
   <div
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-200"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-all duration-200"
     [ngClass]="{
-      'opacity-0 animate-[fadeIn_0.2s_ease-out]': !saindo,
-      'animate-[fadeOut_0.2s_ease-out_forwards]': saindo,
+      'opacity-100': !saindo,
+      'opacity-0 pointer-events-none': saindo,
     }"
     (click)="onBackdropClick($event)"
     (keydown.escape)="fechar()"
@@ -15,13 +15,14 @@
       padding-bottom: max(1rem, env(safe-area-inset-bottom));
     "
   >
-    <!-- CARD (role=dialog vai aqui, não no backdrop) -->
+    <!-- CARD -->
     <div
       class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transition-all duration-200"
       [ngClass]="{
-        'animate-[scaleIn_0.2s_ease-out]': !saindo,
-        'animate-[scaleOut_0.2s_ease-out_forwards]': saindo,
+        'scale-100 opacity-100 translate-y-0': !saindo,
+        'scale-95 opacity-0 translate-y-4': saindo,
       }"
+      (click)="$event.stopPropagation()"
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="modal-titulo"

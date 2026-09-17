@@ -32,20 +32,25 @@ export class ConfirmModalComponent implements OnInit, OnDestroy {
   config: ModalConfig | null = null;
   saindo = false;
 
+  // === NOVA TRAVA ANTI GHOST-CLICK ===
+  private tempoAbertura = 0;
+
   ngOnInit(): void {
     this.modalService.modal$
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        // ⚠️ FILTRA null — só reage a novas aberturas
         filter((c): c is ModalConfig => c !== null),
       )
       .subscribe((config) => {
         this.config = config;
         this.saindo = false;
+
+        // Grava a exata hora em que o modal piscou na tela
+        this.tempoAbertura = Date.now();
+
         document.body.style.overflow = 'hidden';
         this.cdr.markForCheck();
 
-        // Auto-focus
         setTimeout(() => this.botaoConfirmar?.nativeElement?.focus(), 50);
       });
   }
@@ -65,7 +70,6 @@ export class ConfirmModalComponent implements OnInit, OnDestroy {
     if (!this.config) return;
     const cb = this.config.onConfirm;
     this.fechar();
-    // Executa depois que fechar
     setTimeout(() => cb(), 100);
   }
 
@@ -74,7 +78,6 @@ export class ConfirmModalComponent implements OnInit, OnDestroy {
     this.saindo = true;
     this.cdr.markForCheck();
 
-    // Delay só pra animação de saída
     setTimeout(() => {
       this.config = null;
       this.saindo = false;
@@ -84,6 +87,9 @@ export class ConfirmModalComponent implements OnInit, OnDestroy {
   }
 
   onBackdropClick(event: MouseEvent): void {
+    // === IGNORA O CLIQUE SE FAZ MENOS DE 300ms QUE ABRIU ===
+    if (Date.now() - this.tempoAbertura < 300) return;
+
     if (event.target === event.currentTarget) {
       this.fechar();
     }

@@ -1,9 +1,9 @@
-<div
-  class="min-h-[100dvh] flex flex-col bg-gray-50"
-  style="padding-bottom: calc(4rem + env(safe-area-inset-bottom))"
->
-  <!-- ⬆️ 4rem = 64px = altura da navbar (h-16) -->
-  <!-- ⬆️ env() = espaço extra pra notch/home indicator do iPhone -->
+<!-- ESTAS DUAS LINHAS SÃO OBRIGATÓRIAS NO TOPO -->
+<app-toast></app-toast>
+<app-confirm-modal></app-confirm-modal>
+
+<!-- O resto do seu código continua normal abaixo... -->
+<div class="min-h-screen flex flex-col pb-20 sm:pb-0 bg-gray-50">
   @if (mostrarNavbar) {
     <app-navbar></app-navbar>
   }

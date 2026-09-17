@@ -19,7 +19,7 @@ public class ProdutoRequest {
     private String descricao;
 
     @NotNull(message = "O preço é obrigatório")
-    @Positive(message = "O preço deve ser maior que zero")
+    @PositiveOrZero(message = "O preço não pode ser negativo")
     private BigDecimal preco;
 
     @NotNull(message = "O ID da categoria é obrigatório")

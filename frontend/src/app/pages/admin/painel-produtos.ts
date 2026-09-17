@@ -162,14 +162,14 @@ export class PainelProdutosComponent implements OnInit {
     });
   }
 
-  // Atalho prático para o dono pausar/esgotar um lanche na correria sem precisar abrir a edição
   alternarDisponibilidade(produto: Produto): void {
     const formAtualizado = {
       nome: produto.nome,
-      descricao: produto.descricao,
+      descricao: produto.descricao || '',
       preco: produto.preco,
-      categoriaId: produto.categoria?.id,
-      tempoPreparoMinutos: produto.tempoPreparoMinutos,
+      // A mágica anti-erro 400: pega o ID não importa o formato que ele veio
+      categoriaId: produto.categoria?.id || produto.categoriaId || 1,
+      tempoPreparoMinutos: produto.tempoPreparoMinutos || 0,
       quantidadeDisponivel: produto.quantidadeDisponivel,
       disponivel: !produto.disponivel, // INVERTE A DISPONIBILIDADE
     };
@@ -178,7 +178,10 @@ export class PainelProdutosComponent implements OnInit {
       .atualizar(produto.id, formAtualizado)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => this.carregarProdutos(),
+        next: () => {
+          // O angular recarrega, e o botão fica na cor certa
+          this.carregarProdutos();
+        },
         error: () =>
           this.notificationService.erro('Erro', 'Não foi possível alterar a disponibilidade.'),
       });

@@ -171,15 +171,18 @@ public class PedidoService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<PedidoResponse> listarPedidoPagamentoPendente() {
-		return pedidoRepository.findAll().stream()
-				.filter(p -> p.getStatusPagamento() == StatusPagamento.AGUARDANDO 
-						  || p.getStatus() == StatusPedido.PRONTO 
-						  || p.getStatus() == StatusPedido.SERVIDO)
-				.sorted(Comparator.comparing(Pedido::getDataHoraPedido).reversed())
-				.map(PedidoMapper::toResponse)
-				.collect(Collectors.toList());
-	}
+    public List<PedidoResponse> listarPedidoPagamentoPendente() {
+        return pedidoRepository.findAll().stream()
+                // ---> A MÁGICA AQUI: Filtra e expulsa os cancelados da lista! <---
+                .filter(p -> p.getStatus() != StatusPedido.CANCELADO)
+                
+                .filter(p -> p.getStatusPagamento() == StatusPagamento.AGUARDANDO 
+                          || p.getStatus() == StatusPedido.PRONTO 
+                          || p.getStatus() == StatusPedido.SERVIDO)
+                .sorted(Comparator.comparing(Pedido::getDataHoraPedido).reversed())
+                .map(PedidoMapper::toResponse)
+                .collect(Collectors.toList());
+    }
 
 	@Transactional
 	public void atualizarStatusPagamento(Long pedidoId, StatusPagamento novoStatus) {

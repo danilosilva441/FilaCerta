@@ -19,7 +19,7 @@ export interface ItemPedidoResponse {
   nomeProduto: string;
   quantidade: number;
   precoUnitario: number;
-  status: 'PENDENTE' | 'PREPARANDO' | 'PRONTO';
+  status: 'PENDENTE' | 'PREPARANDO' | 'PRONTO' | 'CANCELADO' | 'ENTREGUE';
   observacaoItem?: string;
 }
 

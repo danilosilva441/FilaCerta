@@ -15,6 +15,8 @@ import { finalize, interval, startWith, switchMap } from 'rxjs';
 
 import { CaixaDiarioResponse } from '../../../core/models/caixa-diario.model';
 import { CaixaService } from '../../../core/services/caixa.service';
+// ---> INCLUSÃO DO PEDIDO SERVICE <---
+import { PedidoService } from '../../../core/services/pedido.service';
 import { ModalService } from '../../../core/services/modal.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { PedidoResponse } from '../../../core/models/pedido.model';
@@ -39,6 +41,7 @@ type EstadoTela = 'CARREGANDO' | 'FECHADO' | 'ABERTO';
 })
 export class PainelCaixaComponent implements OnInit, OnDestroy {
   private readonly caixaService = inject(CaixaService);
+  private readonly pedidoService = inject(PedidoService); // <-- INJETADO AQUI
   private readonly notificationService = inject(NotificationService);
   private readonly modalService = inject(ModalService);
   private readonly destroyRef = inject(DestroyRef);
@@ -166,7 +169,6 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
         next: (resumo) => {
           this.pararMonitoramentoResumo();
           this.resumoFechamento.set(resumo as ResumoCaixa);
-          // Mantém o estado ABERTO para o modal de comprovante aparecer
         },
         error: (err) => {
           console.error('Erro ao fechar caixa', err);
@@ -255,11 +257,15 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
       textoConfirmar: 'Sim, descartar',
       textoCancelar: 'Voltar',
       onConfirm: () => {
-        this.caixaService
-          .cancelarPedidoBalcao(pedidoId)
+        // ---> MUDANÇA AQUI: Usa o pedidoService no lugar do caixaService <---
+        this.pedidoService
+          .cancelarPedido(pedidoId)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
-            next: () => this.carregarPedidosBalcao(),
+            next: () => {
+              this.notificationService.sucesso('Cancelado', 'O pedido foi descartado com sucesso.');
+              this.carregarPedidosBalcao();
+            },
             error: () => this.notificationService.erro('Erro', 'Não foi possível cancelar.'),
           });
       },
