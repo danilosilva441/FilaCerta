@@ -53,12 +53,18 @@
     @for (produto of produtos; track produto.id) {
       <article
         class="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center gap-2 sm:gap-4 transition-opacity"
-        [class.opacity-60]="produto.quantidadeDisponivel === 0"
+        [class.opacity-60]="!produto.disponivel || produto.quantidadeDisponivel === 0"
       >
         <div class="flex-1 pr-2 sm:pr-4 min-w-0">
-          <!-- ESTOQUE -->
+          <!-- ESTOQUE E DISPONIBILIDADE -->
           <div class="flex gap-2 mb-1">
-            @if (produto.quantidadeDisponivel === 0) {
+            @if (!produto.disponivel) {
+              <span
+                class="bg-gray-500 text-white text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm"
+              >
+                Pausado
+              </span>
+            } @else if (produto.quantidadeDisponivel === 0) {
               <span
                 class="bg-red-500 text-white text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm"
               >
@@ -68,8 +74,7 @@
               <span
                 class="bg-amber-500 text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm"
               >
-                🔥 Restam só
-                {{ produto.quantidadeDisponivel }}
+                🔥 Restam só {{ produto.quantidadeDisponivel }}
               </span>
             }
           </div>
@@ -84,10 +89,8 @@
 
           <div class="flex items-center gap-2 sm:gap-3 mt-1.5 sm:mt-2">
             <p class="text-primary-600 font-black text-base sm:text-lg">
-              R$
-              {{ produto.preco | number: '1.2-2' }}
+              R$ {{ produto.preco | number: '1.2-2' }}
             </p>
-
             <span
               class="text-[10px] sm:text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-medium"
             >
@@ -96,21 +99,21 @@
           </div>
         </div>
 
-        <!-- QUANTIDADE -->
+        <!-- QUANTIDADE E BOTÃO DE ADICIONAR -->
         <div
           class="flex flex-col items-center gap-1.5 bg-gray-50 p-1.5 sm:p-2 rounded-lg border border-gray-100 min-w-[3.5rem] sm:min-w-[4rem] flex-shrink-0"
         >
           <button
             type="button"
             (click)="adicionarItem(produto)"
-            [disabled]="produto.quantidadeDisponivel === 0"
+            [disabled]="!produto.disponivel || produto.quantidadeDisponivel === 0"
             [attr.aria-label]="'Adicionar ' + produto.nome"
             class="w-9 h-9 sm:w-10 sm:h-10 rounded-full text-white font-bold text-lg sm:text-xl transition-transform touch-manipulation select-none flex items-center justify-center"
             [ngClass]="{
-              'bg-gray-300 cursor-not-allowed': produto.quantidadeDisponivel === 0,
-
+              'bg-gray-300 cursor-not-allowed':
+                !produto.disponivel || produto.quantidadeDisponivel === 0,
               'bg-primary-600 hover:bg-primary-700 active:scale-90':
-                produto.quantidadeDisponivel !== 0,
+                produto.disponivel && produto.quantidadeDisponivel !== 0,
             }"
           >
             +
@@ -120,7 +123,6 @@
             <span class="font-bold text-gray-800 text-sm sm:text-base tabular-nums">
               {{ getQuantidade(produto) }}
             </span>
-
             <button
               type="button"
               (click)="removerItem(produto)"

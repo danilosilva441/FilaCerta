@@ -13,6 +13,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
+import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -61,6 +63,9 @@ public class Produto {
 
     @Column(name = "limite_diario")
     private Integer limiteDiario;
+    
+    @Version
+    private Integer versao = 0;
 
     @Column(name = "ativo", columnDefinition = "boolean default true")
     @Builder.Default

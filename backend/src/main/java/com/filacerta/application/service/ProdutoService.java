@@ -75,19 +75,24 @@ public class ProdutoService {
         Produto produto = produtoRepository.findById(id)
                 .orElseThrow(() -> new NegocioException("Produto não encontrado"));
 
-        Categoria categoria = categoriaRepository.findById(request.getCategoriaId())
-                .orElseThrow(() -> new NegocioException("Categoria não encontrada"));
-
+        // Atualizando os campos básicos
         produto.setNome(request.getNome());
         produto.setDescricao(request.getDescricao());
         produto.setPreco(request.getPreco());
-        produto.setCategoria(categoria);
-        produto.setTempoPreparoMinutos(request.getTempoPreparoMinutos() != null ? request.getTempoPreparoMinutos() : 0);
-        produto.setDisponivel(request.getDisponivel() != null ? request.getDisponivel() : true);
+        produto.setTempoPreparoMinutos(request.getTempoPreparoMinutos());
         produto.setQuantidadeDisponivel(request.getQuantidadeDisponivel());
-        produto.setLimiteDiario(request.getLimiteDiario());
+        
+        // ---> A MÁGICA FALTANDO: GARANTIR QUE O STATUS SEJA ATUALIZADO <---
+        // (Dependendo de como o Lombok gerou, pode ser getDisponivel() ou isDisponivel())
+        produto.setDisponivel(request.getDisponivel()); 
 
-        return ProdutoMapper.toResponse(produtoRepository.save(produto));
+        // Tratamento da Categoria
+        Categoria categoria = categoriaRepository.findById(request.getCategoriaId())
+                .orElseThrow(() -> new NegocioException("Categoria não encontrada"));
+        produto.setCategoria(categoria);
+
+        produto = produtoRepository.save(produto);
+        return ProdutoMapper.toResponse(produto);
     }
 
     @Transactional

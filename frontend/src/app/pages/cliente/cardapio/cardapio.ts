@@ -160,16 +160,19 @@ export class CardapioComponent implements OnInit, OnDestroy {
   }
 
   adicionarItem(produto: Produto): void {
-    // Proteção adicional no frontend
     if (!this.cozinhaDisponivel) {
       this.notificationService.aviso('Cozinha indisponível', 'A cozinha está pausada no momento.');
+      return;
+    }
 
+    // NOVA TRAVA: Verifica a chave de disponibilidade manual
+    if (!produto.disponivel) {
+      this.notificationService.aviso('Pausado', 'Este item não está disponível no momento.');
       return;
     }
 
     if (produto.quantidadeDisponivel === 0) {
       this.notificationService.aviso('Esgotado', 'Poxa, este item acabou agora mesmo!');
-
       return;
     }
 

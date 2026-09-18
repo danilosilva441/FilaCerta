@@ -11,4 +11,5 @@ export interface Produto {
   quantidadeDisponivel?: number; // Adicionando a propriedade quantidadeDisponivel como opcional
   limiteDiario?: number; // Adicionando a propriedade limiteDiario como opcional
   ativo?: boolean; // Adicionando a propriedade ativo como opcional
+  versao?: number;
 }

@@ -37,4 +37,6 @@ public class ProdutoRequest {
 
     @PositiveOrZero(message = "O limite diário não pode ser negativo")
     private Integer limiteDiario;
+    
+    private Integer versao;
 }

@@ -16,11 +16,12 @@ public class ProdutoMapper {
                 .nome(produto.getNome())
                 .descricao(produto.getDescricao())
                 .preco(produto.getPreco())
-                // CORREÇÃO: Extraindo apenas o nome em texto
                 .categoria(produto.getCategoria() != null ? produto.getCategoria().getNome() : "Sem Categoria")
                 .tempoPreparoMinutos(produto.getTempoPreparoMinutos())
                 .quantidadeDisponivel(produto.getQuantidadeDisponivel())
+                .disponivel(produto.getDisponivel())
                 .ativo(produto.isAtivo())
+                .versao(produto.getVersao())
                 .build();
     }
 }

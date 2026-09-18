@@ -33,6 +33,7 @@ export class PainelProdutosComponent implements OnInit {
   readonly modoEdicao = signal(false);
 
   // Objeto base para o formulário
+  // 1. Atualize o form base
   produtoForm = signal<any>({
     nome: '',
     descricao: '',
@@ -41,6 +42,7 @@ export class PainelProdutosComponent implements OnInit {
     tempoPreparoMinutos: 0,
     disponivel: true,
     quantidadeDisponivel: null,
+    versao: 0, // <--- NOVO
   });
 
   private produtoIdEditando: number | null = null;
@@ -95,10 +97,11 @@ export class PainelProdutosComponent implements OnInit {
       nome: produto.nome,
       descricao: produto.descricao,
       preco: produto.preco,
-      categoriaId: produto.categoria?.id, // Pega o ID da categoria que veio no response
+      categoriaId: produto.categoria?.id || produto.categoriaId,
       tempoPreparoMinutos: produto.tempoPreparoMinutos,
       disponivel: produto.disponivel,
       quantidadeDisponivel: produto.quantidadeDisponivel,
+      versao: produto.versao, // <--- NOVO
     });
     this.isModalAberto.set(true);
   }
@@ -167,11 +170,14 @@ export class PainelProdutosComponent implements OnInit {
       nome: produto.nome,
       descricao: produto.descricao || '',
       preco: produto.preco,
-      // A mágica anti-erro 400: pega o ID não importa o formato que ele veio
       categoriaId: produto.categoria?.id || produto.categoriaId || 1,
       tempoPreparoMinutos: produto.tempoPreparoMinutos || 0,
       quantidadeDisponivel: produto.quantidadeDisponivel,
-      disponivel: !produto.disponivel, // INVERTE A DISPONIBILIDADE
+
+      // INVERTE A DISPONIBILIDADE
+      disponivel: !produto.disponivel,
+
+      versao: produto.versao || 0,
     };
 
     this.produtoService
@@ -179,11 +185,18 @@ export class PainelProdutosComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          // O angular recarrega, e o botão fica na cor certa
+          // Agora ele te avisa que salvou no banco!
+          this.notificationService.sucesso(
+            'Estoque Atualizado',
+            `O produto "${produto.nome}" agora está ${formAtualizado.disponivel ? 'Disponível' : 'Pausado'}.`,
+          );
           this.carregarProdutos();
         },
-        error: () =>
-          this.notificationService.erro('Erro', 'Não foi possível alterar a disponibilidade.'),
+        error: () => {
+          this.notificationService.erro('Erro', 'Não foi possível alterar a disponibilidade.');
+          // Se der erro, recarrega a lista para forçar o botão a voltar pro estado real do banco
+          this.carregarProdutos();
+        },
       });
   }
 }

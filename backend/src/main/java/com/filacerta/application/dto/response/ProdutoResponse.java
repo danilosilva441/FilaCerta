@@ -15,5 +15,7 @@ public class ProdutoResponse {
     private String categoria;
     private Integer tempoPreparoMinutos;
     private Integer quantidadeDisponivel;
+    private Boolean disponivel;
     private boolean ativo;
+    private Integer versao;
 }
