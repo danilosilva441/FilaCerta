@@ -1,14 +1,14 @@
-import { Component, OnInit, inject, signal, computed, DestroyRef } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
-import { ProdutoService } from '../../core/services/produto.service';
-import { CategoriaService } from '../../core/services/categoria.service';
-import { NotificationService } from '../../core/services/notification.service';
-import { ModalService } from '../../core/services/modal.service';
 import { Produto } from '../../core/models/produto.model';
+import { CategoriaService } from '../../core/services/categoria.service';
+import { ModalService } from '../../core/services/modal.service';
+import { NotificationService } from '../../core/services/notification.service';
+import { ProdutoService } from '../../core/services/produto.service';
 
 @Component({
   selector: 'app-painel-produtos',

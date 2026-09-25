@@ -8,11 +8,11 @@ import { switchMap } from 'rxjs/operators';
 import { CriarPedidoRequest, ItemPedidoRequest } from '../../../core/models/pedido.model';
 import { Produto } from '../../../core/models/produto.model';
 import { AuthService } from '../../../core/services/auth.service';
+import { CaixaService } from '../../../core/services/caixa.service';
+import { CategoriaService } from '../../../core/services/categoria.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { PedidoService } from '../../../core/services/pedido.service';
 import { ProdutoService } from '../../../core/services/produto.service';
-import { CaixaService } from '../../../core/services/caixa.service';
-import { CategoriaService } from '../../../core/services/categoria.service';
 
 @Component({
   selector: 'app-cardapio',
@@ -50,14 +50,14 @@ export class CardapioComponent implements OnInit, OnDestroy {
   private monitoramentoSubscription?: Subscription;
 
   constructor(
-    private produtoService: ProdutoService,
-    private pedidoService: PedidoService,
-    private router: Router,
-    private cdr: ChangeDetectorRef,
-    private notificationService: NotificationService,
-    private authService: AuthService,
-    private caixaService: CaixaService,
-    private categoriaService: CategoriaService,
+    private readonly produtoService: ProdutoService,
+    private readonly pedidoService: PedidoService,
+    private readonly router: Router,
+    private readonly cdr: ChangeDetectorRef,
+    private readonly notificationService: NotificationService,
+    private readonly authService: AuthService,
+    private readonly caixaService: CaixaService,
+    private readonly categoriaService: CategoriaService,
   ) {}
 
   ngOnInit(): void {
@@ -315,12 +315,32 @@ export class CardapioComponent implements OnInit, OnDestroy {
       },
 
       error: (err) => {
-        console.error(err);
+        // Isso vai imprimir EXATAMENTE o que tem dentro do erro no console (F12)
+        console.error('Status do Erro:', err.status);
+        console.log('Corpo do Erro (Payload):', err.error);
 
-        this.notificationService.erro(
-          'Erro ao enviar pedido',
-          'O pedido não pôde ser enviado. Tente novamente.',
-        );
+        let mensagemDoBackend = 'O pedido não pôde ser enviado. Tente novamente.';
+        let tituloDoBackend = 'Erro no Pedido';
+
+        if (err.error) {
+          try {
+            // Garante que se for string, vira JSON. Se já for JSON, apenas usa.
+            const erroFormatado = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+
+            // Pega as chaves exatas que vimos no Postman
+            if (erroFormatado && erroFormatado.mensagem) {
+              mensagemDoBackend = erroFormatado.mensagem;
+            }
+            if (erroFormatado && erroFormatado.erro) {
+              tituloDoBackend = erroFormatado.erro;
+            }
+          } catch (e) {
+            console.error('Falha ao tentar ler o JSON do erro:', e);
+          }
+        }
+
+        // Chama o balão vermelho
+        this.notificationService.erro(tituloDoBackend, mensagemDoBackend);
 
         this.isProcessando = false;
         this.cdr.detectChanges();
