@@ -36,17 +36,22 @@ public class GlobalExceptionHandler {
 	}
 
 	// Trata erros de validação das anotações @Valid, @NotNull, @NotBlank, etc.
-	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
-		// Pega todos os erros dos campos e junta em uma string separada por vírgula
-		String mensagemErro = ex.getBindingResult().getAllErrors().stream()
-				.map(error -> ((FieldError) error).getField() + ": " + error.getDefaultMessage())
-				.collect(Collectors.joining(", "));
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        
+        // Pega APENAS a mensagem amigável (DefaultMessage), sem o nome do campo técnico
+        String mensagemErro = ex.getBindingResult().getAllErrors().stream()
+                .map(error -> error.getDefaultMessage()) 
+                .collect(Collectors.joining(" | ")); // Separa com " | " caso existam múltiplos erros simultâneos
 
-		ErrorResponse error = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), "Erro de Validação", mensagemErro,
-				LocalDateTime.now());
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-	}
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(), 
+                "Atenção", // Trocando o título para algo menos técnico que "Erro de Validação"
+                mensagemErro,
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
 
 	// Fallback genérico para qualquer outro erro inesperado (Evita estourar a
 	// stacktrace pro cliente)
