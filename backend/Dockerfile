@@ -1,5 +1,5 @@
-# Estágio de build
-FROM maven:3.9.6-eclipse-temurin-25-alpine AS build
+# Estágio de build (Alterado de 25 para 21 LTS)
+FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 
 WORKDIR /app
 
@@ -10,11 +10,11 @@ RUN mvn dependency:go-offline -B
 # Copiar código fonte
 COPY src ./src
 
-# Compilar com profile railway
+# Compilar
 RUN mvn clean package -DskipTests
 
-# Estágio de produção
-FROM eclipse-temurin:25-jre-alpine
+# Estágio de produção (Alterado de 25 para 21 LTS)
+FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
