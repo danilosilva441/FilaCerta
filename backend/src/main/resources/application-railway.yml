@@ -3,9 +3,9 @@ spring:
     name: filacerta-api
 
   datasource:
-    url: jdbc:postgresql://${PGHOST:postgres}:${PGPORT:5432}/${PGDATABASE:filacerta}
-    username: ${PGUSER:filacerta}
-    password: ${PGPASSWORD:filacerta123}
+    url: jdbc:postgresql://${PGHOST:${DB_HOST:postgres}}:${PGPORT:${DB_PORT:5432}}/${PGDATABASE:${DB_NAME:filacerta}}
+    username: ${PGUSER:${DB_USERNAME:filacerta}}
+    password: ${PGPASSWORD:${DB_PASSWORD:filacerta123}}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
