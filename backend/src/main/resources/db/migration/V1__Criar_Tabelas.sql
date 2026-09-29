@@ -16,6 +16,7 @@ CREATE TABLE produtos (
     quantidade_disponivel INTEGER,
     limite_diario INTEGER,
     ativo BOOLEAN DEFAULT TRUE,
+    versao INTEGER DEFAULT 0 NOT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP
 );
