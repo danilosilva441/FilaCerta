@@ -7,21 +7,11 @@ import {
   signal,
   computed,
   DestroyRef,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import {
-  EMPTY,
-  Observable,
-  catchError,
-  fromEvent,
-  interval,
-  map,
-  startWith,
-  switchMap,
-  tap,
-  timeout,
-} from 'rxjs';
+import { Subscription } from 'rxjs';
 
 import { FilaCozinhaResponse } from '../../../core/models/cozinha.model';
 import { CaixaService } from '../../../core/services/caixa.service';
@@ -30,9 +20,8 @@ import { NotificationService } from '../../../core/services/notification.service
 import { PedidoService } from '../../../core/services/pedido.service';
 import { ModalService } from '../../../core/services/modal.service';
 import { AudioService } from '../../../core/services/audio.service';
+import { WebsocketService } from '../../../core/services/websocket.service';
 
-const INTERVALO_POLLING = 5000;
-const TIMEOUT_REQ = 5000;
 type StatusItem = 'PENDENTE' | 'PREPARANDO' | 'PRONTO';
 
 @Component({
@@ -51,6 +40,8 @@ export class FilaCozinhaComponent implements OnInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef);
   private readonly audioService = inject(AudioService);
   private readonly notificationService = inject(NotificationService);
+  private readonly websocketService = inject(WebsocketService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   // ====== Signals ======
   readonly filaPedidos = signal<FilaCozinhaResponse[]>([]);
@@ -61,15 +52,22 @@ export class FilaCozinhaComponent implements OnInit, OnDestroy {
 
   // ====== Controle interno ======
   private quantidadeAnterior = 0;
+  private pedidosSubscription?: Subscription;
 
   // ====== Lifecycle ======
   ngOnInit(): void {
+    // 1. Busca inicial ao abrir a tela
     this.carregarFila();
-    this.iniciarPolling();
+
+    // 2. Sintoniza no rádio: Atualiza imediatamente quando o Java avisar
+    this.pedidosSubscription = this.websocketService.pedidos$.subscribe(() => {
+      this.carregarFila();
+    });
   }
 
   ngOnDestroy(): void {
-    // takeUntilDestroyed cuida das subscriptions
+    // Desliga a antena ao sair da página
+    this.pedidosSubscription?.unsubscribe();
   }
 
   // ====== Som ======
@@ -97,7 +95,10 @@ export class FilaCozinhaComponent implements OnInit, OnDestroy {
       .listarFila()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (pedidos) => this.processarFila(pedidos),
+        next: (pedidos) => {
+          this.processarFila(pedidos);
+          this.cdr.detectChanges(); // Força a tela a desenhar na hora!
+        },
         error: (err) => console.error('Erro ao carregar fila', err),
       });
   }
@@ -105,7 +106,7 @@ export class FilaCozinhaComponent implements OnInit, OnDestroy {
   private processarFila(pedidos: FilaCozinhaResponse[]): void {
     const novaQtd = pedidos.length;
 
-    // Toca sino se a fila AUMENTOU
+    // Toca sino se a fila AUMENTOU (chegou pedido novo)
     if (novaQtd > this.quantidadeAnterior) {
       this.tocarSino();
     }
@@ -114,39 +115,11 @@ export class FilaCozinhaComponent implements OnInit, OnDestroy {
     this.filaPedidos.set(pedidos);
   }
 
-  // ====== Polling ======
-  private iniciarPolling(): void {
-    fromEvent(document, 'visibilitychange')
-      .pipe(
-        map(() => document.visibilityState === 'visible'),
-        startWith(true),
-        takeUntilDestroyed(this.destroyRef),
-        switchMap((visivel) => (visivel ? this.criarPolling() : EMPTY)),
-      )
-      .subscribe();
-  }
-
-  private criarPolling(): Observable<FilaCozinhaResponse[]> {
-    return interval(INTERVALO_POLLING).pipe(
-      startWith(0),
-      switchMap(() =>
-        this.cozinhaService.listarFila().pipe(
-          timeout(TIMEOUT_REQ),
-          catchError((err) => {
-            console.error('Erro no polling da cozinha', err);
-            return EMPTY;
-          }),
-        ),
-      ),
-      tap((pedidos) => this.processarFila(pedidos)),
-    );
-  }
-
   // ====== Ações nos itens ======
   marcarItem(pedidoId: number, itemId: number, statusAtual: string): void {
     const proximo = this.proximoStatus(statusAtual);
 
-    // Atualização otimista (UI muda na hora)
+    // Atualização otimista (UI muda na hora, sem esperar o Java)
     this.atualizarItemLocal(pedidoId, itemId, proximo);
 
     this.cozinhaService
@@ -154,14 +127,14 @@ export class FilaCozinhaComponent implements OnInit, OnDestroy {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          /* já atualizou */
+          // Já atualizou, o WebSocket vai mandar a versão oficial em instantes
         },
         error: () => {
           this.notificationService.erro(
             'Erro ao atualizar item',
             'Não foi possível atualizar o status. Tente novamente.',
           );
-          // Reverte
+          // Reverte se deu erro
           this.atualizarItemLocal(pedidoId, itemId, statusAtual as StatusItem);
         },
       });

@@ -1,36 +1,25 @@
+import { CommonModule } from '@angular/common';
 import {
-  Component,
-  OnDestroy,
-  OnInit,
   ChangeDetectionStrategy,
-  inject,
-  signal,
+  ChangeDetectorRef,
+  Component,
   computed,
   DestroyRef,
+  inject,
+  OnDestroy,
+  OnInit,
+  signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import {
-  EMPTY,
-  Observable,
-  Subject,
-  catchError,
-  fromEvent,
-  interval,
-  map,
-  startWith,
-  switchMap,
-  takeWhile,
-  tap,
-  timeout,
-} from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 
 import { PedidoResponse } from '../../../core/models/pedido.model';
-import { PedidoService } from '../../../core/services/pedido.service';
+import { AudioService } from '../../../core/services/audio.service';
 import { ModalService } from '../../../core/services/modal.service';
 import { NotificationService } from '../../../core/services/notification.service';
-import { AudioService } from '../../../core/services/audio.service';
+import { PedidoService } from '../../../core/services/pedido.service';
+import { WebsocketService } from '../../../core/services/websocket.service';
 
 const MENSAGENS: Record<string, string> = {
   RECEBIDO: 'Pedido recebido! Aguardando preparo...',
@@ -54,12 +43,15 @@ const TIMEOUT_REQ = 5000;
 })
 export class AcompanhamentoComponent implements OnInit, OnDestroy {
   // ====== Injeções ======
+  // ====== Injeções ======
   private readonly route = inject(ActivatedRoute);
   private readonly pedidoService = inject(PedidoService);
   private readonly modalService = inject(ModalService);
   private readonly notificationService = inject(NotificationService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly audioService = inject(AudioService);
+  private readonly websocketService = inject(WebsocketService);
+  private readonly cdr = inject(ChangeDetectorRef); // <-- ADICIONADO AQUI
 
   // ====== Signals ======
   readonly pedido = signal<PedidoResponse | null>(null);
@@ -87,61 +79,46 @@ export class AcompanhamentoComponent implements OnInit, OnDestroy {
   // ====== Controle interno ======
   private pedidoId: number | null = null;
   private readonly visibilidade$ = new Subject<boolean>();
+  private pedidoSubscription?: Subscription;
 
   // ====== Lifecycle ======
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (!id) {
-      console.error('ID do pedido não encontrado na URL');
-      this.notificationService.erro(
-        'Pedido não encontrado',
-        'Volte ao cardápio e tente novamente.',
-      );
-      return;
-    }
+    // Pegue o ID do pedido da URL (como você já deve estar fazendo)
+    const id = Number(this.route.snapshot.paramMap.get('id'));
 
-    this.pedidoId = Number(id);
-    this.iniciarMonitoramento(this.pedidoId);
+    if (id) {
+      this.pedidoId = id;
+
+      // 1. Busca o status atualizado do pedido assim que a tela abre
+      this.carregarPedido();
+
+      // 2. Fica na escuta: Toda vez que a cozinha ou o caixa mexerem em QUALQUER pedido,
+      // o rádio toca e nós recarregamos os dados deste pedido instantaneamente.
+      this.pedidoSubscription = this.websocketService.pedidos$.subscribe(() => {
+        this.carregarPedido();
+      });
+    }
+  }
+
+  carregarPedido(): void {
+    // 1. Resolve o erro de "number | null"
+    if (!this.pedidoId) return;
+
+    this.pedidoService.buscarPorId(this.pedidoId).subscribe({
+      next: (pedido) => {
+        // 2. Resolve o erro de Signal Read-Only usando a sua função já pronta!
+        this.processarAtualizacao(pedido);
+
+        // 3. O cdr agora existe e funciona perfeitamente
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Erro ao atualizar pedido:', err),
+    });
   }
 
   ngOnDestroy(): void {
-    this.visibilidade$.complete();
-  }
-
-  // ====== Polling inteligente ======
-  private iniciarMonitoramento(pedidoId: number): void {
-    // Combina polling com visibilidade da aba
-    fromEvent(document, 'visibilitychange')
-      .pipe(
-        map(() => document.visibilityState === 'visible'),
-        startWith(true),
-        takeUntilDestroyed(this.destroyRef),
-        switchMap((visivel) => (visivel ? this.criarPolling(pedidoId) : EMPTY)),
-      )
-      .subscribe();
-  }
-
-  private criarPolling(pedidoId: number): Observable<PedidoResponse> {
-    return interval(INTERVALO_POLLING).pipe(
-      startWith(0),
-      switchMap(() =>
-        this.pedidoService.buscarPorId(pedidoId).pipe(
-          timeout(TIMEOUT_REQ),
-          catchError((err) => {
-            console.error('Erro no polling do pedido', err);
-            this.erroRede.set(true);
-            return EMPTY;
-          }),
-        ),
-      ),
-      // Para o polling quando atinge estado final
-      takeWhile((p) => !this.isStatusFinal(p.status), true),
-      tap((p) => this.processarAtualizacao(p)),
-    );
-  }
-
-  private isStatusFinal(status: string): boolean {
-    return (STATUS_FINAIS as readonly string[]).includes(status);
+    // Não esqueça de desligar o rádio quando o cliente fechar a tela!
+    this.pedidoSubscription?.unsubscribe();
   }
 
   // ====== Processamento de updates ======

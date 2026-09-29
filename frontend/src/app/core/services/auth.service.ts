@@ -37,4 +37,21 @@ export class AuthService {
   isDono(): boolean {
     return this.isLogado(); // No nosso sistema, se logou, é o dono!
   }
+
+  refreshToken(): Observable<string> {
+    return this.http
+      .post(
+        this.apiUrl + '/refresh', // Usando o proxy corretamente!
+        {},
+        {
+          responseType: 'text',
+          withCredentials: true,
+        },
+      )
+      .pipe(
+        tap((novoToken) => {
+          this.salvarToken(novoToken);
+        }),
+      );
+  }
 }

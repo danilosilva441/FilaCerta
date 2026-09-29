@@ -7,19 +7,20 @@ import {
   signal,
   computed,
   DestroyRef,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { finalize, interval, startWith, switchMap } from 'rxjs';
+import { Subscription, finalize } from 'rxjs';
 
 import { CaixaDiarioResponse } from '../../../core/models/caixa-diario.model';
 import { CaixaService } from '../../../core/services/caixa.service';
-// ---> INCLUSÃO DO PEDIDO SERVICE <---
 import { PedidoService } from '../../../core/services/pedido.service';
 import { ModalService } from '../../../core/services/modal.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { PedidoResponse } from '../../../core/models/pedido.model';
+import { WebsocketService } from '../../../core/services/websocket.service';
 
 interface ResumoCaixa {
   faturamentoTotal: number;
@@ -40,11 +41,14 @@ type EstadoTela = 'CARREGANDO' | 'FECHADO' | 'ABERTO';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PainelCaixaComponent implements OnInit, OnDestroy {
+  // ====== Injeções ======
   private readonly caixaService = inject(CaixaService);
-  private readonly pedidoService = inject(PedidoService); // <-- INJETADO AQUI
+  private readonly pedidoService = inject(PedidoService);
   private readonly notificationService = inject(NotificationService);
   private readonly modalService = inject(ModalService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly websocketService = inject(WebsocketService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   // ====== Signals ======
   readonly caixaAtual = signal<CaixaDiarioResponse | null>(null);
@@ -59,21 +63,40 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
   readonly isAberto = computed(() => this.estadoTela() === 'ABERTO');
   readonly isPausado = computed(() => this.caixaAtual()?.cozinhaPausada === true);
 
-  // ====== Timer ======
-  private intervalId: ReturnType<typeof setInterval> | null = null;
+  // ====== Inscrições do WebSocket ======
+  private caixaWsSub?: Subscription;
+  private pedidosWsSub?: Subscription;
 
   // ====== Lifecycle ======
   ngOnInit(): void {
+    // 1. Faz a busca inicial de dados
     this.verificarCaixa();
+
+    // 2. Sintoniza no rádio do Caixa (Ex: Alguém fechou/abriu o caixa ou pausou a cozinha noutro ecrã)
+    this.caixaWsSub = this.websocketService.caixa$.subscribe(() => {
+      this.verificarCaixa();
+    });
+
+    // 3. Sintoniza no rádio de Pedidos (Ex: Cliente fez pedido novo, cozinha terminou prato)
+    this.pedidosWsSub = this.websocketService.pedidos$.subscribe(() => {
+      if (this.isAberto()) {
+        this.carregarResumoAtual();
+        this.carregarPedidosBalcao();
+      }
+    });
   }
 
   ngOnDestroy(): void {
-    this.pararMonitoramentoResumo();
+    // Desliga as antenas ao sair da página
+    this.caixaWsSub?.unsubscribe();
+    this.pedidosWsSub?.unsubscribe();
   }
 
   // ====== Caixa ======
   verificarCaixa(): void {
-    this.estadoTela.set('CARREGANDO');
+    if (this.estadoTela() !== 'ABERTO') {
+      this.estadoTela.set('CARREGANDO');
+    }
 
     this.caixaService
       .buscarCaixaAtual()
@@ -83,10 +106,12 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
           if (caixa?.status === 'ABERTO') {
             this.caixaAtual.set(caixa);
             this.estadoTela.set('ABERTO');
-            this.iniciarMonitoramentoResumo();
+            this.carregarResumoAtual();
+            this.carregarPedidosBalcao();
           } else {
             this.limparEstadoFechado();
           }
+          this.cdr.detectChanges(); // Força a UI a atualizar imediatamente
         },
         error: (err) => {
           console.error('Erro ao buscar status do caixa', err);
@@ -100,7 +125,7 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
     this.resumoAtual.set(null);
     this.pedidosBalcao.set([]);
     this.estadoTela.set('FECHADO');
-    this.pararMonitoramentoResumo();
+    this.cdr.detectChanges();
   }
 
   abrirCaixa(): void {
@@ -128,7 +153,9 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
         next: (caixa) => {
           this.caixaAtual.set(caixa);
           this.estadoTela.set('ABERTO');
-          this.iniciarMonitoramentoResumo();
+          this.carregarResumoAtual();
+          this.carregarPedidosBalcao();
+          this.cdr.detectChanges();
         },
         error: (err) => {
           console.error('Erro ao abrir caixa', err);
@@ -167,8 +194,8 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (resumo) => {
-          this.pararMonitoramentoResumo();
           this.resumoFechamento.set(resumo as ResumoCaixa);
+          this.cdr.detectChanges();
         },
         error: (err) => {
           console.error('Erro ao fechar caixa', err);
@@ -182,26 +209,7 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
     this.limparEstadoFechado();
   }
 
-  // ====== Monitoramento ======
-  private iniciarMonitoramentoResumo(): void {
-    this.pararMonitoramentoResumo();
-
-    this.carregarResumoAtual();
-    this.carregarPedidosBalcao();
-
-    this.intervalId = setInterval(() => {
-      this.carregarResumoAtual();
-      this.carregarPedidosBalcao();
-    }, 5000);
-  }
-
-  private pararMonitoramentoResumo(): void {
-    if (this.intervalId !== null) {
-      clearInterval(this.intervalId);
-      this.intervalId = null;
-    }
-  }
-
+  // ====== Dados em Tempo Real ======
   carregarResumoAtual(): void {
     const caixa = this.caixaAtual();
     if (!caixa) return;
@@ -210,7 +218,10 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
       .obterResumoAtual(caixa.id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (data) => this.resumoAtual.set(data as ResumoCaixa),
+        next: (data) => {
+          this.resumoAtual.set(data as ResumoCaixa);
+          this.cdr.detectChanges();
+        },
         error: (err) => console.error('Erro ao carregar resumo do caixa', err),
       });
   }
@@ -222,7 +233,10 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
       .listarPedidosBalcao()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (pedidos) => this.pedidosBalcao.set(pedidos as PedidoResponse[]),
+        next: (pedidos) => {
+          this.pedidosBalcao.set(pedidos as PedidoResponse[]);
+          this.cdr.detectChanges();
+        },
         error: (err) => console.error('Erro ao carregar pedidos do balcão', err),
       });
   }
@@ -233,7 +247,10 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
       .confirmarPagamento(pedidoId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => this.carregarPedidosBalcao(),
+        next: () => {
+          // Não precisa chamar carregarPedidosBalcao() manualmente aqui,
+          // pois o Java vai emitir um evento no WebSocket e a tela se atualizará sozinha!
+        },
         error: () =>
           this.notificationService.erro('Erro', 'Não foi possível confirmar o pagamento.'),
       });
@@ -244,7 +261,6 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
       .avancarPedido(pedidoId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => this.carregarPedidosBalcao(),
         error: () => this.notificationService.erro('Erro', 'Não foi possível avançar o pedido.'),
       });
   }
@@ -257,15 +273,12 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
       textoConfirmar: 'Sim, descartar',
       textoCancelar: 'Voltar',
       onConfirm: () => {
-        // ---> MUDANÇA AQUI: Usa o pedidoService no lugar do caixaService <---
         this.pedidoService
           .cancelarPedido(pedidoId)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
-            next: () => {
-              this.notificationService.sucesso('Cancelado', 'O pedido foi descartado com sucesso.');
-              this.carregarPedidosBalcao();
-            },
+            next: () =>
+              this.notificationService.sucesso('Cancelado', 'O pedido foi descartado com sucesso.'),
             error: () => this.notificationService.erro('Erro', 'Não foi possível cancelar.'),
           });
       },
@@ -287,8 +300,6 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (caixaAtualizado) => {
-          this.caixaAtual.set(caixaAtualizado);
-
           if (caixaAtualizado.cozinhaPausada) {
             this.notificationService.sucesso('Cozinha Pausada!', 'Novos pedidos estão bloqueados.');
           } else {

@@ -1,4 +1,4 @@
-package com.filacerta.application.dto.request; 
+package com.filacerta.application.dto.request; // Ajuste para o seu pacote correto
 
 import jakarta.validation.constraints.NotBlank;
 

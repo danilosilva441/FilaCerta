@@ -2,6 +2,7 @@ package com.filacerta.config.security;
 
 import java.util.Optional;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -14,6 +15,7 @@ import com.filacerta.application.dto.request.LoginRequest;
 import com.filacerta.domain.entity.Usuario;
 import com.filacerta.infrastructure.repository.UsuarioRepository;
 
+import io.github.bucket4j.Bucket;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -24,16 +26,24 @@ public class AuthController {
     private final TokenService tokenService;
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder; 
+    private final LoginRateLimiter rateLimiter;
 
-    public AuthController(TokenService tokenService, UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) { 
+    public AuthController(TokenService tokenService, UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, LoginRateLimiter rateLimiter) { 
         this.tokenService = tokenService; 
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
+        this.rateLimiter = rateLimiter;
     }
 
     @PostMapping("/login")
     // Adicionamos o HttpServletResponse aqui
     public ResponseEntity<String> login(@RequestBody LoginRequest login, HttpServletResponse response) {
+        
+    	Bucket bucket = rateLimiter.resolveBucket(login.username());
+        if (!bucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Muitas tentativas de login. Por segurança, aguarde alguns minutos.");
+        }
         
         Optional<Usuario> usuarioOpt = usuarioRepository.findByUsername(login.username());
         

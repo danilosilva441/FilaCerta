@@ -43,8 +43,9 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .requestMatchers("/api-docs/**", "/swagger-ui/**", "/h2-console/**").permitAll()
                     
-                    // Rotas Públicas
-                    .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                    // Agora as duas rotas de autenticação são públicas
+                    .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/refresh").permitAll()
+                    .requestMatchers("/ws-filacerta", "/ws-filacerta/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/produtos/**", "/api/produtos").permitAll()
                     
                     // <-- AQUI ESTÁ A CHAVE: Liberando QUALQUER ação do Cliente sobre Pedidos

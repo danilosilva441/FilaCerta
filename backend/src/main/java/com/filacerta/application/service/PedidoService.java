@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +35,8 @@ public class PedidoService {
 	private final PedidoRepository pedidoRepository;
 	private final ProdutoService produtoService;
 	private final CaixaDiarioService caixaDiarioService;
+	
+	private final SimpMessagingTemplate messagingTemplate;
 
 	@Transactional
 	public PedidoResponse criarPedido(CriarPedidoRequest request) {
@@ -101,6 +104,9 @@ public class PedidoService {
 		pedido.calcularValorTotal();
 		Pedido pedidoSalvo = pedidoRepository.save(pedido);
 
+		// AVISA A COZINHA E O CAIXA: "Chegou um pedido novo!"
+        messagingTemplate.convertAndSend("/topic/pedidos", "ATUALIZOU");
+		
 		// 6. Retornar DTO de resposta
 		return PedidoMapper.toResponse(pedidoSalvo);
 	}
@@ -159,6 +165,8 @@ public class PedidoService {
 			pedido.setDataHoraPronto(LocalDateTime.now());
 		}
 
+		messagingTemplate.convertAndSend("/topic/pedidos", "ATUALIZOU");
+		
 		pedidoRepository.save(pedido);
 	}
 
@@ -191,6 +199,8 @@ public class PedidoService {
 
 		pedido.setStatusPagamento(novoStatus);
 		pedidoRepository.save(pedido);
+		
+		messagingTemplate.convertAndSend("/topic/pedidos", "ATUALIZOU");
 	}
 
 	@Transactional
@@ -223,6 +233,8 @@ public class PedidoService {
 		}
 
 		pedidoRepository.save(pedido);
+		
+		messagingTemplate.convertAndSend("/topic/pedidos", "ATUALIZOU");
 	}
 
 	@Transactional
@@ -249,5 +261,7 @@ public class PedidoService {
 
 		pedido.setStatus(StatusPedido.CANCELADO);
 		pedidoRepository.save(pedido);
+		
+		messagingTemplate.convertAndSend("/topic/pedidos", "ATUALIZOU");
 	}
 }

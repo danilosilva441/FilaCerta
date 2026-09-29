@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-login',
@@ -15,10 +16,11 @@ export class LoginComponent {
   password = '';
   isLoading = false;
   mensagemErro = '';
-  login: any;
+
   constructor(
     private authService: AuthService,
     private router: Router,
+    private notificationService: NotificationService,
   ) {}
 
   fazerLogin(): void {
@@ -32,14 +34,27 @@ export class LoginComponent {
 
     this.authService.login(this.username, this.password).subscribe({
       next: () => {
-        this.isLoading = false;
-        // Se deu certo, joga o dono lá pro painel do Caixa!
+        this.notificationService.sucesso('Bem-vindo!', 'Login realizado com sucesso.');
         this.router.navigate(['/caixa/painel']);
       },
       error: (err) => {
-        this.isLoading = false;
-        this.mensagemErro = 'Acesso Negado! Usuário ou senha incorretos.';
         console.error(err);
+
+        if (err.status === 429) {
+          this.notificationService.erro(
+            'Bloqueado',
+            'Muitas tentativas incorretas. Por segurança, aguarde 5 minutos.',
+          );
+        } else if (err.status === 401) {
+          this.notificationService.erro('Acesso Negado', 'Usuário ou senha incorretos.');
+        } else {
+          this.notificationService.erro(
+            'Erro',
+            'Ocorreu um erro ao tentar fazer login. Verifique sua conexão.',
+          );
+        }
+
+        this.isLoading = false; // Corrigido para desligar o spinner corretamente
       },
     });
   }

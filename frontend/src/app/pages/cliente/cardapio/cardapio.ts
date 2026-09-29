@@ -13,6 +13,7 @@ import { CategoriaService } from '../../../core/services/categoria.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { PedidoService } from '../../../core/services/pedido.service';
 import { ProdutoService } from '../../../core/services/produto.service';
+import { WebsocketService } from '../../../core/services/websocket.service';
 
 @Component({
   selector: 'app-cardapio',
@@ -58,6 +59,7 @@ export class CardapioComponent implements OnInit, OnDestroy {
     private readonly authService: AuthService,
     private readonly caixaService: CaixaService,
     private readonly categoriaService: CategoriaService,
+    private readonly websocketService: WebsocketService,
   ) {}
 
   ngOnInit(): void {
@@ -81,42 +83,43 @@ export class CardapioComponent implements OnInit, OnDestroy {
    * o cliente percebe em até 5 segundos.
    */
   iniciarMonitoramentoCaixa(): void {
-    this.monitoramentoSubscription = timer(0, 5000)
-      .pipe(switchMap(() => this.caixaService.buscarCaixaAtual()))
-      .subscribe({
-        next: (caixa) => {
-          const disponivel = !!caixa && caixa.status === 'ABERTO' && caixa.cozinhaPausada !== true;
+    // 1. Faz a primeira busca imediatamente ao abrir a tela
+    this.atualizarStatusCaixa();
 
-          const mudouEstado = this.cozinhaDisponivel !== disponivel;
+    // 2. Fica escutando o WebSocket. Só faz nova requisição quando o Java mandar!
+    this.monitoramentoSubscription = this.websocketService.caixa$.subscribe(() => {
+      this.atualizarStatusCaixa();
+    });
+  }
 
-          this.cozinhaDisponivel = disponivel;
+  // Novo método auxiliar para deixar o código limpo
+  private atualizarStatusCaixa(): void {
+    this.caixaService.buscarCaixaAtual().subscribe({
+      next: (caixa) => {
+        const disponivel = !!caixa && caixa.status === 'ABERTO' && caixa.cozinhaPausada !== true;
+        const mudouEstado = this.cozinhaDisponivel !== disponivel;
 
-          if (mudouEstado) {
-            this.cdr.detectChanges();
-          }
+        this.cozinhaDisponivel = disponivel;
 
-          // Se a cozinha foi fechada/pausada enquanto o cliente
-          // estava no cardápio, limpa o carrinho e bloqueia o pedido.
-          if (!disponivel && this.carrinho.length > 0) {
-            this.carrinho = [];
-            this.isCarrinhoAberto = false;
+        if (mudouEstado) {
+          this.cdr.detectChanges();
+        }
 
-            this.notificationService.aviso(
-              'Cozinha indisponível',
-              'A cozinha foi pausada ou o caixa foi encerrado. Seu carrinho foi limpo.',
-            );
-          }
+        if (!disponivel && this.carrinho.length > 0) {
+          this.carrinho = [];
+          this.isCarrinhoAberto = false;
+          this.notificationService.aviso(
+            'Cozinha indisponível',
+            'A cozinha foi pausada ou o caixa foi encerrado. Seu carrinho foi limpo.',
+          );
+        }
 
-          // Se ficou indisponível, volta para a home.
-          if (!disponivel) {
-            this.router.navigate(['/']);
-          }
-        },
-
-        error: (err) => {
-          console.error('Erro ao verificar disponibilidade da cozinha', err);
-        },
-      });
+        if (!disponivel) {
+          this.router.navigate(['/']);
+        }
+      },
+      error: (err) => console.error('Erro ao verificar disponibilidade da cozinha', err),
+    });
   }
 
   carregarCategorias(): void {
