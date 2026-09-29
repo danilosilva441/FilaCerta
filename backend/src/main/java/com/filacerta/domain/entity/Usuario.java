@@ -1,5 +1,6 @@
 package com.filacerta.domain.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,4 +20,7 @@ public class Usuario {
 	private String username;
 	private String password;
 	private String role;
+	
+	@Column(name = "versao_token")
+    private Integer versaoToken = 0;
 }

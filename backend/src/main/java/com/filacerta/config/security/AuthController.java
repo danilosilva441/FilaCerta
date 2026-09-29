@@ -36,10 +36,9 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    // Adicionamos o HttpServletResponse aqui
     public ResponseEntity<String> login(@RequestBody LoginRequest login, HttpServletResponse response) {
         
-    	Bucket bucket = rateLimiter.resolveBucket(login.username());
+        Bucket bucket = rateLimiter.resolveBucket(login.username());
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body("Muitas tentativas de login. Por segurança, aguarde alguns minutos.");
@@ -52,18 +51,23 @@ public class AuthController {
             
             if (passwordEncoder.matches(login.password(), usuario.getPassword())) {
                 
-                // 1. Gera o token curto (15 min) para uso nas rotas
-                String accessToken = tokenService.gerarToken(usuario.getUsername());
+                // MÁGICA: A senha está certa! Incrementa a versão, invalidando automaticamente todos os outros logins.
+                Integer novaVersao = usuario.getVersaoToken() == null ? 1 : usuario.getVersaoToken() + 1;
+                usuario.setVersaoToken(novaVersao);
+                usuarioRepository.save(usuario);
                 
-                // 2. Gera o token longo (7 dias) para renovação
+                // 1. Gera o token passando a nova versão
+                String accessToken = tokenService.gerarToken(usuario.getUsername(), novaVersao);
+                
+                // 2. Gera o token longo
                 String refreshToken = tokenService.gerarRefreshToken(usuario.getUsername());
                 
-                // 3. Embala o Refresh Token num Cookie de segurança máxima (HttpOnly)
+                // 3. Embala o Refresh Token no Cookie Seguríssimo
                 Cookie refreshCookie = new Cookie("refreshToken", refreshToken);
-                refreshCookie.setHttpOnly(true); // Impede leitura por JavaScript (XSS)
-                refreshCookie.setSecure(false); // ATENÇÃO: Deixe false no localhost. Quando for para o Railway (HTTPS), mude para true!
-                refreshCookie.setPath("/api/auth/refresh"); // O navegador só vai enviar esse cookie nessa rota específica
-                refreshCookie.setMaxAge(7 * 24 * 60 * 60); // 7 dias em segundos
+                refreshCookie.setHttpOnly(true); 
+                refreshCookie.setSecure(true); // EM PRODUÇÃO PODE FICAR TRUE, pois estamos usando HTTPS no Nginx
+                refreshCookie.setPath("/api/auth/refresh"); 
+                refreshCookie.setMaxAge(7 * 24 * 60 * 60);
                 
                 response.addCookie(refreshCookie);
                 
@@ -74,7 +78,6 @@ public class AuthController {
         return ResponseEntity.status(401).body("Usuário ou senha inválidos");
     }
 
-    // NOVA ROTA: Escuta o pedido de renovação lendo o cookie automaticamente
     @PostMapping("/refresh")
     public ResponseEntity<String> refresh(@CookieValue(name = "refreshToken", required = false) String refreshToken) {
         
@@ -82,15 +85,21 @@ public class AuthController {
             return ResponseEntity.status(401).body("Refresh Token não fornecido");
         }
         
-        // Verifica se o token longo ainda é válido e se não foi adulterado
         String username = tokenService.validarToken(refreshToken);
         
         if (username.isEmpty()) {
-            return ResponseEntity.status(401).body("Refresh Token inválido ou expirado. Faça login novamente.");
+            return ResponseEntity.status(401).body("Refresh Token inválido ou expirado.");
         }
         
-        // Se estiver tudo certo, devolve um novo token de 15 minutos!
-        String novoAccessToken = tokenService.gerarToken(username);
+        // Pega o utilizador do banco
+        Usuario usuario = usuarioRepository.findByUsername(username).orElse(null);
+        if (usuario == null) {
+            return ResponseEntity.status(401).body("Usuário não encontrado.");
+        }
+        
+        // No momento da renovação, geramos um token fresquinho, COM A VERSÃO ATUAL DO BANCO!
+        String novoAccessToken = tokenService.gerarToken(username, usuario.getVersaoToken());
+        
         return ResponseEntity.ok(novoAccessToken);
     }
 }
