@@ -17,12 +17,21 @@ export class WebsocketService implements OnDestroy {
   pedidos$ = this.pedidosSubject.asObservable();
 
   constructor() {
-    this.stompClient = new Client({
-      // Ajuste a URL se o seu Spring Boot rodar numa porta diferente
-      brokerURL: 'ws://localhost:8080/ws-filacerta',
+    // 1. Descobre se está usando HTTP ou HTTPS (para usar WS ou WSS)
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 
-      // Tenta reconectar a cada 5 segundos se a internet cair
+    // 2. Se for localhost, aponta para a porta do Java (8080). Se for produção, usa o domínio do Railway.
+    const wsHost =
+      window.location.hostname === 'localhost' ? 'localhost:8080' : window.location.host;
+
+    // 3. Monta a URL final usando a nova rota com /api/
+    const wsUrl = `${wsProtocol}//${wsHost}/api/ws-filacerta`;
+
+    this.stompClient = new Client({
+      brokerURL: wsUrl, // Usando a URL dinâmica
       reconnectDelay: 5000,
+
+      // ... resto do seu código (onConnect, etc) fica exatamente igual
 
       onConnect: () => {
         console.log('🟢 Conectado ao WebSocket com sucesso!');

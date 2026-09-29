@@ -45,7 +45,7 @@ public class SecurityConfig {
                     
                     // Agora as duas rotas de autenticação são públicas
                     .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/refresh").permitAll()
-                    .requestMatchers("/ws-filacerta", "/ws-filacerta/**").permitAll()
+                    .requestMatchers("/api/ws-filacerta", "/api/ws-filacerta/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/produtos/**", "/api/produtos").permitAll()
                     
                     // <-- AQUI ESTÁ A CHAVE: Liberando QUALQUER ação do Cliente sobre Pedidos

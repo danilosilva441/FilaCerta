@@ -11,11 +11,11 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
 	@Override
-	public void registerStompEndpoints(StompEndpointRegistry registry) {
-		// A porta de entrada principal onde o Angular vai se conectar
-		registry.addEndpoint("/ws-filacerta").setAllowedOriginPatterns("*"); // Permite conexões cruzadas do Angular
-																				// (localhost:4200)
-	}
+    public void registerStompEndpoints(StompEndpointRegistry registry) {
+        // MUDANÇA AQUI: Adicionamos o /api/ na frente
+        registry.addEndpoint("/api/ws-filacerta")
+                .setAllowedOriginPatterns("*"); 
+    }
 
 	@Override
 	public void configureMessageBroker(MessageBrokerRegistry registry) {
