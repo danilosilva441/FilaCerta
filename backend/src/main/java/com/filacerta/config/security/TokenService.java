@@ -22,9 +22,10 @@ public class TokenService {
                 .sign(Algorithm.HMAC256(secret));
     }
 
-    public String gerarRefreshToken(String username) {
+    public String gerarRefreshToken(String username, Integer versao) {
         return JWT.create().withIssuer("FilaCerta")
                 .withSubject(username)
+                .withClaim("versao", versao) 
                 .withExpiresAt(LocalDateTime.now().plusDays(7).toInstant(ZoneOffset.of("-03:00")))
                 .sign(Algorithm.HMAC256(secret));
     }

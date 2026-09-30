@@ -60,7 +60,7 @@ public class AuthController {
                 String accessToken = tokenService.gerarToken(usuario.getUsername(), novaVersao);
                 
                 // 2. Gera o token longo
-                String refreshToken = tokenService.gerarRefreshToken(usuario.getUsername());
+                String refreshToken = tokenService.gerarRefreshToken(usuario.getUsername(), novaVersao);
                 
                 // 3. Embala o Refresh Token no Cookie Seguríssimo
                 Cookie refreshCookie = new Cookie("refreshToken", refreshToken);
@@ -91,13 +91,16 @@ public class AuthController {
             return ResponseEntity.status(401).body("Refresh Token inválido ou expirado.");
         }
         
-        // Pega o utilizador do banco
+     // Pega o utilizador do banco
         Usuario usuario = usuarioRepository.findByUsername(username).orElse(null);
-        if (usuario == null) {
-            return ResponseEntity.status(401).body("Usuário não encontrado.");
+        Integer versaoNoCookie = tokenService.getVersaoToken(refreshToken);
+
+        // Se a versão do cookie não bater com a versão atual do banco, BLOQUEIA a renovação
+        if (usuario == null || versaoNoCookie == null || !versaoNoCookie.equals(usuario.getVersaoToken())) {
+            return ResponseEntity.status(401).body("Sessão encerrada por outro dispositivo.");
         }
         
-        // No momento da renovação, geramos um token fresquinho, COM A VERSÃO ATUAL DO BANCO!
+        // No momento da renovação, geramos um token fresquinho
         String novoAccessToken = tokenService.gerarToken(username, usuario.getVersaoToken());
         
         return ResponseEntity.ok(novoAccessToken);
