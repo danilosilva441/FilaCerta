@@ -4,7 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
-import { CriarPedidoRequest, ItemPedidoRequest } from '../../../core/models/pedido.model';
+import {
+  AtualizarPedidoRequest,
+  CriarPedidoRequest,
+  ItemPedidoRequest,
+} from '../../../core/models/pedido.model';
 import { Produto } from '../../../core/models/produto.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { CaixaService } from '../../../core/services/caixa.service';
@@ -27,9 +31,7 @@ export class CardapioComponent implements OnInit, OnDestroy {
   formaPagamento: 'PIX' | 'CARTAO' | 'DINHEIRO' = 'PIX';
 
   categorias: { id?: number; nome: string }[] = [{ nome: 'Todos' }];
-
   categoriaSelecionada?: number = undefined;
-
   produtos: Produto[] = [];
 
   carrinho: {
@@ -40,14 +42,14 @@ export class CardapioComponent implements OnInit, OnDestroy {
 
   isDono = false;
   jaPago = false;
+  isModoEdicao = false;
   isProcessando = false;
   isCarrinhoAberto = false;
   tentouEnviar = false;
-
-  // Estado da cozinha
   cozinhaDisponivel = false;
 
   private monitoramentoSubscription?: Subscription;
+  private pedidoSubscription?: Subscription;
 
   constructor(
     private readonly produtoService: ProdutoService,
@@ -62,45 +64,79 @@ export class CardapioComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    // ---> NOVA LÓGICA REDIRECIONAMENTO IMEDIATO <---
     const pedidoAtivo = localStorage.getItem('filacerta_pedido_ativo');
-    if (pedidoAtivo) {
-      // Leva o cliente de volta pra fila instantaneamente, sem perguntar!
-      this.router.navigate(['/cliente/acompanhamento', pedidoAtivo]);
-      return; // Para a execução do cardápio aqui
+
+    // ---> CORREÇÃO AQUI: Se não tem pedido, garante que não está em modo edição
+    if (!pedidoAtivo) {
+      sessionStorage.removeItem('filacerta_modo_edicao');
     }
 
-    // Código original mantido
-    this.isDono = this.authService.isDono();
+    const modoEdicao = sessionStorage.getItem('filacerta_modo_edicao');
+    this.isModoEdicao = !!modoEdicao;
 
+    // Se tem pedido ativo, mas NÃO está no modo edição, expulsa pra fila!
+    if (pedidoAtivo && !modoEdicao) {
+      this.router.navigate(['/cliente/acompanhamento', pedidoAtivo]);
+      return;
+    }
+
+    // Se ele está editando, carrega os lanches e vigia a cozinha!
+    if (pedidoAtivo && modoEdicao) {
+      this.carregarCarrinhoParaEdicao(pedidoAtivo);
+      this.iniciarMonitoramentoPedido(pedidoAtivo);
+    }
+
+    this.isDono = this.authService.isDono();
     this.carregarCategorias();
     this.carregarProdutos();
-
-    // Começa a vigiar o caixa/cozinha
     this.iniciarMonitoramentoCaixa();
   }
 
   ngOnDestroy(): void {
     this.monitoramentoSubscription?.unsubscribe();
+    this.pedidoSubscription?.unsubscribe();
   }
 
-  /**
-   * Mantém o cardápio sincronizado com o caixa.
-   *
-   * Se o dono abrir/fechar/pausar/retomar,
-   * o cliente percebe em até 5 segundos.
-   */
-  iniciarMonitoramentoCaixa(): void {
-    // 1. Faz a primeira busca imediatamente ao abrir a tela
-    this.atualizarStatusCaixa();
+  private carregarCarrinhoParaEdicao(codigo: string): void {
+    this.pedidoService.acompanharPedido(codigo).subscribe({
+      next: (pedidoAntigo) => {
+        this.nomeCliente = pedidoAntigo.nomeCliente;
+        this.tipoPedido = pedidoAntigo.tipo as any;
+        this.formaPagamento = pedidoAntigo.formaPagamento as any;
 
-    // 2. Fica escutando o WebSocket. Só faz nova requisição quando o Java mandar!
+        // Reconstrói o carrinho convertendo os itens do DTO em itens visuais
+        this.carrinho = pedidoAntigo.itens.map((item) => ({
+          produto: {
+            id: item.produtoId,
+            nome: item.nomeProduto,
+            preco: item.precoUnitario,
+            disponivel: true, // Mock para a tela não quebrar
+            descricao: '',
+          } as Produto,
+          quantidade: item.quantidade,
+          observacao: item.observacaoItem || '',
+        }));
+
+        this.notificationService.sucesso(
+          'Modo Edição',
+          'Seu pedido foi carregado. Adicione ou remova itens à vontade!',
+        );
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        sessionStorage.removeItem('filacerta_modo_edicao');
+        localStorage.removeItem('filacerta_pedido_ativo');
+      },
+    });
+  }
+
+  iniciarMonitoramentoCaixa(): void {
+    this.atualizarStatusCaixa();
     this.monitoramentoSubscription = this.websocketService.caixa$.subscribe(() => {
       this.atualizarStatusCaixa();
     });
   }
 
-  // Novo método auxiliar para deixar o código limpo
   private atualizarStatusCaixa(): void {
     this.caixaService.buscarCaixaAtual().subscribe({
       next: (caixa) => {
@@ -126,7 +162,7 @@ export class CardapioComponent implements OnInit, OnDestroy {
           this.router.navigate(['/']);
         }
       },
-      error: (err) => console.error('Erro ao verificar disponibilidade da cozinha', err),
+      error: (err) => console.error('Erro ao verificar disponibilidade', err),
     });
   }
 
@@ -134,37 +170,26 @@ export class CardapioComponent implements OnInit, OnDestroy {
     this.categoriaService.listarTodas().subscribe({
       next: (dados) => {
         this.categorias = [{ nome: 'Todos' }, ...dados];
-
         this.cdr.detectChanges();
-      },
-
-      error: (err) => {
-        console.error('Erro ao buscar categorias', err);
       },
     });
   }
 
   filtrarPorCategoria(id?: number): void {
-    if (this.categoriaSelecionada === id) {
-      return;
-    }
-
+    if (this.categoriaSelecionada === id) return;
     this.categoriaSelecionada = id;
     this.produtos = [];
-
     this.carregarProdutos();
   }
 
   carregarProdutos(): void {
     this.produtoService.listar(this.categoriaSelecionada).subscribe({
       next: (data) => {
-        // Trava de segurança: se vier undefined, assume array vazio []
         this.produtos = data || [];
         this.cdr.detectChanges();
       },
-      error: (err) => {
-        console.error('Erro ao carregar produtos', err);
-        this.produtos = []; // Garante que a tela não quebre no erro
+      error: () => {
+        this.produtos = [];
         this.cdr.detectChanges();
       },
     });
@@ -176,7 +201,6 @@ export class CardapioComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // NOVA TRAVA: Verifica a chave de disponibilidade manual
     if (!produto.disponivel) {
       this.notificationService.aviso('Pausado', 'Este item não está disponível no momento.');
       return;
@@ -188,7 +212,6 @@ export class CardapioComponent implements OnInit, OnDestroy {
     }
 
     const itemExistente = this.carrinho.find((item) => item.produto.id === produto.id);
-
     const qtdAtual = itemExistente ? itemExistente.quantidade : 0;
 
     if (
@@ -200,27 +223,19 @@ export class CardapioComponent implements OnInit, OnDestroy {
         'Limite Atingido',
         `Temos apenas ${produto.quantidadeDisponivel} unidades disponíveis no momento.`,
       );
-
       return;
     }
 
     if (itemExistente) {
       itemExistente.quantidade++;
     } else {
-      this.carrinho.push({
-        produto,
-        quantidade: 1,
-        observacao: '',
-      });
+      this.carrinho.push({ produto, quantidade: 1, observacao: '' });
     }
   }
 
   removerItem(produto: Produto): void {
     const index = this.carrinho.findIndex((item) => item.produto.id === produto.id);
-
-    if (index === -1) {
-      return;
-    }
+    if (index === -1) return;
 
     if (this.carrinho[index].quantidade <= 1) {
       this.carrinho.splice(index, 1);
@@ -231,7 +246,6 @@ export class CardapioComponent implements OnInit, OnDestroy {
 
   getQuantidade(produto: Produto): number {
     const item = this.carrinho.find((i) => i.produto.id === produto.id);
-
     return item ? item.quantidade : 0;
   }
 
@@ -243,17 +257,7 @@ export class CardapioComponent implements OnInit, OnDestroy {
     return this.carrinho.reduce((acc, item) => acc + item.produto.preco * item.quantidade, 0);
   }
 
-  /**
-   * CORRIGIDO.
-   *
-   * carrinho já é um array.
-   * Não precisa fazer find dentro de produtos.
-   */
-  getItensCarrinho(): {
-    produto: Produto;
-    quantidade: number;
-    observacao: string;
-  }[] {
+  getItensCarrinho(): { produto: Produto; quantidade: number; observacao: string }[] {
     return this.carrinho;
   }
 
@@ -267,25 +271,14 @@ export class CardapioComponent implements OnInit, OnDestroy {
   }
 
   enviarPedido(): void {
-    // Segurança extra: verifica novamente antes de enviar
-    if (!this.cozinhaDisponivel) {
-      this.notificationService.aviso(
-        'Cozinha indisponível',
-        'A cozinha foi pausada. Não é possível enviar o pedido.',
-      );
-      return;
-    }
-
-    if (this.carrinho.length === 0) {
-      return;
-    }
-
-    if (!this.nomeCliente || this.nomeCliente.trim() === '') {
+    if (!this.podeEnviar()) {
       this.tentouEnviar = true;
-      this.notificationService.aviso(
-        'Atenção',
-        'Por favor, informe seu nome para chamarmos quando estiver pronto!',
-      );
+      if (!this.nomeCliente || this.nomeCliente.trim() === '') {
+        this.notificationService.aviso(
+          'Atenção',
+          'Por favor, informe seu nome para chamarmos quando estiver pronto!',
+        );
+      }
       return;
     }
 
@@ -298,73 +291,90 @@ export class CardapioComponent implements OnInit, OnDestroy {
       observacaoItem: item.observacao.trim() || undefined,
     }));
 
-    const request: CriarPedidoRequest = {
-      nomeCliente: this.nomeCliente.trim(),
-      tipo: this.tipoPedido,
-      origem: this.isDono ? 'MANUAL' : 'QR_CODE',
-      formaPagamento: this.formaPagamento,
-      statusPagamento: this.isDono ? (this.jaPago ? 'PAGO' : 'AGUARDANDO') : 'AGUARDANDO',
-      itens,
-    };
+    const modoEdicao = sessionStorage.getItem('filacerta_modo_edicao');
+    const codigoAtivo = localStorage.getItem('filacerta_pedido_ativo');
 
-    this.pedidoService.criarPedido(request).subscribe({
-      next: (response) => {
-        // ---> MUDANÇA AQUI: SALVA O CÓDIGO SEGURO NO APARELHO <---
-        if (response.codigoAcompanhamento) {
-          localStorage.setItem('filacerta_pedido_ativo', response.codigoAcompanhamento);
-        }
+    // MODO EDIÇÃO (PUT)
+    if (modoEdicao && codigoAtivo) {
+      const updateRequest: AtualizarPedidoRequest = { itens };
 
-        this.carrinho = [];
-        this.nomeCliente = '';
-        this.isProcessando = false;
-        this.isCarrinhoAberto = false;
+      this.pedidoService.atualizarPedido(codigoAtivo, updateRequest).subscribe({
+        next: (response) => {
+          sessionStorage.removeItem('filacerta_modo_edicao');
+          this.finalizarEnvio(response.codigoAcompanhamento);
+        },
+        error: (err) => this.tratarErroBackend(err),
+      });
 
-        // ---> MUDANÇA AQUI: NAVEGA USANDO O CÓDIGO EM VEZ DO ID <---
-        this.router.navigate(['/cliente/acompanhamento', response.codigoAcompanhamento]);
-      },
+      // MODO NOVO PEDIDO (POST)
+    } else {
+      const request: CriarPedidoRequest = {
+        nomeCliente: this.nomeCliente.trim(),
+        tipo: this.tipoPedido,
+        origem: this.isDono ? 'MANUAL' : 'QR_CODE',
+        formaPagamento: this.formaPagamento,
+        statusPagamento: this.isDono ? (this.jaPago ? 'PAGO' : 'AGUARDANDO') : 'AGUARDANDO',
+        itens,
+      };
 
-      error: (err) => {
-        // Tratamento de erros fantástico original mantido...
-        console.error('Status do Erro:', err.status);
-        console.log('Corpo do Erro (Payload):', err.error);
-
-        let mensagemDoBackend = 'O pedido não pôde ser enviado. Tente novamente.';
-        let tituloDoBackend = 'Erro no Pedido';
-
-        if (err.error) {
-          try {
-            const erroFormatado = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
-            if (erroFormatado?.mensagem) {
-              mensagemDoBackend = erroFormatado.mensagem;
-            }
-            if (erroFormatado?.erro) {
-              tituloDoBackend = erroFormatado.erro;
-            }
-          } catch (e) {
-            console.error('Falha ao tentar ler o JSON do erro:', e);
+      this.pedidoService.criarPedido(request).subscribe({
+        next: (response) => {
+          if (response.codigoAcompanhamento) {
+            localStorage.setItem('filacerta_pedido_ativo', response.codigoAcompanhamento);
           }
-        }
+          this.finalizarEnvio(response.codigoAcompanhamento);
+        },
+        error: (err) => this.tratarErroBackend(err),
+      });
+    }
+  }
 
-        this.notificationService.erro(tituloDoBackend, mensagemDoBackend);
-        this.isProcessando = false;
-        this.cdr.detectChanges();
-      },
-    });
+  // --- MÉTODOS AUXILIARES PARA LIMPAR O CÓDIGO ---
+
+  private finalizarEnvio(codigoAcompanhamento: string): void {
+    this.carrinho = [];
+    this.nomeCliente = '';
+    this.isProcessando = false;
+    this.isCarrinhoAberto = false;
+    this.router.navigate(['/cliente/acompanhamento', codigoAcompanhamento]);
+  }
+
+  private tratarErroBackend(err: any): void {
+    let mensagemDoBackend = 'O pedido não pôde ser enviado. Tente novamente.';
+    let tituloDoBackend = 'Erro no Pedido';
+
+    if (err.error) {
+      try {
+        const erroFormatado = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+        if (erroFormatado?.mensagem) mensagemDoBackend = erroFormatado.mensagem;
+        if (erroFormatado?.erro) tituloDoBackend = erroFormatado.erro;
+      } catch (e) {
+        console.error('Falha ao tentar ler o JSON do erro:', e);
+      }
+    }
+
+    this.notificationService.erro(tituloDoBackend, mensagemDoBackend);
+    this.isProcessando = false;
+    this.cdr.detectChanges();
+    // Se o cliente tentou salvar, deu erro e ele estava editando, expulsa pra rua!
+    const modoEdicao = sessionStorage.getItem('filacerta_modo_edicao');
+    const codigoAtivo = localStorage.getItem('filacerta_pedido_ativo');
+
+    if (modoEdicao && codigoAtivo) {
+      sessionStorage.removeItem('filacerta_modo_edicao');
+      this.router.navigate(['/cliente/acompanhamento', codigoAtivo]);
+    }
   }
 
   abrirCarrinho(): void {
     if (!this.cozinhaDisponivel) {
       this.notificationService.aviso('Cozinha indisponível', 'A cozinha está pausada no momento.');
-
       return;
     }
-
     if (this.totalItens === 0) {
       this.notificationService.aviso('Carrinho Vazio', 'Adicione itens antes de fechar o pedido.');
-
       return;
     }
-
     this.isCarrinhoAberto = true;
   }
 
@@ -375,10 +385,36 @@ export class CardapioComponent implements OnInit, OnDestroy {
 
   permiteObservacao(produto: Produto): boolean {
     const categoriasBloqueadas = ['Bebidas', 'Acompanhamentos', 'Sobremesas'];
-
-    // Pega o nome vindo do objeto novo, ou o texto antigo
     const nomeCategoria = produto.categoria?.nome || produto.categoria;
+    return !categoriasBloqueadas.includes(nomeCategoria as string);
+  }
 
-    return !categoriasBloqueadas.includes(nomeCategoria);
+  private iniciarMonitoramentoPedido(codigo: string): void {
+    // Toda a vez que a cozinha mexer num pedido, o WebSocket apita
+    this.pedidoSubscription = this.websocketService.pedidos$.subscribe(() => {
+      // Vamos verificar como está o nosso pedido
+      this.pedidoService.acompanharPedido(codigo).subscribe({
+        next: (pedidoAtualizado) => {
+          // Se a cozinha cancelou ou começou a preparar, expulsa da edição!
+          if (pedidoAtualizado.status !== 'RECEBIDO') {
+            this.notificationService.aviso(
+              'Edição Encerrada',
+              'O status do seu pedido mudou na cozinha. Não é mais possível editar.',
+            );
+
+            sessionStorage.removeItem('filacerta_modo_edicao'); // Tira o crachá
+            this.router.navigate(['/cliente/acompanhamento', codigo]); // Leva para a tela de rastreio
+          }
+        },
+        error: (err) => {
+          // Se o pedido foi apagado da base de dados, limpa tudo e joga para a Home
+          if (err.status === 404 || err.status === 400 || err.status === 500) {
+            sessionStorage.removeItem('filacerta_modo_edicao');
+            localStorage.removeItem('filacerta_pedido_ativo');
+            this.router.navigate(['/']);
+          }
+        },
+      });
+    });
   }
 }

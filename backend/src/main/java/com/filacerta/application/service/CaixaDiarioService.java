@@ -17,6 +17,7 @@ import com.filacerta.domain.entity.Pedido;
 import com.filacerta.domain.enums.FormaPagamento;
 import com.filacerta.domain.enums.StatusCaixa;
 import com.filacerta.domain.enums.StatusPagamento;
+import com.filacerta.domain.enums.StatusPedido;
 import com.filacerta.domain.exception.NegocioException;
 import com.filacerta.infrastructure.repository.CaixaDiarioRepository;
 import com.filacerta.infrastructure.repository.PedidoRepository;
@@ -27,158 +28,163 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CaixaDiarioService {
 
-	private final CaixaDiarioRepository caixaDiarioRepository;
-	private final PedidoRepository pedidoRepository;
-	private final SimpMessagingTemplate messagingTemplate;
+    private final CaixaDiarioRepository caixaDiarioRepository;
+    private final PedidoRepository pedidoRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
-	@Transactional(readOnly = true)
-	public CaixaDiario buscarCaixaAberto() {
-		return caixaDiarioRepository.findByStatus(StatusCaixa.ABERTO).orElseThrow(
-				() -> new NegocioException("Não é possível realizar pedidos: Nenhum caixa aberto no momento."));
-	}
+    @Transactional(readOnly = true)
+    public CaixaDiario buscarCaixaAberto() {
+        return caixaDiarioRepository.findByStatus(StatusCaixa.ABERTO).orElseThrow(
+                () -> new NegocioException("Não é possível realizar pedidos: Nenhum caixa aberto no momento."));
+    }
 
-	@Transactional(readOnly = true)
-	public CaixaDiarioResponse buscarCaixaAtual() {
-		return caixaDiarioRepository.findByStatus(StatusCaixa.ABERTO).map(CaixaMapper::toResponse).orElse(null);
-	}
+    @Transactional(readOnly = true)
+    public CaixaDiarioResponse buscarCaixaAtual() {
+        return caixaDiarioRepository.findByStatus(StatusCaixa.ABERTO).map(CaixaMapper::toResponse).orElse(null);
+    }
 
-	@Transactional
-	public CaixaDiarioResponse abrirCaixa(BigDecimal valorInicial) {
-		LocalDate hoje = LocalDate.now();
+    @Transactional
+    public CaixaDiarioResponse abrirCaixa(BigDecimal valorInicial) {
+        LocalDate hoje = LocalDate.now();
 
-		CaixaDiario caixaExistente = caixaDiarioRepository.findAll().stream().filter(c -> c.getData().equals(hoje))
-				.findFirst().orElse(null);
+        CaixaDiario caixaExistente = caixaDiarioRepository.findAll().stream().filter(c -> c.getData().equals(hoje))
+                .findFirst().orElse(null);
 
-		if (caixaExistente != null) {
-			if (StatusCaixa.ABERTO.equals(caixaExistente.getStatus())) {
-				throw new NegocioException("Já existe um caixa aberto para hoje.");
-			}
-			caixaExistente.setStatus(StatusCaixa.ABERTO);
-			caixaExistente.setHoraAbertura(LocalDateTime.now());
-			caixaExistente.setHoraFechamento(null);
-			caixaExistente.setValorInicial(valorInicial);
-			return CaixaMapper.toResponse(caixaDiarioRepository.save(caixaExistente));
-		}
+        if (caixaExistente != null) {
+            if (StatusCaixa.ABERTO.equals(caixaExistente.getStatus())) {
+                throw new NegocioException("Já existe um caixa aberto para hoje.");
+            }
+            caixaExistente.setStatus(StatusCaixa.ABERTO);
+            caixaExistente.setHoraAbertura(LocalDateTime.now());
+            caixaExistente.setHoraFechamento(null);
+            caixaExistente.setValorInicial(valorInicial);
+            return CaixaMapper.toResponse(caixaDiarioRepository.save(caixaExistente));
+        }
 
-		CaixaDiario novoCaixa = new CaixaDiario();
-		novoCaixa.setData(hoje);
-		novoCaixa.setHoraAbertura(LocalDateTime.now());
-		novoCaixa.setValorInicial(valorInicial);
-		novoCaixa.setTotalDinheiro(BigDecimal.ZERO);
-		novoCaixa.setTotalPedidos(0);
-		novoCaixa.setStatus(StatusCaixa.ABERTO);
-		// Garante que nasce despausada
-		novoCaixa.setCozinhaPausada(false);
+        CaixaDiario novoCaixa = new CaixaDiario();
+        novoCaixa.setData(hoje);
+        novoCaixa.setHoraAbertura(LocalDateTime.now());
+        novoCaixa.setValorInicial(valorInicial);
+        novoCaixa.setTotalDinheiro(BigDecimal.ZERO);
+        novoCaixa.setTotalPedidos(0);
+        novoCaixa.setStatus(StatusCaixa.ABERTO);
+        novoCaixa.setCozinhaPausada(false);
 
-		CaixaDiarioResponse response = CaixaMapper.toResponse(caixaDiarioRepository.save(novoCaixa));
-		
-		// AVISA O ANGULAR: "A loja abriu!"
+        CaixaDiarioResponse response = CaixaMapper.toResponse(caixaDiarioRepository.save(novoCaixa));
         messagingTemplate.convertAndSend("/topic/caixa", "ATUALIZOU");
-        
         return response;
-    
-	}
+    }
 
-	@Transactional
-	public ResumoFechamentoResponse fecharCaixa(Long caixaId) {
-		CaixaDiario caixa = caixaDiarioRepository.findById(caixaId)
-				.orElseThrow(() -> new NegocioException("Caixa não encontrado."));
+    @Transactional
+    public ResumoFechamentoResponse fecharCaixa(Long caixaId) {
+        CaixaDiario caixa = caixaDiarioRepository.findById(caixaId)
+                .orElseThrow(() -> new NegocioException("Caixa não encontrado."));
 
-		if (caixa.getStatus() == StatusCaixa.FECHADO) {
-			throw new NegocioException("Este caixa já está fechado.");
-		}
+        if (caixa.getStatus() == StatusCaixa.FECHADO) {
+            throw new NegocioException("Este caixa já está fechado.");
+        }
 
-		caixa.setStatus(StatusCaixa.FECHADO);
-		caixa.setDataFechamento(LocalDateTime.now());
-		caixaDiarioRepository.save(caixa);
+        caixa.setStatus(StatusCaixa.FECHADO);
+        caixa.setDataFechamento(LocalDateTime.now());
+        caixaDiarioRepository.save(caixa);
 
-		List<Pedido> pedidosDoCaixa = pedidoRepository.findByCaixaDiarioId(caixa.getId());
+        List<Pedido> pedidosDoCaixa = pedidoRepository.findByCaixaDiarioId(caixa.getId());
+        
+        ResumoFechamentoResponse response = calcularTotais(caixa, pedidosDoCaixa);
+        response.setDataFechamento(caixa.getDataFechamento()); // Adiciona o dado extra de fechamento
 
-		BigDecimal totalPix = BigDecimal.ZERO;
-		BigDecimal totalCartao = BigDecimal.ZERO;
-		BigDecimal totalDinheiro = BigDecimal.ZERO;
+        messagingTemplate.convertAndSend("/topic/caixa", "ATUALIZOU");
 
-		for (Pedido p : pedidosDoCaixa) {
-			if (p.getStatusPagamento() == StatusPagamento.PAGO && p.getValorTotal() != null) {
-				if (p.getFormaPagamento() == FormaPagamento.PIX) {
-					totalPix = totalPix.add(p.getValorTotal());
-				} else if (p.getFormaPagamento() == FormaPagamento.CARTAO) {
-					totalCartao = totalCartao.add(p.getValorTotal());
-				} else if (p.getFormaPagamento() == FormaPagamento.DINHEIRO) {
-					totalDinheiro = totalDinheiro.add(p.getValorTotal());
-				}
-			}
-		}
+        return response;
+    }
 
-		BigDecimal faturamentoTotal = totalPix.add(totalCartao).add(totalDinheiro);
-		BigDecimal totalEmGaveta = caixa.getValorInicial().add(totalDinheiro);
+    @Transactional(readOnly = true)
+    public ResumoFechamentoResponse obterResumoAtual(Long caixaId) {
+        CaixaDiario caixa = caixaDiarioRepository.findById(caixaId)
+                .orElseThrow(() -> new NegocioException("Caixa não encontrado."));
 
-		ResumoFechamentoResponse response = ResumoFechamentoResponse.builder()
-				.caixaId(caixa.getId())
-				.dataFechamento(caixa.getDataFechamento())
-				.valorInicialTroco(caixa.getValorInicial())
-				.totalPix(totalPix)
-				.totalCartao(totalCartao)
-				.totalDinheiro(totalDinheiro)
-				.faturamentoTotal(faturamentoTotal)
-				.totalEmGaveta(totalEmGaveta)
-				.build();
+        List<Pedido> pedidosDoCaixa = pedidoRepository.findByCaixaDiarioId(caixa.getId());
 
-		messagingTemplate.convertAndSend("/topic/caixa", "ATUALIZOU");
+        return calcularTotais(caixa, pedidosDoCaixa);
+    }
 
-		return response;
-	}
+    // --- MÉTODO PRIVADO PARA EVITAR CÓDIGO REPETIDO (USADO NO FECHAR E NO RESUMO ATUAL) ---
+    private ResumoFechamentoResponse calcularTotais(CaixaDiario caixa, List<Pedido> pedidosDoCaixa) {
+        BigDecimal totalPix = BigDecimal.ZERO;
+        BigDecimal totalCartao = BigDecimal.ZERO;
+        BigDecimal totalDinheiro = BigDecimal.ZERO;
+        BigDecimal valorCancelado = BigDecimal.ZERO;
 
-	@Transactional(readOnly = true)
-	public ResumoFechamentoResponse obterResumoAtual(Long caixaId) {
-		CaixaDiario caixa = caixaDiarioRepository.findById(caixaId)
-				.orElseThrow(() -> new NegocioException("Caixa não encontrado."));
+        int qtdPix = 0;
+        int qtdCartao = 0;
+        int qtdDinheiro = 0;
+        int qtdCancelados = 0;
 
-		List<Pedido> pedidosDoCaixa = pedidoRepository.findByCaixaDiarioId(caixa.getId());
+        for (Pedido p : pedidosDoCaixa) {
+            
+            // Soma e conta Cancelamentos
+            if (p.getStatus() == StatusPedido.CANCELADO) {
+                qtdCancelados++;
+                if (p.getValorTotal() != null) {
+                    valorCancelado = valorCancelado.add(p.getValorTotal());
+                }
+                continue; // Pula a contagem de pagamento se foi cancelado
+            }
+            
+            // Soma e conta Pagamentos Bem-Sucedidos
+            if (p.getStatusPagamento() == StatusPagamento.PAGO && p.getValorTotal() != null) {
+                if (p.getFormaPagamento() == FormaPagamento.PIX) {
+                    totalPix = totalPix.add(p.getValorTotal());
+                    qtdPix++;
+                } else if (p.getFormaPagamento() == FormaPagamento.CARTAO) {
+                    totalCartao = totalCartao.add(p.getValorTotal());
+                    qtdCartao++;
+                } else if (p.getFormaPagamento() == FormaPagamento.DINHEIRO) {
+                    totalDinheiro = totalDinheiro.add(p.getValorTotal());
+                    qtdDinheiro++;
+                }
+            }
+        }
 
-		BigDecimal totalPix = BigDecimal.ZERO;
-		BigDecimal totalCartao = BigDecimal.ZERO;
-		BigDecimal totalDinheiro = BigDecimal.ZERO;
+        BigDecimal faturamentoTotal = totalPix.add(totalCartao).add(totalDinheiro);
+        BigDecimal totalEmGaveta = caixa.getValorInicial().add(totalDinheiro);
 
-		for (Pedido p : pedidosDoCaixa) {
-			if (p.getStatusPagamento() == StatusPagamento.PAGO && p.getValorTotal() != null) {
-				if (p.getFormaPagamento() == FormaPagamento.PIX)
-					totalPix = totalPix.add(p.getValorTotal());
-				else if (p.getFormaPagamento() == FormaPagamento.CARTAO)
-					totalCartao = totalCartao.add(p.getValorTotal());
-				else if (p.getFormaPagamento() == FormaPagamento.DINHEIRO)
-					totalDinheiro = totalDinheiro.add(p.getValorTotal());
-			}
-		}
+        // Contadores Gerais
+        int totalPedidos = pedidosDoCaixa.size();
+        int totalConcluidos = (int) pedidosDoCaixa.stream()
+                .filter(p -> p.getStatus() == StatusPedido.ENTREGUE || p.getStatus() == StatusPedido.SERVIDO)
+                .count();
 
-		BigDecimal faturamentoTotal = totalPix.add(totalCartao).add(totalDinheiro);
-		BigDecimal totalEmGaveta = caixa.getValorInicial().add(totalDinheiro);
+        return ResumoFechamentoResponse.builder()
+                .caixaId(caixa.getId())
+                .valorInicialTroco(caixa.getValorInicial())
+                .totalPix(totalPix).qtdPix(qtdPix)
+                .totalCartao(totalCartao).qtdCartao(qtdCartao)
+                .totalDinheiro(totalDinheiro).qtdDinheiro(qtdDinheiro)
+                .faturamentoTotal(faturamentoTotal)
+                .totalEmGaveta(totalEmGaveta)
+                .quantidadeCancelados(qtdCancelados)
+                .valorCancelado(valorCancelado)
+                .totalPedidos(totalPedidos)
+                .totalCancelados(qtdCancelados) // Mesmo valor de quantidadeCancelados
+                .totalConcluidos(totalConcluidos)
+                .build();
+    }
 
-		return ResumoFechamentoResponse.builder().caixaId(caixa.getId()).valorInicialTroco(caixa.getValorInicial())
-				.totalPix(totalPix).totalCartao(totalCartao).totalDinheiro(totalDinheiro)
-				.faturamentoTotal(faturamentoTotal).totalEmGaveta(totalEmGaveta).build();
-	}
+    @Transactional
+    public CaixaDiarioResponse alternarPausaCozinha(Long caixaId) {
+        CaixaDiario caixa = caixaDiarioRepository.findById(caixaId)
+                .orElseThrow(() -> new NegocioException("Caixa não encontrado"));
 
-	// ---MÉTODO: Funciona como um Interruptor (LIGA/DESLIGA) ---
-	@Transactional
-	public CaixaDiarioResponse alternarPausaCozinha(Long caixaId) {
-		CaixaDiario caixa = caixaDiarioRepository.findById(caixaId)
-				.orElseThrow(() -> new NegocioException("Caixa não encontrado"));
+        boolean novoStatus = caixa.getCozinhaPausada() == null ? true : !caixa.getCozinhaPausada();
+        caixa.setCozinhaPausada(novoStatus);
 
-		// Se estiver null ou false, vira true. Se estiver true, vira false.
-		boolean novoStatus = caixa.getCozinhaPausada() == null ? true : !caixa.getCozinhaPausada();
-		caixa.setCozinhaPausada(novoStatus);
+        if (!novoStatus) {
+            caixa.setMotivoPausa(null);
+        }
 
-		// Limpa o motivo caso esteja retomando os pedidos
-		if (!novoStatus) {
-			caixa.setMotivoPausa(null);
-		}
-
-		caixa = caixaDiarioRepository.save(caixa);
-
-		// AVISA O ANGULAR: "A cozinha pausou/voltou!"
-		messagingTemplate.convertAndSend("/topic/caixa", "ATUALIZOU");
-
-		return CaixaMapper.toResponse(caixa);
-	}
+        caixa = caixaDiarioRepository.save(caixa);
+        messagingTemplate.convertAndSend("/topic/caixa", "ATUALIZOU");
+        return CaixaMapper.toResponse(caixa);
+    }
 }

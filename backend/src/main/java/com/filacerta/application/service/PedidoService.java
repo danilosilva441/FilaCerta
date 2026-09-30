@@ -44,7 +44,6 @@ public class PedidoService {
 	private final SimpMessagingTemplate messagingTemplate;
 	
 
-
 	@Transactional
 	public PedidoResponse criarPedido(CriarPedidoRequest request) {
 
@@ -255,15 +254,17 @@ public class PedidoService {
 	}
 
 	@Transactional
-	public void cancelarPedido(Long pedidoId) {
-		Pedido pedido = pedidoRepository.findById(pedidoId)
-				.orElseThrow(() -> new NegocioException("Pedido não encontrado: " + pedidoId));
+    public void cancelarPedido(Long pedidoId) {
+        Pedido pedido = pedidoRepository.findById(pedidoId)
+                .orElseThrow(() -> new NegocioException("Pedido não encontrado: " + pedidoId));
 
-		// ---> NOVA TRAVA DE SEGURANÇA: Bloqueia se a cozinha já tocou no pedido <---
-		if (pedido.getStatus() == StatusPedido.PREPARANDO || pedido.getStatus() == StatusPedido.PRONTO
-				|| pedido.getStatus() == StatusPedido.SERVIDO) {
-			throw new NegocioException("A cozinha já iniciou o preparo. Não é possível cancelar o pedido.");
-		}
+        // ---> CORREÇÃO AQUI: Adicionado o ENTREGUE na lista de bloqueio <---
+        if (pedido.getStatus() == StatusPedido.PREPARANDO || 
+            pedido.getStatus() == StatusPedido.PRONTO || 
+            pedido.getStatus() == StatusPedido.SERVIDO || 
+            pedido.getStatus() == StatusPedido.ENTREGUE) {
+            throw new NegocioException("Este pedido já está em preparo ou foi concluído e não pode ser cancelado.");
+        }
 
 		// Trava de segurança original: só devolve se o pedido ainda não estiver
 		// cancelado
@@ -296,7 +297,7 @@ public class PedidoService {
 
 		// ---> TRAVA DE STATUS (Verifique se o seu Enum usa "AGUARDANDO" ou "PENDENTE")
 		// Se o seu enum de status do pedido usa outro valor, ajuste aqui (ex: StatusPedido.AGUARDANDO_PAGAMENTO)
-		if (pedido.getStatus() != StatusPedido.AGUARDANDO) {
+		if (pedido.getStatus() != StatusPedido.RECEBIDO) {
 			throw new NegocioException("O pedido já está em preparo e não pode ser alterado.");
 		}
 
@@ -332,7 +333,7 @@ public class PedidoService {
 			novoItem.setQuantidade(itemReq.getQuantidade());
 			novoItem.setPrecoUnitario(produto.getPreco());
 			novoItem.setObservacaoItem(itemReq.getObservacaoItem());
-			novoItem.setStatus(StatusItemPedido.AGUARDANDO);
+			novoItem.setStatus(StatusItemPedido.PENDENTE);
 
 			pedido.getItens().add(novoItem);
 			valorTotal = valorTotal.add(produto.getPreco().multiply(new BigDecimal(itemReq.getQuantidade())));

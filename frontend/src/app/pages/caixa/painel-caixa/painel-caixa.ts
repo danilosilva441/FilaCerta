@@ -29,9 +29,18 @@ interface ResumoCaixa {
   totalDinheiro: number;
   totalEmGaveta: number;
   valorInicialTroco: number;
+
+  // ---> NOVOS CAMPOS DO BACKEND <---
+  totalPedidos: number;
+  totalConcluidos: number;
+  totalCancelados: number;
+  qtdPix: number;
+  qtdCartao: number;
+  qtdDinheiro: number;
 }
 
 type EstadoTela = 'CARREGANDO' | 'FECHADO' | 'ABERTO';
+type AbaAtiva = 'BALCAO' | 'FINANCEIRO';
 
 @Component({
   selector: 'app-painel-caixa',
@@ -55,6 +64,7 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
   readonly resumoAtual = signal<ResumoCaixa | null>(null);
   readonly resumoFechamento = signal<ResumoCaixa | null>(null);
   readonly estadoTela = signal<EstadoTela>('CARREGANDO');
+  readonly abaAtiva = signal<AbaAtiva>('BALCAO'); // Controle das abas
   readonly pedidosBalcao = signal<PedidoResponse[]>([]);
   readonly valorAbertura = signal<number>(0);
   readonly isProcessando = signal<boolean>(false);
@@ -69,15 +79,12 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
 
   // ====== Lifecycle ======
   ngOnInit(): void {
-    // 1. Faz a busca inicial de dados
     this.verificarCaixa();
 
-    // 2. Sintoniza no rádio do Caixa (Ex: Alguém fechou/abriu o caixa ou pausou a cozinha noutro ecrã)
     this.caixaWsSub = this.websocketService.caixa$.subscribe(() => {
       this.verificarCaixa();
     });
 
-    // 3. Sintoniza no rádio de Pedidos (Ex: Cliente fez pedido novo, cozinha terminou prato)
     this.pedidosWsSub = this.websocketService.pedidos$.subscribe(() => {
       if (this.isAberto()) {
         this.carregarResumoAtual();
@@ -87,7 +94,6 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // Desliga as antenas ao sair da página
     this.caixaWsSub?.unsubscribe();
     this.pedidosWsSub?.unsubscribe();
   }
@@ -111,7 +117,7 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
           } else {
             this.limparEstadoFechado();
           }
-          this.cdr.detectChanges(); // Força a UI a atualizar imediatamente
+          this.cdr.detectChanges();
         },
         error: (err) => {
           console.error('Erro ao buscar status do caixa', err);
@@ -125,6 +131,7 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
     this.resumoAtual.set(null);
     this.pedidosBalcao.set([]);
     this.estadoTela.set('FECHADO');
+    this.abaAtiva.set('BALCAO'); // Reseta a aba ao fechar o caixa
     this.cdr.detectChanges();
   }
 
@@ -159,10 +166,7 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Erro ao abrir caixa', err);
-          this.notificationService.erro(
-            'Erro ao abrir caixa',
-            'O caixa não pôde ser aberto. Verifique a conexão.',
-          );
+          this.notificationService.erro('Erro ao abrir caixa', 'O caixa não pôde ser aberto.');
         },
       });
   }
@@ -194,7 +198,7 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (resumo) => {
-          this.resumoFechamento.set(resumo as ResumoCaixa);
+          this.resumoFechamento.set(resumo as unknown as ResumoCaixa);
           this.cdr.detectChanges();
         },
         error: (err) => {
@@ -219,7 +223,7 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {
-          this.resumoAtual.set(data as ResumoCaixa);
+          this.resumoAtual.set(data as unknown as ResumoCaixa);
           this.cdr.detectChanges();
         },
         error: (err) => console.error('Erro ao carregar resumo do caixa', err),
@@ -247,10 +251,6 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
       .confirmarPagamento(pedidoId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => {
-          // Não precisa chamar carregarPedidosBalcao() manualmente aqui,
-          // pois o Java vai emitir um evento no WebSocket e a tela se atualizará sozinha!
-        },
         error: () =>
           this.notificationService.erro('Erro', 'Não foi possível confirmar o pagamento.'),
       });
@@ -308,10 +308,7 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Erro ao alternar pausa da cozinha', err);
-          this.notificationService.erro(
-            'Erro de Comunicação',
-            'Não foi possível alterar o status da cozinha.',
-          );
+          this.notificationService.erro('Erro', 'Não foi possível alterar o status da cozinha.');
         },
       });
   }

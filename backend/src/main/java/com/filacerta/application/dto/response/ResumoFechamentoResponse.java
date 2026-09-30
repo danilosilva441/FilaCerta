@@ -19,4 +19,14 @@ public class ResumoFechamentoResponse {
     private BigDecimal totalEmGaveta; // Troco Inicial + Vendas em Dinheiro
     private Integer quantidadeCancelados;
     private BigDecimal valorCancelado;
+    
+ // NOVOS CONTADORES DE TRANSAÇÕES
+    private Integer qtdPix;
+    private Integer qtdCartao;
+    private Integer qtdDinheiro;
+
+    // NOVOS CONTADORES GERAIS DE PEDIDOS
+    private Integer totalPedidos;
+    private Integer totalConcluidos;
+    private Integer totalCancelados;
 }

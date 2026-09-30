@@ -11,7 +11,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterLink, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { PedidoResponse } from '../../../core/models/pedido.model';
@@ -122,7 +122,7 @@ export class AcompanhamentoComponent implements OnInit, OnDestroy {
           );
 
           // 3. Joga ele de volta pro cardápio para pedir de novo
-          this.router.navigate(['/']);
+          this.router.navigate(['/cliente/cardapio']);
         } else {
           // Se for só a internet do celular que oscilou (status 0), não desloga ele
           this.erroRede.set(true);
@@ -234,5 +234,31 @@ export class AcompanhamentoComponent implements OnInit, OnDestroy {
       CANCELADO: 'bg-red-100 text-red-600',
     };
     return mapa[status] ?? 'bg-gray-100 text-gray-500';
+  }
+
+  editarPedido(): void {
+    // Só deixa editar se a cozinha não tocou
+    if (this.pedido()?.status !== 'RECEBIDO') {
+      this.notificationService.aviso(
+        'Atenção',
+        'A cozinha já começou a preparar. Não é possível alterar.',
+      );
+      return;
+    }
+
+    // Dá o "crachá" para o cliente poder entrar no cardápio de novo
+    sessionStorage.setItem('filacerta_modo_edicao', 'true');
+
+    // Leva ele de volta pro cardápio!
+    this.router.navigate(['/cliente/cardapio']);
+  }
+
+  fazerNovoPedido(): void {
+    // Apaga absolutamente tudo do pedido antigo
+    localStorage.removeItem('filacerta_pedido_ativo');
+    sessionStorage.removeItem('filacerta_modo_edicao');
+
+    // Redireciona para um cardápio limpo
+    this.router.navigate(['/cliente/cardapio']);
   }
 }

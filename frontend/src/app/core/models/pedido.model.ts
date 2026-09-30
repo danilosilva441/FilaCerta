@@ -36,3 +36,7 @@ export interface PedidoResponse {
   codigoAcompanhamento: string;
   itens: ItemPedidoResponse[];
 }
+
+export interface AtualizarPedidoRequest {
+  itens: ItemPedidoRequest[];
+}

@@ -1,13 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { CriarPedidoRequest, PedidoResponse } from '../models/pedido.model';
+import { AtualizarPedidoRequest, CriarPedidoRequest, PedidoResponse } from '../models/pedido.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PedidoService {
-  private apiUrl = '/api/pedidos';
+  private readonly apiUrl = environment.apiUrl + '/pedidos';
 
   constructor(private http: HttpClient) {}
 
@@ -23,5 +24,9 @@ export class PedidoService {
   // Adicione este método junto com os outros (criarPedido, buscarPorId, etc)
   cancelarPedido(pedidoId: number): Observable<void> {
     return this.http.patch<void>(`${this.apiUrl}/${pedidoId}/cancelar`, {});
+  }
+
+  atualizarPedido(codigo: string, request: AtualizarPedidoRequest): Observable<PedidoResponse> {
+    return this.http.put<PedidoResponse>(`${this.apiUrl}/rastreio/${codigo}`, request);
   }
 }
