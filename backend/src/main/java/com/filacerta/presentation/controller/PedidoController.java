@@ -6,10 +6,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.filacerta.application.dto.request.AtualizarPedidoRequest;
 import com.filacerta.application.dto.request.CriarPedidoRequest;
 import com.filacerta.application.dto.response.PedidoResponse;
 import com.filacerta.application.service.PedidoService;
@@ -49,4 +51,16 @@ public class PedidoController {
         return ResponseEntity.ok().build();
     }
 	
+	@GetMapping("/rastreio/{codigo}")
+    public ResponseEntity<PedidoResponse> acompanharPedido(@PathVariable String codigo) {
+        return ResponseEntity.ok(pedidoService.buscarPorCodigo(codigo));
+    }
+	
+	@PutMapping("/rastreio/{codigo}")
+    public ResponseEntity<PedidoResponse> atualizarPedido(
+            @PathVariable String codigo, 
+            @RequestBody AtualizarPedidoRequest request) {
+            
+        return ResponseEntity.ok(pedidoService.atualizarPedido(codigo, request));
+    }
 }

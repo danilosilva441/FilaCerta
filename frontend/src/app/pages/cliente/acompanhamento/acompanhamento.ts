@@ -11,8 +11,8 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { Subject, Subscription } from 'rxjs';
+import { ActivatedRoute, RouterLink, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 
 import { PedidoResponse } from '../../../core/models/pedido.model';
 import { AudioService } from '../../../core/services/audio.service';
@@ -43,7 +43,6 @@ const TIMEOUT_REQ = 5000;
 })
 export class AcompanhamentoComponent implements OnInit, OnDestroy {
   // ====== Injeções ======
-  // ====== Injeções ======
   private readonly route = inject(ActivatedRoute);
   private readonly pedidoService = inject(PedidoService);
   private readonly modalService = inject(ModalService);
@@ -51,7 +50,8 @@ export class AcompanhamentoComponent implements OnInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef);
   private readonly audioService = inject(AudioService);
   private readonly websocketService = inject(WebsocketService);
-  private readonly cdr = inject(ChangeDetectorRef); // <-- ADICIONADO AQUI
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly router = inject(Router);
 
   // ====== Signals ======
   readonly pedido = signal<PedidoResponse | null>(null);
@@ -77,23 +77,20 @@ export class AcompanhamentoComponent implements OnInit, OnDestroy {
   });
 
   // ====== Controle interno ======
-  private pedidoId: number | null = null;
-  private readonly visibilidade$ = new Subject<boolean>();
+  // Mude de pedidoId (number) para codigoAcompanhamento (string)
+  private codigoAcompanhamento: string | null = null;
   private pedidoSubscription?: Subscription;
 
   // ====== Lifecycle ======
   ngOnInit(): void {
-    // Pegue o ID do pedido da URL (como você já deve estar fazendo)
-    const id = Number(this.route.snapshot.paramMap.get('id'));
+    // Leia 'codigo' da URL e remova a conversão Number()
+    const codigo = this.route.snapshot.paramMap.get('codigo');
 
-    if (id) {
-      this.pedidoId = id;
+    if (codigo) {
+      this.codigoAcompanhamento = codigo;
 
-      // 1. Busca o status atualizado do pedido assim que a tela abre
       this.carregarPedido();
 
-      // 2. Fica na escuta: Toda vez que a cozinha ou o caixa mexerem em QUALQUER pedido,
-      // o rádio toca e nós recarregamos os dados deste pedido instantaneamente.
       this.pedidoSubscription = this.websocketService.pedidos$.subscribe(() => {
         this.carregarPedido();
       });
@@ -101,18 +98,38 @@ export class AcompanhamentoComponent implements OnInit, OnDestroy {
   }
 
   carregarPedido(): void {
-    // 1. Resolve o erro de "number | null"
-    if (!this.pedidoId) return;
+    if (!this.codigoAcompanhamento) return;
 
-    this.pedidoService.buscarPorId(this.pedidoId).subscribe({
+    this.pedidoService.acompanharPedido(this.codigoAcompanhamento).subscribe({
       next: (pedido) => {
-        // 2. Resolve o erro de Signal Read-Only usando a sua função já pronta!
         this.processarAtualizacao(pedido);
-
-        // 3. O cdr agora existe e funciona perfeitamente
         this.cdr.detectChanges();
       },
-      error: (err) => console.error('Erro ao atualizar pedido:', err),
+      error: (err) => {
+        console.error('Erro ao atualizar pedido:', err);
+
+        // Se o Java disser que não encontrou (404) ou der erro de negócio (400)
+        if (err.status === 404 || err.status === 400 || err.status === 500) {
+          console.log('Pedido não existe mais no backend. Limpando aparelho...');
+
+          // 1. Apaga a lembrança do pedido fantasma
+          localStorage.removeItem('filacerta_pedido_ativo');
+
+          // 2. Avisa o cliente
+          this.notificationService.aviso(
+            'Atenção',
+            'Seu pedido foi finalizado ou não foi encontrado.',
+          );
+
+          // 3. Joga ele de volta pro cardápio para pedir de novo
+          this.router.navigate(['/']);
+        } else {
+          // Se for só a internet do celular que oscilou (status 0), não desloga ele
+          this.erroRede.set(true);
+          this.statusMensagem.set('Sem conexão. Tentando reconectar...');
+          this.cdr.detectChanges();
+        }
+      },
     });
   }
 
@@ -143,6 +160,11 @@ export class AcompanhamentoComponent implements OnInit, OnDestroy {
     // Pedido ficou servido (mesa)
     if (anterior?.status !== 'SERVIDO' && pedido.status === 'SERVIDO') {
       this.tocarAlerta();
+    }
+
+    // ---> NOVA REGRA: LIMPA O APARELHO SE O PEDIDO ACABOU <---
+    if (pedido.status === 'ENTREGUE' || pedido.status === 'CANCELADO') {
+      localStorage.removeItem('filacerta_pedido_ativo');
     }
   }
 

@@ -23,6 +23,7 @@ public class PedidoResponse {
     private BigDecimal valorTotal;
     private LocalDateTime dataHoraPedido;
     private List<ItemPedidoResponse> itens;
+    private String codigoAcompanhamento;
     
  // Adicione o campo:
     private String formaPagamento;

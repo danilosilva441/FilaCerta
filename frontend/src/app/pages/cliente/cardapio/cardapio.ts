@@ -2,8 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Subscription, timer } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 
 import { CriarPedidoRequest, ItemPedidoRequest } from '../../../core/models/pedido.model';
 import { Produto } from '../../../core/models/produto.model';
@@ -63,6 +62,15 @@ export class CardapioComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    // ---> NOVA LÓGICA REDIRECIONAMENTO IMEDIATO <---
+    const pedidoAtivo = localStorage.getItem('filacerta_pedido_ativo');
+    if (pedidoAtivo) {
+      // Leva o cliente de volta pra fila instantaneamente, sem perguntar!
+      this.router.navigate(['/cliente/acompanhamento', pedidoAtivo]);
+      return; // Para a execução do cardápio aqui
+    }
+
+    // Código original mantido
     this.isDono = this.authService.isDono();
 
     this.carregarCategorias();
@@ -265,7 +273,6 @@ export class CardapioComponent implements OnInit, OnDestroy {
         'Cozinha indisponível',
         'A cozinha foi pausada. Não é possível enviar o pedido.',
       );
-
       return;
     }
 
@@ -275,12 +282,10 @@ export class CardapioComponent implements OnInit, OnDestroy {
 
     if (!this.nomeCliente || this.nomeCliente.trim() === '') {
       this.tentouEnviar = true;
-
       this.notificationService.aviso(
         'Atenção',
         'Por favor, informe seu nome para chamarmos quando estiver pronto!',
       );
-
       return;
     }
 
@@ -295,30 +300,31 @@ export class CardapioComponent implements OnInit, OnDestroy {
 
     const request: CriarPedidoRequest = {
       nomeCliente: this.nomeCliente.trim(),
-
       tipo: this.tipoPedido,
-
       origem: this.isDono ? 'MANUAL' : 'QR_CODE',
-
       formaPagamento: this.formaPagamento,
-
       statusPagamento: this.isDono ? (this.jaPago ? 'PAGO' : 'AGUARDANDO') : 'AGUARDANDO',
-
       itens,
     };
 
     this.pedidoService.criarPedido(request).subscribe({
       next: (response) => {
+        // ---> MUDANÇA AQUI: SALVA O CÓDIGO SEGURO NO APARELHO <---
+        if (response.codigoAcompanhamento) {
+          localStorage.setItem('filacerta_pedido_ativo', response.codigoAcompanhamento);
+        }
+
         this.carrinho = [];
         this.nomeCliente = '';
         this.isProcessando = false;
         this.isCarrinhoAberto = false;
 
-        this.router.navigate(['/cliente/acompanhamento', response.id]);
+        // ---> MUDANÇA AQUI: NAVEGA USANDO O CÓDIGO EM VEZ DO ID <---
+        this.router.navigate(['/cliente/acompanhamento', response.codigoAcompanhamento]);
       },
 
       error: (err) => {
-        // Isso vai imprimir EXATAMENTE o que tem dentro do erro no console (F12)
+        // Tratamento de erros fantástico original mantido...
         console.error('Status do Erro:', err.status);
         console.log('Corpo do Erro (Payload):', err.error);
 
@@ -327,14 +333,11 @@ export class CardapioComponent implements OnInit, OnDestroy {
 
         if (err.error) {
           try {
-            // Garante que se for string, vira JSON. Se já for JSON, apenas usa.
             const erroFormatado = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
-
-            // Pega as chaves exatas que vimos no Postman
-            if (erroFormatado && erroFormatado.mensagem) {
+            if (erroFormatado?.mensagem) {
               mensagemDoBackend = erroFormatado.mensagem;
             }
-            if (erroFormatado && erroFormatado.erro) {
+            if (erroFormatado?.erro) {
               tituloDoBackend = erroFormatado.erro;
             }
           } catch (e) {
@@ -342,9 +345,7 @@ export class CardapioComponent implements OnInit, OnDestroy {
           }
         }
 
-        // Chama o balão vermelho
         this.notificationService.erro(tituloDoBackend, mensagemDoBackend);
-
         this.isProcessando = false;
         this.cdr.detectChanges();
       },

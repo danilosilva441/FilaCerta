@@ -100,6 +100,9 @@ public class Pedido {
 
 	@Enumerated(EnumType.STRING)
 	private FormaPagamento formaPagamento;
+	
+	@Column(name = "codigo_acompanhamento", unique = true)
+    private String codigoAcompanhamento;
 
 	// Não esqueça de gerar o Getter e Setter para formaPagamento!
 	public FormaPagamento getFormaPagamento() {

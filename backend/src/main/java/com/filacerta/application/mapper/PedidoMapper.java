@@ -15,7 +15,7 @@ import com.filacerta.domain.entity.Pedido;
 @Component
 public class PedidoMapper {
 
-    public static PedidoResponse toResponse(Pedido pedido) {
+	public static PedidoResponse toResponse(Pedido pedido) {
         if (pedido == null) return null;
 
         List<ItemPedidoResponse> itensResponse = pedido.getItens().stream()
@@ -35,6 +35,7 @@ public class PedidoMapper {
                 .formaPagamento(formaPag)
                 .valorTotal(pedido.getValorTotal())
                 .dataHoraPedido(pedido.getDataHoraPedido())
+                .codigoAcompanhamento(pedido.getCodigoAcompanhamento()) 
                 .itens(itensResponse)
                 .build();
     }

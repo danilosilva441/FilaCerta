@@ -1,15 +1,18 @@
 package com.filacerta.application.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.filacerta.application.dto.request.AtualizarPedidoRequest;
 import com.filacerta.application.dto.request.CriarPedidoRequest;
 import com.filacerta.application.dto.request.ItemPedidoRequest;
 import com.filacerta.application.dto.response.FilaCozinhaResponse;
@@ -25,6 +28,7 @@ import com.filacerta.domain.enums.StatusPagamento;
 import com.filacerta.domain.enums.StatusPedido;
 import com.filacerta.domain.exception.NegocioException;
 import com.filacerta.infrastructure.repository.PedidoRepository;
+import com.filacerta.infrastructure.repository.ProdutoRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -35,8 +39,11 @@ public class PedidoService {
 	private final PedidoRepository pedidoRepository;
 	private final ProdutoService produtoService;
 	private final CaixaDiarioService caixaDiarioService;
-	
+	private final ProdutoRepository produtoRepository;
+
 	private final SimpMessagingTemplate messagingTemplate;
+	
+
 
 	@Transactional
 	public PedidoResponse criarPedido(CriarPedidoRequest request) {
@@ -49,7 +56,7 @@ public class PedidoService {
 				throw new NegocioException("A cozinha está Pausada no momento. Não é possĩvel aceitar novos pedidos.");
 			}
 		}
-		
+
 		// 2. Instanciar pedido com dados básicos
 		Pedido pedido = new Pedido();
 		pedido.setNomeCliente(request.getNomeCliente());
@@ -78,6 +85,10 @@ public class PedidoService {
 		Integer maxNumero = pedidoRepository.findMaxNumeroByData(inicioDoDia, fimDoDia).orElse(0);
 		pedido.setNumero(maxNumero + 1);
 
+		// GERA UM CÓDIGO ÚNICO DE 8 LETRAS/NÚMEROS (Ex: 8F3A2B19)
+		String codigo = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+		pedido.setCodigoAcompanhamento(codigo);
+
 		// 4. Processar Itens e Baixar Estoque
 		for (ItemPedidoRequest itemReq : request.getItens()) {
 			Produto produto = produtoService.buscarPorId(itemReq.getProdutoId());
@@ -105,10 +116,18 @@ public class PedidoService {
 		Pedido pedidoSalvo = pedidoRepository.save(pedido);
 
 		// AVISA A COZINHA E O CAIXA: "Chegou um pedido novo!"
-        messagingTemplate.convertAndSend("/topic/pedidos", "ATUALIZOU");
-		
+		messagingTemplate.convertAndSend("/topic/pedidos", "ATUALIZOU");
+
 		// 6. Retornar DTO de resposta
 		return PedidoMapper.toResponse(pedidoSalvo);
+	}
+
+	// NOVO MÉTODO PARA BUSCAR PELO CÓDIGO (Em vez do ID sequencial)
+	@Transactional(readOnly = true)
+	public PedidoResponse buscarPorCodigo(String codigo) {
+		Pedido pedido = pedidoRepository.findByCodigoAcompanhamento(codigo)
+				.orElseThrow(() -> new NegocioException("Pedido não encontrado."));
+		return PedidoMapper.toResponse(pedido);
 	}
 
 	@Transactional(readOnly = true)
@@ -166,7 +185,7 @@ public class PedidoService {
 		}
 
 		messagingTemplate.convertAndSend("/topic/pedidos", "ATUALIZOU");
-		
+
 		pedidoRepository.save(pedido);
 	}
 
@@ -179,18 +198,16 @@ public class PedidoService {
 	}
 
 	@Transactional(readOnly = true)
-    public List<PedidoResponse> listarPedidoPagamentoPendente() {
-        return pedidoRepository.findAll().stream()
-                // ---> A MÁGICA AQUI: Filtra e expulsa os cancelados da lista! <---
-                .filter(p -> p.getStatus() != StatusPedido.CANCELADO)
-                
-                .filter(p -> p.getStatusPagamento() == StatusPagamento.AGUARDANDO 
-                          || p.getStatus() == StatusPedido.PRONTO 
-                          || p.getStatus() == StatusPedido.SERVIDO)
-                .sorted(Comparator.comparing(Pedido::getDataHoraPedido).reversed())
-                .map(PedidoMapper::toResponse)
-                .collect(Collectors.toList());
-    }
+	public List<PedidoResponse> listarPedidoPagamentoPendente() {
+		return pedidoRepository.findAll().stream()
+				// ---> A MÁGICA AQUI: Filtra e expulsa os cancelados da lista! <---
+				.filter(p -> p.getStatus() != StatusPedido.CANCELADO)
+
+				.filter(p -> p.getStatusPagamento() == StatusPagamento.AGUARDANDO
+						|| p.getStatus() == StatusPedido.PRONTO || p.getStatus() == StatusPedido.SERVIDO)
+				.sorted(Comparator.comparing(Pedido::getDataHoraPedido).reversed()).map(PedidoMapper::toResponse)
+				.collect(Collectors.toList());
+	}
 
 	@Transactional
 	public void atualizarStatusPagamento(Long pedidoId, StatusPagamento novoStatus) {
@@ -199,7 +216,7 @@ public class PedidoService {
 
 		pedido.setStatusPagamento(novoStatus);
 		pedidoRepository.save(pedido);
-		
+
 		messagingTemplate.convertAndSend("/topic/pedidos", "ATUALIZOU");
 	}
 
@@ -233,7 +250,7 @@ public class PedidoService {
 		}
 
 		pedidoRepository.save(pedido);
-		
+
 		messagingTemplate.convertAndSend("/topic/pedidos", "ATUALIZOU");
 	}
 
@@ -242,7 +259,14 @@ public class PedidoService {
 		Pedido pedido = pedidoRepository.findById(pedidoId)
 				.orElseThrow(() -> new NegocioException("Pedido não encontrado: " + pedidoId));
 
-		// Trava de segurança: só devolve se o pedido ainda não estiver cancelado
+		// ---> NOVA TRAVA DE SEGURANÇA: Bloqueia se a cozinha já tocou no pedido <---
+		if (pedido.getStatus() == StatusPedido.PREPARANDO || pedido.getStatus() == StatusPedido.PRONTO
+				|| pedido.getStatus() == StatusPedido.SERVIDO) {
+			throw new NegocioException("A cozinha já iniciou o preparo. Não é possível cancelar o pedido.");
+		}
+
+		// Trava de segurança original: só devolve se o pedido ainda não estiver
+		// cancelado
 		if (pedido.getStatus() != StatusPedido.CANCELADO) {
 
 			// Varre todos os itens do pedido para devolver ao estoque
@@ -261,7 +285,67 @@ public class PedidoService {
 
 		pedido.setStatus(StatusPedido.CANCELADO);
 		pedidoRepository.save(pedido);
-		
+
 		messagingTemplate.convertAndSend("/topic/pedidos", "ATUALIZOU");
+	}
+	
+	@Transactional
+	public PedidoResponse atualizarPedido(String codigo, AtualizarPedidoRequest request) {
+		Pedido pedido = pedidoRepository.findByCodigoAcompanhamento(codigo)
+				.orElseThrow(() -> new NegocioException("Pedido não encontrado."));
+
+		// ---> TRAVA DE STATUS (Verifique se o seu Enum usa "AGUARDANDO" ou "PENDENTE")
+		// Se o seu enum de status do pedido usa outro valor, ajuste aqui (ex: StatusPedido.AGUARDANDO_PAGAMENTO)
+		if (pedido.getStatus() != StatusPedido.AGUARDANDO) {
+			throw new NegocioException("O pedido já está em preparo e não pode ser alterado.");
+		}
+
+		// 1. Devolve o estoque dos itens antigos
+		for (ItemPedido item : pedido.getItens()) {
+			Produto produto = item.getProduto();
+			if (produto.getQuantidadeDisponivel() != null) {
+				produto.setQuantidadeDisponivel(produto.getQuantidadeDisponivel() + item.getQuantidade());
+			}
+		}
+
+		// 2. Limpa a lista antiga (o orphanRemoval remove do banco)
+		pedido.getItens().clear();
+
+		// 3. Processa os novos itens (usando getProdutoId(), getQuantidade() e getObservacaoItem())
+		BigDecimal valorTotal = BigDecimal.ZERO;
+		for (var itemReq : request.itens()) {
+			// Usando o seu repositório padrão de produtos (produtoRepository ou o que já injetou na classe)
+			Produto produto = produtoRepository.findById(itemReq.getProdutoId())
+					.orElseThrow(() -> new NegocioException("Produto não encontrado."));
+
+			// Baixa no estoque dos novos
+			if (produto.getQuantidadeDisponivel() != null) {
+				if (produto.getQuantidadeDisponivel() < itemReq.getQuantidade()) {
+					throw new NegocioException("Estoque insuficiente para o produto: " + produto.getNome());
+				}
+				produto.setQuantidadeDisponivel(produto.getQuantidadeDisponivel() - itemReq.getQuantidade());
+			}
+
+			ItemPedido novoItem = new ItemPedido();
+			novoItem.setPedido(pedido);
+			novoItem.setProduto(produto);
+			novoItem.setQuantidade(itemReq.getQuantidade());
+			novoItem.setPrecoUnitario(produto.getPreco());
+			novoItem.setObservacaoItem(itemReq.getObservacaoItem());
+			novoItem.setStatus(StatusItemPedido.AGUARDANDO);
+
+			pedido.getItens().add(novoItem);
+			valorTotal = valorTotal.add(produto.getPreco().multiply(new BigDecimal(itemReq.getQuantidade())));
+		}
+
+		// Atualiza o valor final da conta
+		pedido.setValorTotal(valorTotal);
+		pedidoRepository.save(pedido);
+
+		// Avisa a cozinha e o caixa via WebSocket
+		messagingTemplate.convertAndSend("/topic/pedidos", "ATUALIZOU");
+		messagingTemplate.convertAndSend("/topic/caixa", "ATUALIZOU");
+
+		return PedidoMapper.toResponse(pedido);
 	}
 }

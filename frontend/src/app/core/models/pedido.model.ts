@@ -30,8 +30,9 @@ export interface PedidoResponse {
   tipo: 'LEVAR' | 'COMER_AQUI';
   status: string;
   statusPagamento: string;
-  formaPagamento: 'PIX' | 'CARTAO' | 'DINHEIRO' | 'NAO_INFORMADO'; // <-- NOVO
+  formaPagamento: 'PIX' | 'CARTAO' | 'DINHEIRO' | 'NAO_INFORMADO';
   valorTotal: number;
   dataHoraPedido: string;
+  codigoAcompanhamento: string;
   itens: ItemPedidoResponse[];
 }

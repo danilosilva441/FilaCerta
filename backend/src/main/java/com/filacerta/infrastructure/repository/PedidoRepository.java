@@ -18,4 +18,8 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
     Optional<Integer> findMaxNumeroByData(@Param("inicioDoDia") LocalDateTime inicioDoDia, @Param("fimDoDia") LocalDateTime fimDoDia);
     
     List<Pedido> findByCaixaDiarioId(Long caixaId);
+    
+    Optional<Pedido> findByCodigoAcompanhamento(String codigoAcompanhamento);
+    
+    
 }

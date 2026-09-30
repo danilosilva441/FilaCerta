@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { CriarPedidoRequest, PedidoResponse } from '../models/pedido.model';
 
@@ -15,9 +15,11 @@ export class PedidoService {
     return this.http.post<PedidoResponse>(this.apiUrl, request);
   }
 
-  buscarPorId(id: number): Observable<PedidoResponse> {
-    return this.http.get<PedidoResponse>(`${this.apiUrl}/${id}`);
+  // Em vez de buscarPorId, mude para:
+  acompanharPedido(codigo: string): Observable<PedidoResponse> {
+    return this.http.get<PedidoResponse>(`${this.apiUrl}/rastreio/${codigo}`);
   }
+
   // Adicione este método junto com os outros (criarPedido, buscarPorId, etc)
   cancelarPedido(pedidoId: number): Observable<void> {
     return this.http.patch<void>(`${this.apiUrl}/${pedidoId}/cancelar`, {});

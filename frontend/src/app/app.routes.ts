@@ -17,7 +17,7 @@ export const routes: Routes = [
       import('./pages/cliente/cardapio/cardapio').then((m) => m.CardapioComponent),
   },
   {
-    path: 'cliente/acompanhamento/:id',
+    path: 'cliente/acompanhamento/:codigo', // Acompanhamento de pedido
     loadComponent: () =>
       import('./pages/cliente/acompanhamento/acompanhamento').then(
         (m) => m.AcompanhamentoComponent,
