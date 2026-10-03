@@ -47,6 +47,7 @@ export class CardapioComponent implements OnInit, OnDestroy {
   isCarrinhoAberto = false;
   tentouEnviar = false;
   cozinhaDisponivel = false;
+  isModoAcrescimo = false;
 
   private monitoramentoSubscription?: Subscription;
   private pedidoSubscription?: Subscription;
@@ -66,26 +67,37 @@ export class CardapioComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const pedidoAtivo = localStorage.getItem('filacerta_pedido_ativo');
 
-    // ---> CORREÇÃO AQUI: Se não tem pedido, garante que não está em modo edição
+    // Se não tem pedido, faz a faxina e rasga os crachás antigos
     if (!pedidoAtivo) {
       sessionStorage.removeItem('filacerta_modo_edicao');
+      sessionStorage.removeItem('filacerta_modo_acrescimo');
     }
 
     const modoEdicao = sessionStorage.getItem('filacerta_modo_edicao');
-    this.isModoEdicao = !!modoEdicao;
+    const modoAcrescimo = sessionStorage.getItem('filacerta_modo_acrescimo');
 
-    // Se tem pedido ativo, mas NÃO está no modo edição, expulsa pra fila!
-    if (pedidoAtivo && !modoEdicao) {
-      this.router.navigate(['/cliente/acompanhamento', pedidoAtivo]);
+    this.isModoEdicao = !!modoEdicao;
+    this.isModoAcrescimo = !!modoAcrescimo;
+
+    // Se ele tem pedido, mas NÃO está editando E NÃO está acrescentando, expulsa pra fila!
+    if (pedidoAtivo && !modoEdicao && !modoAcrescimo) {
+      void this.router.navigate(['/cliente/acompanhamento', pedidoAtivo]);
       return;
     }
 
-    // Se ele está editando, carrega os lanches e vigia a cozinha!
+    // Se for modo edição, carrega o lanche antigo
     if (pedidoAtivo && modoEdicao) {
       this.carregarCarrinhoParaEdicao(pedidoAtivo);
       this.iniciarMonitoramentoPedido(pedidoAtivo);
     }
 
+    // Se for acréscimo, puxa o nome do cliente em silêncio e deixa o carrinho limpo
+    else if (pedidoAtivo && modoAcrescimo) {
+      this.prepararAcrescimo(pedidoAtivo);
+      this.iniciarMonitoramentoPedido(pedidoAtivo);
+    }
+
+    // Código original mantido
     this.isDono = this.authService.isDono();
     this.carregarCategorias();
     this.carregarProdutos();
@@ -130,6 +142,30 @@ export class CardapioComponent implements OnInit, OnDestroy {
     });
   }
 
+  private prepararAcrescimo(codigo: string): void {
+    this.pedidoService.acompanharPedido(codigo).subscribe({
+      next: (pedidoAntigo) => {
+        // Puxa o nome e as preferências do banco de dados (o cliente não precisa digitar!)
+        this.nomeCliente = pedidoAntigo.nomeCliente;
+        this.tipoPedido = pedidoAntigo.tipo as any;
+        this.formaPagamento = pedidoAntigo.formaPagamento as any;
+
+        // NOTA: Não preenchemos o this.carrinho aqui de propósito!
+
+        this.notificationService.sucesso(
+          'Conta Aberta',
+          'Escolha o que deseja adicionar à sua mesa!',
+        );
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        sessionStorage.removeItem('filacerta_modo_acrescimo');
+        localStorage.removeItem('filacerta_pedido_ativo');
+        void this.router.navigate(['/']);
+      },
+    });
+  }
+
   iniciarMonitoramentoCaixa(): void {
     this.atualizarStatusCaixa();
     this.monitoramentoSubscription = this.websocketService.caixa$.subscribe(() => {
@@ -159,7 +195,7 @@ export class CardapioComponent implements OnInit, OnDestroy {
         }
 
         if (!disponivel) {
-          this.router.navigate(['/']);
+          void this.router.navigate(['/']);
         }
       },
       error: (err) => console.error('Erro ao verificar disponibilidade', err),
@@ -292,9 +328,10 @@ export class CardapioComponent implements OnInit, OnDestroy {
     }));
 
     const modoEdicao = sessionStorage.getItem('filacerta_modo_edicao');
+    const modoAcrescimo = sessionStorage.getItem('filacerta_modo_acrescimo'); // <-- ADICIONADO AQUI
     const codigoAtivo = localStorage.getItem('filacerta_pedido_ativo');
 
-    // MODO EDIÇÃO (PUT)
+    // 1. MODO EDIÇÃO (PUT) - Substitui os itens
     if (modoEdicao && codigoAtivo) {
       const updateRequest: AtualizarPedidoRequest = { itens };
 
@@ -306,7 +343,19 @@ export class CardapioComponent implements OnInit, OnDestroy {
         error: (err) => this.tratarErroBackend(err),
       });
 
-      // MODO NOVO PEDIDO (POST)
+      // 2. MODO ACRÉSCIMO (POST) - Soma novos itens à conta existente <-- NOVO BLOCO
+    } else if (modoAcrescimo && codigoAtivo) {
+      const addRequest: AtualizarPedidoRequest = { itens };
+
+      this.pedidoService.adicionarItensAoPedido(codigoAtivo, addRequest).subscribe({
+        next: (response) => {
+          sessionStorage.removeItem('filacerta_modo_acrescimo');
+          this.finalizarEnvio(response.codigoAcompanhamento);
+        },
+        error: (err) => this.tratarErroBackend(err),
+      });
+
+      // 3. MODO NOVO PEDIDO (POST) - Começa do zero
     } else {
       const request: CriarPedidoRequest = {
         nomeCliente: this.nomeCliente.trim(),
@@ -336,7 +385,7 @@ export class CardapioComponent implements OnInit, OnDestroy {
     this.nomeCliente = '';
     this.isProcessando = false;
     this.isCarrinhoAberto = false;
-    this.router.navigate(['/cliente/acompanhamento', codigoAcompanhamento]);
+    void this.router.navigate(['/cliente/acompanhamento', codigoAcompanhamento]);
   }
 
   private tratarErroBackend(err: any): void {
@@ -362,7 +411,7 @@ export class CardapioComponent implements OnInit, OnDestroy {
 
     if (modoEdicao && codigoAtivo) {
       sessionStorage.removeItem('filacerta_modo_edicao');
-      this.router.navigate(['/cliente/acompanhamento', codigoAtivo]);
+      void this.router.navigate(['/cliente/acompanhamento', codigoAtivo]);
     }
   }
 
@@ -376,11 +425,13 @@ export class CardapioComponent implements OnInit, OnDestroy {
       return;
     }
     this.isCarrinhoAberto = true;
+    this.etapaAtual = 1; // Reseta para a primeira etapa do wizard
   }
 
   fecharCarrinho(): void {
     this.isCarrinhoAberto = false;
     this.tentouEnviar = false;
+    this.etapaAtual = 1; // Reseta para a primeira etapa do wizard
   }
 
   permiteObservacao(produto: Produto): boolean {
@@ -403,7 +454,7 @@ export class CardapioComponent implements OnInit, OnDestroy {
             );
 
             sessionStorage.removeItem('filacerta_modo_edicao'); // Tira o crachá
-            this.router.navigate(['/cliente/acompanhamento', codigo]); // Leva para a tela de rastreio
+            void this.router.navigate(['/cliente/acompanhamento', codigo]); // Leva para a tela de rastreio
           }
         },
         error: (err) => {
@@ -411,10 +462,29 @@ export class CardapioComponent implements OnInit, OnDestroy {
           if (err.status === 404 || err.status === 400 || err.status === 500) {
             sessionStorage.removeItem('filacerta_modo_edicao');
             localStorage.removeItem('filacerta_pedido_ativo');
-            this.router.navigate(['/']);
+            void this.router.navigate(['/']);
           }
         },
       });
     });
+  }
+
+  // ============================================================
+  // CONTROLE DE ETAPAS DO CARRINHO (Wizard)
+  // 1 = Itens | 2 = Identificação
+  // ============================================================
+  etapaAtual: 1 | 2 = 1;
+
+  // Métodos auxiliares (só para o wizard, nada de negócio)
+  proximaEtapa(): void {
+    if (this.etapaAtual === 1) {
+      this.etapaAtual = 2;
+    }
+  }
+
+  voltarEtapa(): void {
+    if (this.etapaAtual === 2) {
+      this.etapaAtual = 1;
+    }
   }
 }

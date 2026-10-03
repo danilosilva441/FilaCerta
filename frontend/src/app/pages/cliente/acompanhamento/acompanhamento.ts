@@ -11,7 +11,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { PedidoResponse } from '../../../core/models/pedido.model';
@@ -23,10 +23,10 @@ import { WebsocketService } from '../../../core/services/websocket.service';
 
 const MENSAGENS: Record<string, string> = {
   RECEBIDO: 'Pedido recebido! Aguardando preparo...',
-  PREPARANDO: 'A chapa tá quente! Seu pedido está sendo preparado.',
-  PRONTO: '✅ Seu pedido está PRONTO! Pode retirar no balcão.',
-  SERVIDO: '🍽️ Pedido na mesa! Bom apetite.',
-  ENTREGUE: 'Pedido entregue. Bom apetite! 🍔',
+  PREPARANDO: 'Seu pedido está sendo preparado.',
+  PRONTO: 'Seu pedido está PRONTO! Pode retirar.',
+  SERVIDO: 'Bom apetite.',
+  ENTREGUE: 'Pedido entregue. Bom apetite! Obrigado pela preferência.',
   CANCELADO: 'Pedido cancelado.',
 };
 
@@ -37,8 +37,9 @@ const TIMEOUT_REQ = 5000;
 @Component({
   selector: 'app-acompanhamento',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule],
   templateUrl: './acompanhamento.html',
+  styleUrls: ['./acompanhamento.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AcompanhamentoComponent implements OnInit, OnDestroy {
@@ -71,10 +72,14 @@ export class AcompanhamentoComponent implements OnInit, OnDestroy {
     return status === 'AGUARDANDO' || status === 'RECEBIDO';
   });
 
-  readonly mostrarNovoPedido = computed(() => {
-    const status = this.pedido()?.status;
-    return status === 'ENTREGUE' || status === 'SERVIDO' || status === 'CANCELADO';
-  });
+  mostrarNovoPedido(): boolean {
+    const p = this.pedido();
+    if (!p) return false;
+
+    // Só permite largar esta tela e fazer um novo pedido se a conta atual
+    // já foi totalmente finalizada e paga (ENTREGUE) ou se foi CANCELADA.
+    return p.status === 'ENTREGUE' || p.status === 'CANCELADO';
+  }
 
   // ====== Controle interno ======
   // Mude de pedidoId (number) para codigoAcompanhamento (string)
@@ -122,7 +127,7 @@ export class AcompanhamentoComponent implements OnInit, OnDestroy {
           );
 
           // 3. Joga ele de volta pro cardápio para pedir de novo
-          this.router.navigate(['/cliente/cardapio']);
+          void this.router.navigate(['/cliente/cardapio']);
         } else {
           // Se for só a internet do celular que oscilou (status 0), não desloga ele
           this.erroRede.set(true);
@@ -225,15 +230,22 @@ export class AcompanhamentoComponent implements OnInit, OnDestroy {
   }
 
   getCorCirculo(status: string): string {
-    const mapa: Record<string, string> = {
-      RECEBIDO: 'bg-yellow-100 text-yellow-600',
-      PREPARANDO: 'bg-orange-100 text-orange-600 animate-bounce',
-      PRONTO: 'bg-green-100 text-green-600 scale-110 shadow-green-200',
-      SERVIDO: 'bg-green-100 text-green-600 scale-110 shadow-green-200',
-      ENTREGUE: 'bg-blue-100 text-blue-600',
-      CANCELADO: 'bg-red-100 text-red-600',
-    };
-    return mapa[status] ?? 'bg-gray-100 text-gray-500';
+    switch (status) {
+      case 'RECEBIDO':
+        return 'circle-recebido';
+      case 'PREPARANDO':
+        return 'circle-preparando';
+      case 'PRONTO':
+        return 'circle-pronto';
+      case 'SERVIDO':
+        return 'circle-servido';
+      case 'ENTREGUE': // ← ADICIONAR ESTE
+        return 'circle-entregue';
+      case 'CANCELADO':
+        return 'circle-cancelado';
+      default:
+        return 'circle-neutro';
+    }
   }
 
   editarPedido(): void {
@@ -250,7 +262,7 @@ export class AcompanhamentoComponent implements OnInit, OnDestroy {
     sessionStorage.setItem('filacerta_modo_edicao', 'true');
 
     // Leva ele de volta pro cardápio!
-    this.router.navigate(['/cliente/cardapio']);
+    void this.router.navigate(['/cliente/cardapio']);
   }
 
   fazerNovoPedido(): void {
@@ -259,6 +271,12 @@ export class AcompanhamentoComponent implements OnInit, OnDestroy {
     sessionStorage.removeItem('filacerta_modo_edicao');
 
     // Redireciona para um cardápio limpo
-    this.router.navigate(['/cliente/cardapio']);
+    void this.router.navigate(['/cliente/cardapio']);
+  }
+
+  adicionarMaisItens(): void {
+    // Dá o crachá avisando que é um acréscimo de conta
+    sessionStorage.setItem('filacerta_modo_acrescimo', 'true');
+    void this.router.navigate(['/cliente/cardapio']);
   }
 }

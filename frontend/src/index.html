@@ -1,40 +1,54 @@
 <!doctype html>
-<html lang="pt-BR"> <!-- 1. Alterado para o idioma correto -->
+<html lang="pt-BR">
+  <!-- 1. Alterado para o idioma correto -->
 
-<head>
-  <meta charset="utf-8" />
-  <title>Bora Rochedo</title>
-  <base href="/" />
+  <head>
+    <meta charset="utf-8" />
+    <title>Bora Rochedo</title>
+    <base href="/" />
 
-  <!-- 2. A TAG MAIS IMPORTANTE PARA MOBILE -->
-  <!--
+    <!-- 2. A TAG MAIS IMPORTANTE PARA MOBILE -->
+    <!--
     - user-scalable=no: Impede o usuário de dar "pinça" para dar zoom (comportamento de app)
     - viewport-fit=cover: Obriga a tela a ignorar o Notch do iPhone (permitindo que o nosso CSS safe-area funcione)
   -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
 
-  <!-- 3. Configurações de Aplicativo (PWA / iOS) -->
-  <meta name="theme-color" content="#dc2626">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> <!-- Deixa a barra de bateria do iOS transparente/integrada -->
-  <meta name="apple-mobile-web-app-title" content="Bora Rochedo">
+    <!-- 3. Configurações de Aplicativo (PWA / iOS) -->
+    <meta name="theme-color" content="#dc2626" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <!-- Deixa a barra de bateria do iOS transparente/integrada -->
+    <meta name="apple-mobile-web-app-title" content="Bora Rochedo" />
 
-  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
-  <!-- Preconnect para carregar as fontes mais rápido -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Preconnect para carregar as fontes mais rápido -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-  <!-- 4. Correção da Fonte -->
-  <!-- Troquei a Roboto pela Inter, que é a fonte que você definiu no tailwind.config.js -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <!-- 4. Correção da Fonte -->
+    <!-- Troquei a Roboto pela Inter, que é a fonte que você definiu no tailwind.config.js -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
 
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
-</head>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
 
-<body class="antialiased">
-  <app-root></app-root>
-</body>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+  </head>
 
+  <body class="antialiased">
+    <app-root></app-root>
+  </body>
 </html>

@@ -47,6 +47,7 @@ type AbaAtiva = 'BALCAO' | 'FINANCEIRO';
   standalone: true,
   imports: [CommonModule, DecimalPipe, FormsModule],
   templateUrl: './painel-caixa.html',
+  styleUrls: ['./painel-caixa.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PainelCaixaComponent implements OnInit, OnDestroy {
@@ -311,5 +312,16 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
           this.notificationService.erro('Erro', 'Não foi possível alterar o status da cozinha.');
         },
       });
+  }
+  // ============================================================
+  // VISIBILIDADE DOS VALORES (Financeiro)
+  // true = valores visíveis (padrão) | false = ocultos
+  // ============================================================
+  valoresVisiveis = signal<boolean>(localStorage.getItem('filacerta_valores_visiveis') !== 'false');
+
+  toggleVisibilidadeValores(): void {
+    const novoEstado = !this.valoresVisiveis();
+    this.valoresVisiveis.set(novoEstado);
+    localStorage.setItem('filacerta_valores_visiveis', String(novoEstado));
   }
 }

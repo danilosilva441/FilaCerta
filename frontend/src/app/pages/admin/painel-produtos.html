@@ -1,206 +1,308 @@
-<div class="min-h-screen bg-gray-100 p-4 sm:p-6 pb-24 font-sans">
-  <div class="max-w-7xl mx-auto">
-    <!-- HEADER -->
-    <header
-      class="bg-gray-900 text-white p-5 rounded-2xl mb-6 shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
-    >
-      <div class="flex items-center gap-4">
-        <div class="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center text-2xl">
-          📦
+<!-- ============================================================
+     ESTOQUE E CARDÁPIO
+     ============================================================ -->
+<div class="estoque-page">
+  <div class="estoque-inner">
+    <!-- =========================
+         HEADER
+         ========================= -->
+    <header class="estoque-header">
+      <div class="estoque-header-brand">
+        <div class="estoque-header-logo" aria-hidden="true">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="w-6 h-6"
+          >
+            <path
+              d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+            ></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+          </svg>
         </div>
-        <div>
-          <h1 class="text-2xl font-black">Estoque e Cardápio</h1>
-          <p class="text-gray-400 text-sm">Gerencie os produtos da sua loja</p>
+
+        <div class="min-w-0">
+          <h1 class="estoque-titulo">Estoque e Cardápio</h1>
+          <p class="estoque-subtitulo">Gerencie os produtos da sua loja</p>
         </div>
       </div>
-      <button
-        (click)="abrirModalNovo()"
-        class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-md transition-all active:scale-95 w-full sm:w-auto justify-center"
-      >
-        <span>➕</span> Adicionar Produto
+
+      <button (click)="abrirModalNovo()" class="estoque-btn-add">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="w-4 h-4"
+          aria-hidden="true"
+        >
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Adicionar Produto
       </button>
     </header>
 
-    <!-- LISTAGEM DE PRODUTOS -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+    <!-- =========================
+         LISTA DE PRODUTOS
+         ========================= -->
+    <div class="estoque-grid">
       @for (produto of produtos(); track produto.id) {
         <article
-          class="rounded-2xl p-5 shadow-sm border flex flex-col gap-3 relative overflow-hidden transition-all hover:shadow-md"
-          [ngClass]="
+          class="produto-card"
+          [class.produto-card-indisponivel]="
             !produto.disponivel || produto.quantidadeDisponivel === 0
-              ? 'bg-gray-100 border-gray-300'
-              : 'bg-white border-gray-200'
           "
         >
-          <!-- Faixa Lateral -->
+          <!-- Faixa lateral -->
           <div
-            class="absolute left-0 top-0 bottom-0 w-1.5"
-            [ngClass]="produto.disponivel ? 'bg-green-500' : 'bg-red-500'"
+            class="produto-card-faixa"
+            [ngClass]="produto.disponivel ? 'bg-success' : 'bg-danger'"
           ></div>
 
-          <!-- Topo do Card -->
-          <div class="flex justify-between items-start pl-3">
-            <div>
-              <span
-                class="text-[10px] font-bold text-primary-700 bg-primary-50 px-2 py-1 rounded-md uppercase tracking-wider"
-              >
+          <!-- Topo -->
+          <div class="produto-card-top">
+            <div class="min-w-0 flex-1">
+              <span class="produto-card-categoria">
                 {{ produto.categoria?.nome || produto.categoria }}
               </span>
-              <h3 class="font-black text-gray-800 text-lg mt-2 leading-tight">
-                {{ produto.nome }}
-              </h3>
+              <h3 class="produto-card-nome">{{ produto.nome }}</h3>
             </div>
-            <div class="text-right flex-shrink-0">
-              <span class="block font-black text-xl text-primary-600"
-                >R$ {{ produto.preco | number: '1.2-2' }}</span
-              >
-              <span class="text-xs font-bold text-gray-400"
-                >⏱️ {{ produto.tempoPreparoMinutos }}m</span
-              >
+
+            <div class="produto-card-preco-wrap">
+              <span class="produto-card-preco"> R$ {{ produto.preco | number: '1.2-2' }} </span>
+              <span class="produto-card-tempo">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="w-3 h-3"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                {{ produto.tempoPreparoMinutos }}m
+              </span>
             </div>
           </div>
 
-          <p class="text-sm text-gray-500 line-clamp-2 pl-3 flex-1">
+          <!-- Descrição -->
+          <p class="produto-card-descricao">
             {{ produto.descricao || 'Sem descrição.' }}
           </p>
 
-          <!-- Status de Estoque -->
-          <div class="pl-3 py-3 border-t border-gray-100 flex items-center justify-between">
-            <div class="flex items-center gap-2">
+          <!-- Status + Switch -->
+          <div class="produto-card-status">
+            <div class="produto-card-badges">
               @if (!produto.disponivel) {
-                <span class="bg-red-100 text-red-700 px-2 py-1 rounded-md font-bold text-xs"
-                  >Pausado</span
-                >
+                <span class="produto-badge produto-badge-danger"> Pausado </span>
               } @else if (produto.quantidadeDisponivel === 0) {
-                <span class="bg-red-100 text-red-700 px-2 py-1 rounded-md font-bold text-xs"
-                  >Sem Estoque</span
-                >
+                <span class="produto-badge produto-badge-danger"> Sem Estoque </span>
               } @else if (produto.quantidadeDisponivel != null) {
-                <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-md font-bold text-xs"
-                  >Estoque: {{ produto.quantidadeDisponivel }}</span
-                >
+                <span class="produto-badge produto-badge-warning">
+                  Estoque: {{ produto.quantidadeDisponivel }}
+                </span>
               } @else {
-                <span class="bg-green-100 text-green-700 px-2 py-1 rounded-md font-bold text-xs"
-                  >Infinito</span
-                >
+                <span class="produto-badge produto-badge-success"> Infinito </span>
               }
             </div>
 
-            <!-- Switch Rápido (Disponível/Indisponível) -->
-            <label class="relative inline-flex items-center cursor-pointer">
+            <!-- Switch disponibilidade -->
+            <label
+              class="estoque-switch"
+              [attr.aria-label]="'Alternar disponibilidade de ' + produto.nome"
+            >
               <input
                 type="checkbox"
                 class="sr-only peer"
                 [checked]="produto.disponivel"
                 (change)="alternarDisponibilidade(produto)"
               />
-              <div
-                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"
-              ></div>
+              <div class="estoque-switch-track"></div>
             </label>
           </div>
 
           <!-- Ações -->
-          <div class="grid grid-cols-2 gap-2 mt-auto pl-3">
-            <button
-              (click)="abrirModalEdicao(produto)"
-              class="py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
-            >
-              ✏️ Editar
+          <div class="produto-card-actions">
+            <button (click)="abrirModalEdicao(produto)" class="produto-btn produto-btn-editar">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-4 h-4"
+                aria-hidden="true"
+              >
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+              Editar
             </button>
-            <button
-              (click)="excluirProduto(produto)"
-              class="py-2.5 text-red-500 hover:bg-red-50 font-bold rounded-lg text-sm transition-colors border border-transparent hover:border-red-200"
-            >
-              🗑️ Excluir
+
+            <button (click)="excluirProduto(produto)" class="produto-btn produto-btn-excluir">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-4 h-4"
+                aria-hidden="true"
+              >
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                <path d="M10 11v6"></path>
+                <path d="M14 11v6"></path>
+                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+              </svg>
+              Excluir
             </button>
           </div>
         </article>
       }
 
       @if (produtos().length === 0) {
-        <div
-          class="col-span-full py-20 text-center text-gray-400 bg-white rounded-2xl border border-dashed border-gray-300"
-        >
-          <span class="text-5xl">🍽️</span>
-          <p class="mt-4 font-bold text-xl">Cardápio Vazio</p>
-          <p>Adicione seu primeiro produto para começar a vender.</p>
+        <div class="estoque-vazio">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="w-14 h-14 mb-4 text-gray-300"
+            aria-hidden="true"
+          >
+            <path
+              d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+            ></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+          </svg>
+          <p class="estoque-vazio-titulo">Cardápio Vazio</p>
+          <p class="estoque-vazio-texto">Adicione seu primeiro produto para começar a vender.</p>
         </div>
       }
     </div>
   </div>
 
-  <!-- MODAL DE CADASTRO/EDIÇÃO -->
+  <!-- ============================================================
+       MODAL DE CADASTRO/EDIÇÃO
+       ============================================================ -->
   @if (isModalAberto()) {
-    <div
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto"
-    >
+    <div class="modal-backdrop" (click)="fecharModal()" role="presentation">
       <div
-        class="bg-white w-full max-w-lg rounded-2xl shadow-2xl animate-[slideUp_0.2s_ease-out] my-8"
+        class="estoque-modal"
+        (click)="$event.stopPropagation()"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-modal-produto"
       >
-        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
-          <h2 class="text-xl font-black text-gray-800">
-            {{ modoEdicao() ? '✏️ Editar Produto' : '➕ Novo Produto' }}
+        <!-- Header do modal -->
+        <div class="estoque-modal-header">
+          <h2 id="titulo-modal-produto" class="estoque-modal-titulo">
+            @if (modoEdicao()) {
+              Editar Produto
+            } @else {
+              Novo Produto
+            }
           </h2>
+
           <button
+            type="button"
             (click)="fecharModal()"
-            class="text-gray-400 hover:text-gray-700 font-bold text-xl transition-colors w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200"
+            aria-label="Fechar"
+            class="estoque-modal-close"
           >
-            ✕
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="w-5 h-5"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
           </button>
         </div>
 
-        <div class="p-6 space-y-4">
+        <!-- Body do modal -->
+        <div class="estoque-modal-body">
           <!-- Nome -->
-          <div>
-            <label class="block text-sm font-bold text-gray-700 mb-1"
-              >Nome do Lanche <span class="text-red-500">*</span></label
-            >
+          <div class="estoque-field">
+            <label for="produto-nome" class="estoque-label">
+              Nome do Lanche <span class="estoque-obrigatorio">*</span>
+            </label>
             <input
+              id="produto-nome"
               type="text"
               [(ngModel)]="produtoForm().nome"
-              class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all"
+              class="estoque-input"
             />
           </div>
 
           <!-- Descrição -->
-          <div>
-            <label class="block text-sm font-bold text-gray-700 mb-1">Ingredientes/Descrição</label>
+          <div class="estoque-field">
+            <label for="produto-descricao" class="estoque-label"> Ingredientes/Descrição </label>
             <textarea
+              id="produto-descricao"
               [(ngModel)]="produtoForm().descricao"
               rows="2"
-              class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all resize-none"
+              class="estoque-input estoque-input-textarea"
             ></textarea>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <!-- Preço -->
-            <div>
-              <label class="block text-sm font-bold text-gray-700 mb-1"
-                >Preço <span class="text-red-500">*</span></label
-              >
-              <div class="relative">
-                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold"
-                  >R$</span
-                >
+          <!-- Preço + Categoria -->
+          <div class="estoque-row-2">
+            <div class="estoque-field">
+              <label for="produto-preco" class="estoque-label">
+                Preço <span class="estoque-obrigatorio">*</span>
+              </label>
+              <div class="estoque-input-wrapper">
+                <span class="estoque-input-prefix">R$</span>
                 <input
+                  id="produto-preco"
                   type="number"
                   [(ngModel)]="produtoForm().preco"
                   min="0"
                   step="0.5"
-                  class="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all"
+                  class="estoque-input estoque-input-com-prefix"
                 />
               </div>
             </div>
 
-            <!-- Categoria -->
-            <div>
-              <label class="block text-sm font-bold text-gray-700 mb-1"
-                >Categoria <span class="text-red-500">*</span></label
-              >
+            <div class="estoque-field">
+              <label for="produto-categoria" class="estoque-label">
+                Categoria <span class="estoque-obrigatorio">*</span>
+              </label>
               <select
+                id="produto-categoria"
                 [(ngModel)]="produtoForm().categoriaId"
-                class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all"
+                class="estoque-input"
               >
                 <option [ngValue]="null" disabled>Selecione...</option>
                 @for (cat of categorias(); track cat.id) {
@@ -210,48 +312,88 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <!-- Tempo de Preparo -->
-            <div>
-              <label class="block text-sm font-bold text-gray-700 mb-1">Tempo (Minutos)</label>
+          <!-- Tempo + Estoque -->
+          <div class="estoque-row-2">
+            <div class="estoque-field">
+              <label for="produto-tempo" class="estoque-label"> Tempo (Minutos) </label>
               <input
+                id="produto-tempo"
                 type="number"
                 [(ngModel)]="produtoForm().tempoPreparoMinutos"
                 min="0"
-                class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all"
+                class="estoque-input"
               />
             </div>
 
-            <!-- Estoque -->
-            <div>
-              <label class="block text-sm font-bold text-gray-700 mb-1">Estoque Inicial</label>
+            <div class="estoque-field">
+              <label for="produto-estoque" class="estoque-label"> Estoque Inicial </label>
               <input
+                id="produto-estoque"
                 type="number"
                 [(ngModel)]="produtoForm().quantidadeDisponivel"
                 placeholder="Fica infinito se vazio"
                 min="0"
-                class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all text-sm placeholder:text-xs"
+                class="estoque-input"
               />
             </div>
           </div>
         </div>
 
-        <div class="p-6 border-t border-gray-100 bg-gray-50 flex gap-3 justify-end rounded-b-2xl">
+        <!-- Footer do modal -->
+        <div class="estoque-modal-footer">
           <button
+            type="button"
             (click)="fecharModal()"
-            class="px-6 py-3 rounded-xl font-bold text-gray-600 hover:bg-gray-200 transition-colors"
+            class="estoque-modal-btn estoque-modal-btn-ghost"
           >
             Cancelar
           </button>
+
           <button
+            type="button"
             (click)="salvarProduto()"
             [disabled]="isProcessando()"
-            class="px-8 py-3 rounded-xl font-bold text-white bg-primary-600 hover:bg-primary-700 active:scale-95 transition-all shadow flex items-center gap-2"
+            class="estoque-modal-btn estoque-modal-btn-primary"
           >
             @if (isProcessando()) {
-              ⏳ Salvando...
+              <svg
+                class="w-4 h-4 animate-spin"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 0 1 8-8V0C5.4 0 0 5.4 0 12h4z"
+                ></path>
+              </svg>
+              Salvando...
             } @else {
-              💾 Salvar
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-4 h-4"
+                aria-hidden="true"
+              >
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              Salvar
             }
           </button>
         </div>

@@ -63,4 +63,12 @@ public class PedidoController {
             
         return ResponseEntity.ok(pedidoService.atualizarPedido(codigo, request));
     }
+	
+	@PostMapping("/rastreio/{codigo}/adicionar")
+    public ResponseEntity<PedidoResponse> adicionarItens(
+            @PathVariable String codigo, 
+            @RequestBody AtualizarPedidoRequest request) {
+            
+        return ResponseEntity.ok(pedidoService.adicionarItensAoPedido(codigo, request));
+    }
 }

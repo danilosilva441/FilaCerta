@@ -8,11 +8,19 @@ import { ToastComponent } from './shared/components/toast/toast';
 import { ConfirmModalComponent } from './shared/components/confirm-modal/confirm-modal';
 import { NavbarComponent } from './shared/components/navbar/navbar';
 import { AuthService } from './core/services/auth.service';
+import { LgpdBannerComponent } from './shared/components/lgpd-banner/lgpd-banner.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, ToastComponent, ConfirmModalComponent, NavbarComponent],
+  imports: [
+    CommonModule,
+    RouterOutlet,
+    ToastComponent,
+    ConfirmModalComponent,
+    NavbarComponent,
+    LgpdBannerComponent,
+  ],
   templateUrl: './app.component.html',
 })
 export class AppComponent {

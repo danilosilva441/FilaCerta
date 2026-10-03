@@ -1,15 +1,53 @@
-<div class="min-h-[100dvh] bg-gray-50 pb-32 font-sans antialiased">
-  <!-- HEADER -->
-  <header
-    class="bg-primary-600 text-white px-4 py-3 sticky top-0 z-20 shadow-md"
-    style="padding-top: max(0.75rem, env(safe-area-inset-top))"
-  >
-    <div class="flex justify-between items-center max-w-2xl mx-auto">
-      <h1 class="text-xl sm:text-2xl font-bold tracking-tight">🍔 Fila Certa</h1>
+<!-- ============================================================
+     CARDÁPIO
+     Lista de produtos + carrinho em wizard (2 etapas)
+     ============================================================ -->
+<div class="cardapio-page">
+  <!-- =========================
+       HEADER
+       ========================= -->
+  <header class="cardapio-header">
+    <div class="cardapio-header-inner">
+      <!-- Logo + título -->
+      <div class="cardapio-header-brand">
+        <div class="cardapio-header-logo" aria-hidden="true">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="w-5 h-5"
+          >
+            <path d="M3 11a9 9 0 0 1 18 0"></path>
+            <path d="M3 11h18"></path>
+            <path d="M5 11a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3"></path>
+            <path d="M4 16h16"></path>
+            <path d="M5 20h14"></path>
+          </svg>
+        </div>
+        <h1 class="cardapio-header-title">Fila Certa</h1>
+      </div>
 
-      <span class="text-primary-200 text-xs sm:text-sm font-medium">
+      <!-- Status (modo edição / normal) -->
+      <span class="cardapio-header-status" [class.cardapio-header-status-edicao]="isModoEdicao">
         @if (isModoEdicao) {
-          ✏️ Editando pedido
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="w-3.5 h-3.5"
+          >
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+          Editando pedido
         } @else {
           Faça seu pedido
         }
@@ -17,28 +55,18 @@
     </div>
   </header>
 
-  <!-- CATEGORIAS -->
-  <nav
-    class="bg-white shadow-sm mb-4 sticky top-[calc(env(safe-area-inset-top)+3.25rem)] z-10"
-    aria-label="Filtrar por categoria"
-  >
-    <div
-      class="flex overflow-x-auto gap-2 sm:gap-3 px-4 py-3 no-scrollbar snap-x snap-mandatory overscroll-x-contain"
-      style="-webkit-overflow-scrolling: touch"
-    >
+  <!-- =========================
+       CATEGORIAS
+       ========================= -->
+  <nav class="cardapio-categorias" aria-label="Filtrar por categoria">
+    <div class="cardapio-categorias-scroll no-scrollbar">
       @for (cat of categorias; track cat.id || 'todos') {
         <button
           type="button"
           (click)="filtrarPorCategoria(cat.id)"
           [attr.aria-pressed]="categoriaSelecionada === cat.id"
-          class="px-4 py-2.5 rounded-full whitespace-nowrap text-xs sm:text-sm font-semibold transition-colors duration-150 border touch-manipulation select-none snap-start min-h-[44px] flex items-center"
-          [ngClass]="{
-            'bg-primary-600 text-white border-primary-600 shadow-sm':
-              categoriaSelecionada === cat.id,
-
-            'bg-white text-gray-600 border-gray-200 active:bg-gray-50':
-              categoriaSelecionada !== cat.id,
-          }"
+          class="categoria-chip"
+          [class.categoria-chip-ativo]="categoriaSelecionada === cat.id"
         >
           {{ cat.nome | titlecase }}
         </button>
@@ -46,96 +74,141 @@
     </div>
   </nav>
 
-  <!-- PRODUTOS -->
-  <main class="px-3 sm:px-4 pb-4 max-w-2xl mx-auto space-y-3">
+  <!-- =========================
+       PRODUTOS
+       ========================= -->
+  <main class="cardapio-main">
+    <!-- ESTADO VAZIO -->
     @if (produtos.length === 0) {
-      <div class="text-center py-10 text-gray-400">
-        <p class="text-4xl mb-2">🍽️</p>
-
-        <p class="text-sm sm:text-base">Nenhum produto encontrado.</p>
+      <div class="cardapio-empty">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="w-14 h-14 mb-3 text-gray-300"
+          aria-hidden="true"
+        >
+          <path d="M3 11a9 9 0 0 1 18 0"></path>
+          <path d="M3 11h18"></path>
+          <path d="M5 11a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3"></path>
+          <path d="M4 16h16"></path>
+          <path d="M5 20h14"></path>
+        </svg>
+        <p class="cardapio-empty-title">Nenhum produto encontrado</p>
+        <p class="cardapio-empty-text">Tente outra categoria ou volte mais tarde.</p>
       </div>
     }
 
+    <!-- LISTA -->
     @for (produto of produtos; track produto.id) {
       <article
-        class="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center gap-2 sm:gap-4 transition-opacity"
-        [class.opacity-60]="!produto.disponivel || produto.quantidadeDisponivel === 0"
+        class="produto-card"
+        [class.produto-card-indisponivel]="
+          !produto.disponivel || produto.quantidadeDisponivel === 0
+        "
       >
-        <div class="flex-1 pr-2 sm:pr-4 min-w-0">
-          <!-- ESTOQUE E DISPONIBILIDADE -->
-          <div class="flex gap-2 mb-1">
+        <!-- INFO -->
+        <div class="produto-info">
+          <!-- BADGES DE ESTOQUE -->
+          <div class="produto-badges">
             @if (!produto.disponivel) {
-              <span
-                class="bg-gray-500 text-white text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm"
-              >
-                Pausado
-              </span>
+              <span class="produto-badge produto-badge-pausado"> Pausado </span>
             } @else if (produto.quantidadeDisponivel === 0) {
-              <span
-                class="bg-red-500 text-white text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm"
-              >
-                Esgotado
-              </span>
+              <span class="produto-badge produto-badge-esgotado"> Esgotado </span>
             } @else if (produto.quantidadeDisponivel != null && produto.quantidadeDisponivel <= 5) {
-              <span
-                class="bg-amber-500 text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm"
-              >
-                🔥 Restam só {{ produto.quantidadeDisponivel }}
+              <span class="produto-badge produto-badge-ultimas">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  class="w-3 h-3"
+                >
+                  <path
+                    d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"
+                  ></path>
+                </svg>
+                Restam {{ produto.quantidadeDisponivel }}
               </span>
             }
           </div>
 
-          <h3 class="font-bold text-gray-800 text-base sm:text-lg truncate">
-            {{ produto.nome }}
-          </h3>
+          <!-- NOME + DESCRIÇÃO -->
+          <h3 class="produto-nome">{{ produto.nome }}</h3>
+          <p class="produto-descricao">{{ produto.descricao }}</p>
 
-          <p class="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1 line-clamp-2">
-            {{ produto.descricao }}
-          </p>
-
-          <div class="flex items-center gap-2 sm:gap-3 mt-1.5 sm:mt-2">
-            <p class="text-primary-600 font-black text-base sm:text-lg">
-              R$ {{ produto.preco | number: '1.2-2' }}
-            </p>
-            <span
-              class="text-[10px] sm:text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-medium"
-            >
-              ⏱️ {{ produto.tempoPreparoMinutos }}min
+          <!-- PREÇO + TEMPO -->
+          <div class="produto-meta">
+            <p class="produto-preco">R$ {{ produto.preco | number: '1.2-2' }}</p>
+            <span class="produto-tempo">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-3 h-3"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              {{ produto.tempoPreparoMinutos }}min
             </span>
           </div>
         </div>
 
-        <!-- QUANTIDADE E BOTÃO DE ADICIONAR -->
-        <div
-          class="flex flex-col items-center gap-1.5 bg-gray-50 p-1.5 sm:p-2 rounded-lg border border-gray-100 min-w-[3.5rem] sm:min-w-[4rem] flex-shrink-0"
-        >
+        <!-- CONTROLES DE QUANTIDADE -->
+        <div class="produto-controles">
+          <!-- BOTÃO ADICIONAR -->
           <button
             type="button"
             (click)="adicionarItem(produto)"
             [disabled]="!produto.disponivel || produto.quantidadeDisponivel === 0"
             [attr.aria-label]="'Adicionar ' + produto.nome"
-            class="w-9 h-9 sm:w-10 sm:h-10 rounded-full text-white font-bold text-lg sm:text-xl transition-transform touch-manipulation select-none flex items-center justify-center"
-            [ngClass]="{
-              'bg-gray-300 cursor-not-allowed':
-                !produto.disponivel || produto.quantidadeDisponivel === 0,
-              'bg-primary-600 hover:bg-primary-700 active:scale-90':
-                produto.disponivel && produto.quantidadeDisponivel !== 0,
-            }"
+            class="produto-btn-add"
           >
-            +
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="w-5 h-5"
+            >
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
           </button>
 
+          <!-- QUANTIDADE + REMOVER (só se > 0) -->
           @if (getQuantidade(produto) > 0) {
-            <span class="font-bold text-gray-800 text-sm sm:text-base tabular-nums">
-              {{ getQuantidade(produto) }}
-            </span>
+            <span class="produto-qtd-num">{{ getQuantidade(produto) }}</span>
+
             <button
               type="button"
               (click)="removerItem(produto)"
               [attr.aria-label]="'Remover ' + produto.nome"
-              class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gray-200 text-gray-600 font-bold text-lg sm:text-xl hover:bg-gray-300 active:scale-90 transition-transform touch-manipulation select-none flex items-center justify-center"
+              class="produto-btn-remove"
             >
-              −
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-5 h-5"
+              >
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
             </button>
           }
         </div>
@@ -144,329 +217,549 @@
   </main>
 </div>
 
-<!-- CARRINHO FLUTUANTE -->
+<!-- ============================================================
+     CARRINHO FLUTUANTE
+     ============================================================ -->
 @if (totalItens > 0) {
-  <button
-    type="button"
-    (click)="abrirCarrinho()"
-    aria-label="Abrir carrinho"
-    class="fixed right-4 bg-primary-600 text-white rounded-full h-16 w-16 flex items-center justify-center shadow-2xl z-30 hover:bg-primary-700 active:scale-95 transition-all touch-manipulation"
-    style="bottom: calc(1.5rem + env(safe-area-inset-bottom))"
-  >
-    <span class="text-2xl">🛒</span>
-
-    <span
-      class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-black w-7 h-7 rounded-full flex items-center justify-center border-2 border-white shadow-sm"
+  <button type="button" (click)="abrirCarrinho()" aria-label="Abrir carrinho" class="carrinho-fab">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="w-7 h-7"
     >
-      {{ totalItens }}
-    </span>
+      <circle cx="9" cy="21" r="1"></circle>
+      <circle cx="20" cy="21" r="1"></circle>
+      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+    </svg>
+
+    <span class="carrinho-fab-badge">{{ totalItens }}</span>
   </button>
 }
 
-<!-- MODAL -->
+<!-- ============================================================
+     MODAL DO CARRINHO — Wizard em 2 etapas
+     ============================================================ -->
 @if (isCarrinhoAberto) {
-  <div
-    class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm"
-    (click)="fecharCarrinho()"
-  >
+  <div class="carrinho-backdrop" (click)="fecharCarrinho()" role="presentation">
     <div
       (click)="$event.stopPropagation()"
-      class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[92dvh] sm:max-h-[90vh] animate-[slideUp_0.25s_ease-out] overscroll-contain"
+      class="carrinho-modal"
       role="dialog"
       aria-modal="true"
       aria-labelledby="titulo-carrinho"
     >
-      <!-- HEADER -->
-      <div class="p-4 sm:p-5 flex justify-between items-center border-b border-gray-100">
-        <h3
-          id="titulo-carrinho"
-          class="text-lg sm:text-xl font-black text-gray-800 flex items-center gap-2"
-        >
-          <span>📋</span>
-          Resumo do Pedido
-        </h3>
+      <!-- =========================
+           HEADER DO MODAL
+           ========================= -->
+      <div class="carrinho-header">
+        <div class="carrinho-header-title">
+          <!-- Indicador de passos -->
+          <div class="carrinho-steps" aria-hidden="true">
+            <span class="carrinho-step" [class.carrinho-step-ativo]="etapaAtual >= 1">1</span>
+            <span
+              class="carrinho-step-line"
+              [class.carrinho-step-line-ativa]="etapaAtual >= 2"
+            ></span>
+            <span class="carrinho-step" [class.carrinho-step-ativo]="etapaAtual >= 2">2</span>
+          </div>
 
-        <button
-          type="button"
-          (click)="fecharCarrinho()"
-          aria-label="Fechar"
-          class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 active:scale-95 transition-all touch-manipulation select-none"
-        >
-          ✕
+          <h3 id="titulo-carrinho" class="carrinho-title">
+            @if (etapaAtual === 1) {
+              Seu Pedido
+            } @else {
+              Identificação
+            }
+          </h3>
+        </div>
+
+        <!-- Botão fechar -->
+        <button type="button" (click)="fecharCarrinho()" aria-label="Fechar" class="carrinho-close">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="w-5 h-5"
+          >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
         </button>
       </div>
 
-      <!-- BODY -->
-      <div class="p-4 sm:p-5 overflow-y-auto overscroll-contain flex-1">
-        <!-- ITENS DO CARRINHO -->
-        <div class="space-y-4 mb-4">
-          @for (item of carrinho; track item.produto.id) {
-            <div class="p-3 bg-white border border-gray-200 rounded-xl space-y-2">
-              <!-- PRODUTO -->
-              <div class="flex justify-between items-start gap-2">
-                <div class="min-w-0">
-                  <p class="font-bold text-gray-800 text-sm truncate">
-                    {{ item.quantidade }}x
-                    {{ item.produto.nome }}
-                  </p>
+      <!-- =========================
+           BODY (2 ETAPAS)
+           ========================= -->
+      <div class="carrinho-body">
+        <!-- ============ ETAPA 1: ITENS ============ -->
+        @if (etapaAtual === 1) {
+          <div class="carrinho-etapa">
+            <div class="carrinho-itens">
+              @for (item of carrinho; track item.produto.id) {
+                <div class="carrinho-item">
+                  <!-- LINHA 1: NOME + CONTROLES -->
+                  <div class="carrinho-item-row">
+                    <div class="carrinho-item-info">
+                      <p class="carrinho-item-nome">
+                        {{ item.quantidade }}x {{ item.produto.nome }}
+                      </p>
+                      <p class="carrinho-item-preco">
+                        R$ {{ item.produto.preco * item.quantidade | number: '1.2-2' }}
+                      </p>
+                    </div>
 
-                  <p class="text-xs text-gray-500 mt-0.5">
-                    R$
-                    {{ item.produto.preco * item.quantidade | number: '1.2-2' }}
-                  </p>
-                </div>
+                    <div class="carrinho-item-qtd">
+                      <button
+                        type="button"
+                        (click)="removerItem(item.produto)"
+                        [attr.aria-label]="'Remover ' + item.produto.nome"
+                        class="carrinho-btn-qtd carrinho-btn-menos"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="w-4 h-4"
+                        >
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                      </button>
 
-                <!-- CONTROLES -->
-                <div class="flex items-center gap-1 flex-shrink-0">
-                  <button
-                    type="button"
-                    (click)="removerItem(item.produto)"
-                    class="w-8 h-8 rounded-full bg-gray-100 text-gray-600 font-bold flex items-center justify-center"
-                    [attr.aria-label]="'Remover ' + item.produto.nome"
-                  >
-                    −
-                  </button>
+                      <span class="carrinho-item-qtd-num">{{ item.quantidade }}</span>
 
-                  <span class="w-7 text-center font-bold text-gray-800">
-                    {{ item.quantidade }}
-                  </span>
+                      <button
+                        type="button"
+                        (click)="adicionarItem(item.produto)"
+                        [attr.aria-label]="'Adicionar ' + item.produto.nome"
+                        class="carrinho-btn-qtd carrinho-btn-mais"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="w-4 h-4"
+                        >
+                          <line x1="12" y1="5" x2="12" y2="19"></line>
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
 
-                  <button
-                    type="button"
-                    (click)="adicionarItem(item.produto)"
-                    class="w-8 h-8 rounded-full bg-primary-600 text-white font-bold flex items-center justify-center"
-                    [attr.aria-label]="'Adicionar ' + item.produto.nome"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-
-              <!-- OBSERVAÇÃO -->
-              @if (permiteObservacao(item.produto)) {
-                <div class="relative">
-                  <label class="block text-[11px] font-bold text-gray-500 mb-1"> Observação </label>
-
-                  <input
-                    type="text"
-                    [(ngModel)]="item.observacao"
-                    placeholder="Ex: Sem cebola, molho à parte..."
-                    class="w-full text-xs md:text-sm px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 transition-all"
-                  />
+                  <!-- LINHA 2: OBSERVAÇÃO (condicional) -->
+                  @if (permiteObservacao(item.produto)) {
+                    <div class="carrinho-obs">
+                      <label [for]="'obs-' + item.produto.id" class="carrinho-obs-label">
+                        Observação
+                      </label>
+                      <input
+                        [id]="'obs-' + item.produto.id"
+                        type="text"
+                        [(ngModel)]="item.observacao"
+                        placeholder="Ex: Sem cebola, molho à parte..."
+                        class="carrinho-obs-input"
+                        enterkeyhint="next"
+                      />
+                    </div>
+                  }
                 </div>
               }
             </div>
-          }
-        </div>
 
-        <!-- TOTAL -->
-        <div
-          class="flex justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-200 mb-5"
-        >
-          <span class="font-bold text-gray-600 uppercase tracking-wider text-xs sm:text-sm">
-            Total a pagar:
-          </span>
-
-          <span class="text-xl sm:text-2xl font-black text-primary-600 tabular-nums">
-            R$
-            {{ total | number: '1.2-2' }}
-          </span>
-        </div>
-
-        <!-- NOME -->
-        <div class="space-y-2 mb-5">
-          <label for="nome-cliente" class="block text-sm font-bold text-gray-700">
-            Como devemos te chamar?
-            <span class="text-red-500">*</span>
-          </label>
-
-          <input
-            id="nome-cliente"
-            type="text"
-            [(ngModel)]="nomeCliente"
-            (input)="tentouEnviar = false"
-            placeholder="Digite seu nome (Ex: Danilo)"
-            autocomplete="given-name"
-            enterkeyhint="done"
-            [ngClass]="{
-              'border-red-500 focus:ring-red-500 focus:border-red-500 bg-red-50':
-                tentouEnviar && (!nomeCliente || nomeCliente.trim() === ''),
-
-              'border-gray-300 focus:ring-primary-500 focus:border-primary-500 bg-gray-50': !(
-                tentouEnviar &&
-                (!nomeCliente || nomeCliente.trim() === '')
-              ),
-            }"
-            class="w-full px-4 py-3 border rounded-xl font-semibold text-base focus:ring-2 transition-all outline-none"
-          />
-
-          @if (tentouEnviar && (!nomeCliente || nomeCliente.trim() === '')) {
-            <p class="text-red-500 text-xs font-bold flex items-center gap-1 animate-pulse">
-              <span>⚠️</span>
-              O nome é obrigatório para o pedido!
-            </p>
-          }
-        </div>
-
-        <!-- MODO DONO -->
-        @if (isDono) {
-          <div class="space-y-2 mb-4 p-4 bg-primary-50 rounded-xl border border-primary-200">
-            <label class="block text-sm font-black text-primary-800 flex items-center gap-1">
-              <span>👑</span>
-              Modo Balcão (Você está logado)
-            </label>
-
-            <div
-              class="flex items-center justify-between bg-white p-3 rounded-lg border border-primary-100 shadow-sm mt-2 gap-2"
-            >
-              <span class="font-bold text-gray-700 text-xs sm:text-sm">
-                O cliente já efetuou o pagamento?
-              </span>
-
-              <div class="flex bg-gray-100 rounded-lg p-1 gap-1 flex-shrink-0">
-                <button
-                  type="button"
-                  (click)="jaPago = false"
-                  [attr.aria-pressed]="!jaPago"
-                  class="px-3 sm:px-4 py-2 rounded-md font-bold text-xs transition-all touch-manipulation"
-                  [ngClass]="{
-                    'bg-white shadow text-warning': !jaPago,
-
-                    'text-gray-500': jaPago,
-                  }"
-                >
-                  NÃO
-                </button>
-
-                <button
-                  type="button"
-                  (click)="jaPago = true"
-                  [attr.aria-pressed]="jaPago"
-                  class="px-3 sm:px-4 py-2 rounded-md font-bold text-xs transition-all touch-manipulation"
-                  [ngClass]="{
-                    'bg-success shadow text-white': jaPago,
-
-                    'text-gray-500': !jaPago,
-                  }"
-                >
-                  SIM, JÁ PAGOU
-                </button>
-              </div>
+            <!-- TOTAL -->
+            <div class="carrinho-total">
+              <span class="carrinho-total-label">Total</span>
+              <span class="carrinho-total-valor">R$ {{ total | number: '1.2-2' }}</span>
             </div>
           </div>
         }
 
-        <!-- TIPO -->
-        <div class="space-y-2 mb-5">
-          <label class="block text-sm font-bold text-gray-700"> Onde você vai comer? </label>
+        <!-- ============ ETAPA 2: IDENTIFICAÇÃO ============ -->
+        @else {
+          <div class="carrinho-etapa">
+            <!-- RESUMO COMPACTO -->
+            <div class="carrinho-resumo">
+              <p class="carrinho-resumo-itens">
+                {{ totalItens }} {{ totalItens === 1 ? 'item' : 'itens' }}
+              </p>
+              <p class="carrinho-resumo-total">R$ {{ total | number: '1.2-2' }}</p>
+            </div>
 
-          <div class="flex gap-2 bg-gray-100 p-1 rounded-lg">
-            <button
-              type="button"
-              (click)="tipoPedido = 'COMER_AQUI'"
-              [attr.aria-pressed]="tipoPedido === 'COMER_AQUI'"
-              class="flex-1 py-3 rounded-md font-bold text-sm transition-all touch-manipulation"
-              [ngClass]="{
-                'bg-white text-primary-700 shadow-sm': tipoPedido === 'COMER_AQUI',
+            <!-- NOME -->
+            <div class="carrinho-field">
+              <label for="nome-cliente" class="carrinho-label">
+                Como devemos te chamar?
+                <span class="carrinho-obrigatorio">*</span>
+              </label>
+              <input
+                id="nome-cliente"
+                type="text"
+                [(ngModel)]="nomeCliente"
+                (input)="tentouEnviar = false"
+                placeholder="Seu nome ou como devemos lhe chamar"
+                autocomplete="given-name"
+                enterkeyhint="done"
+                class="carrinho-input"
+                [ngClass]="{
+                  'carrinho-input-erro':
+                    tentouEnviar && (!nomeCliente || nomeCliente.trim() === ''),
+                  'carrinho-input-ok': !(
+                    tentouEnviar &&
+                    (!nomeCliente || nomeCliente.trim() === '')
+                  ),
+                }"
+              />
+              @if (tentouEnviar && (!nomeCliente || nomeCliente.trim() === '')) {
+                <p class="carrinho-erro">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="w-3.5 h-3.5"
+                  >
+                    <path
+                      d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+                    ></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                  O nome é obrigatório para o pedido!
+                </p>
+              }
+            </div>
 
-                'text-gray-500': tipoPedido !== 'COMER_AQUI',
-              }"
-            >
-              🍽️ Comer Aqui
-            </button>
+            <!-- COMER AQUI / LEVAR -->
+            <div class="carrinho-field">
+              <label class="carrinho-label">Onde você vai comer?</label>
+              <div class="carrinho-tipo">
+                <button
+                  type="button"
+                  (click)="tipoPedido = 'COMER_AQUI'"
+                  [attr.aria-pressed]="tipoPedido === 'COMER_AQUI'"
+                  class="carrinho-tipo-btn"
+                  [class.carrinho-tipo-btn-ativo]="tipoPedido === 'COMER_AQUI'"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="w-5 h-5"
+                  >
+                    <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path>
+                    <path d="M7 2v20"></path>
+                    <path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"></path>
+                  </svg>
+                  <span>Comer Aqui</span>
+                </button>
 
-            <button
-              type="button"
-              (click)="tipoPedido = 'LEVAR'"
-              [attr.aria-pressed]="tipoPedido === 'LEVAR'"
-              class="flex-1 py-3 rounded-md font-bold text-sm transition-all touch-manipulation"
-              [ngClass]="{
-                'bg-white text-primary-700 shadow-sm': tipoPedido === 'LEVAR',
+                <button
+                  type="button"
+                  (click)="tipoPedido = 'LEVAR'"
+                  [attr.aria-pressed]="tipoPedido === 'LEVAR'"
+                  class="carrinho-tipo-btn"
+                  [class.carrinho-tipo-btn-ativo]="tipoPedido === 'LEVAR'"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="w-5 h-5"
+                  >
+                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                  </svg>
+                  <span>Levar</span>
+                </button>
+              </div>
+            </div>
 
-                'text-gray-500': tipoPedido !== 'LEVAR',
-              }"
-            >
-              🏃 Levar
-            </button>
+            <!-- FORMA DE PAGAMENTO -->
+            <div class="carrinho-field">
+              <label class="carrinho-label">Como prefere pagar?</label>
+              <div class="carrinho-pagamento">
+                <button
+                  type="button"
+                  (click)="formaPagamento = 'PIX'"
+                  [attr.aria-pressed]="formaPagamento === 'PIX'"
+                  class="carrinho-pgto-btn"
+                  [class.carrinho-pgto-btn-ativo]="formaPagamento === 'PIX'"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 16 16"
+                    fill="currentColor"
+                    class="w-6 h-6"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M11.917 11.71a2.046 2.046 0 0 1-1.454-.602l-2.1-2.1a.4.4 0 0 0-.551 0l-2.108 2.108a2.044 2.044 0 0 1-1.454.602h-.414l2.66 2.66c.83.83 2.177.83 3.007 0l2.667-2.668h-.253z"
+                    />
+                    <path
+                      d="M4.25 4.282c.55 0 1.066.214 1.454.602l2.108 2.108a.39.39 0 0 0 .552 0l2.1-2.1a2.044 2.044 0 0 1 1.453-.602h.253L9.503 1.623a2.127 2.127 0 0 0-3.007 0l-2.66 2.66h.414z"
+                    />
+                    <path
+                      d="m14.377 6.496-1.612-1.612a.307.307 0 0 1-.114.023h-.733c-.379 0-.75.154-1.017.422l-2.1 2.1a1.005 1.005 0 0 1-1.425 0L5.268 5.32a1.448 1.448 0 0 0-1.018-.422h-.9a.306.306 0 0 1-.109-.021L1.623 6.496c-.83.83-.83 2.177 0 3.008l1.618 1.618a.305.305 0 0 1 .108-.022h.901c.38 0 .75-.153 1.018-.421L7.375 8.57a1.034 1.034 0 0 1 1.426 0l2.1 2.1c.267.268.638.421 1.017.421h.733c.04 0 .079.01.114.024l1.612-1.612c.83-.83.83-2.178 0-3.008z"
+                    />
+                  </svg>
+                  <span>PIX</span>
+                </button>
+
+                <button
+                  type="button"
+                  (click)="formaPagamento = 'CARTAO'"
+                  [attr.aria-pressed]="formaPagamento === 'CARTAO'"
+                  class="carrinho-pgto-btn"
+                  [class.carrinho-pgto-btn-ativo]="formaPagamento === 'CARTAO'"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="w-6 h-6"
+                  >
+                    <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                    <line x1="2" y1="10" x2="22" y2="10"></line>
+                  </svg>
+                  <span>Cartão</span>
+                </button>
+
+                <button
+                  type="button"
+                  (click)="formaPagamento = 'DINHEIRO'"
+                  [attr.aria-pressed]="formaPagamento === 'DINHEIRO'"
+                  class="carrinho-pgto-btn"
+                  [class.carrinho-pgto-btn-ativo]="formaPagamento === 'DINHEIRO'"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="w-6 h-6"
+                  >
+                    <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                    <circle cx="12" cy="12" r="2"></circle>
+                    <path d="M6 12h.01M18 12h.01"></path>
+                  </svg>
+                  <span>Dinheiro</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- MODO DONO -->
+            @if (isDono) {
+              <div class="carrinho-dono">
+                <label class="carrinho-dono-label">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="w-4 h-4"
+                  >
+                    <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z"></path>
+                    <path d="M5 20h14"></path>
+                  </svg>
+                  Modo Balcão
+                </label>
+
+                <div class="carrinho-dono-toggle">
+                  <span class="carrinho-dono-text">Cliente já pagou?</span>
+
+                  <div class="carrinho-dono-opcoes">
+                    <button
+                      type="button"
+                      (click)="jaPago = false"
+                      [attr.aria-pressed]="!jaPago"
+                      class="carrinho-dono-btn"
+                      [class.carrinho-dono-btn-ativo-nao]="!jaPago"
+                    >
+                      Não
+                    </button>
+
+                    <button
+                      type="button"
+                      (click)="jaPago = true"
+                      [attr.aria-pressed]="jaPago"
+                      class="carrinho-dono-btn"
+                      [class.carrinho-dono-btn-ativo-sim]="jaPago"
+                    >
+                      Sim, pagou
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
           </div>
-        </div>
-
-        <!-- PAGAMENTO -->
-        <div class="space-y-2 mb-4">
-          <label class="block text-sm font-bold text-gray-700">
-            Como prefere pagar no balcão?
-          </label>
-
-          <div class="grid grid-cols-3 gap-2 sm:gap-3">
-            <button
-              type="button"
-              (click)="formaPagamento = 'PIX'"
-              [attr.aria-pressed]="formaPagamento === 'PIX'"
-              class="border rounded-xl p-3 flex flex-col items-center gap-1 transition-colors touch-manipulation min-h-[72px]"
-              [ngClass]="{
-                'border-primary-500 bg-primary-50': formaPagamento === 'PIX',
-
-                'border-gray-200 active:bg-gray-50': formaPagamento !== 'PIX',
-              }"
-            >
-              <span class="text-2xl">📱</span>
-              <span class="text-xs font-bold text-gray-700 mt-1"> PIX </span>
-            </button>
-
-            <button
-              type="button"
-              (click)="formaPagamento = 'CARTAO'"
-              [attr.aria-pressed]="formaPagamento === 'CARTAO'"
-              class="border rounded-xl p-3 flex flex-col items-center gap-1 transition-colors touch-manipulation min-h-[72px]"
-              [ngClass]="{
-                'border-primary-500 bg-primary-50': formaPagamento === 'CARTAO',
-
-                'border-gray-200 active:bg-gray-50': formaPagamento !== 'CARTAO',
-              }"
-            >
-              <span class="text-2xl">💳</span>
-
-              <span class="text-xs font-bold text-gray-700 mt-1"> Cartão </span>
-            </button>
-
-            <button
-              type="button"
-              (click)="formaPagamento = 'DINHEIRO'"
-              [attr.aria-pressed]="formaPagamento === 'DINHEIRO'"
-              class="border rounded-xl p-3 flex flex-col items-center gap-1 transition-colors touch-manipulation min-h-[72px]"
-              [ngClass]="{
-                'border-primary-500 bg-primary-50': formaPagamento === 'DINHEIRO',
-
-                'border-gray-200 active:bg-gray-50': formaPagamento !== 'DINHEIRO',
-              }"
-            >
-              <span class="text-2xl">💵</span>
-
-              <span class="text-xs font-bold text-gray-700 mt-1"> Dinheiro </span>
-            </button>
-          </div>
-        </div>
+        }
       </div>
 
-      <!-- FOOTER -->
-      <div
-        class="p-4 sm:p-5 border-t border-gray-100 bg-gray-50 rounded-b-2xl"
-        style="padding-bottom: max(1rem, env(safe-area-inset-bottom))"
-      >
-        <button
-          type="button"
-          (click)="enviarPedido()"
-          [disabled]="isProcessando"
-          class="w-full py-4 bg-success text-white rounded-xl font-bold text-base sm:text-lg shadow hover:bg-green-700 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-manipulation select-none min-h-[56px]"
-        >
-          @if (isProcessando) {
-            ⏳ Processando...
-          } @else if (isModoEdicao) {
-            🔄 ATUALIZAR PEDIDO
-          } @else {
-            ✅ CONFIRMAR PEDIDO
-          }
-        </button>
+      <!-- =========================
+           FOOTER DO MODAL
+           ========================= -->
+      <div class="carrinho-footer">
+        <!-- ETAPA 1: Continuar + Próximo -->
+        @if (etapaAtual === 1) {
+          <div class="carrinho-footer-row">
+            <button
+              type="button"
+              (click)="fecharCarrinho()"
+              class="carrinho-btn carrinho-btn-ghost"
+            >
+              Continuar Comprando
+            </button>
+
+            <button
+              type="button"
+              (click)="proximaEtapa()"
+              class="carrinho-btn carrinho-btn-primary"
+            >
+              Próximo
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-4 h-4"
+              >
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </button>
+          </div>
+        }
+
+        <!-- ETAPA 2: Voltar + Confirmar -->
+        @else {
+          <div class="carrinho-footer-row">
+            <button
+              type="button"
+              (click)="voltarEtapa()"
+              [disabled]="isProcessando"
+              class="carrinho-btn carrinho-btn-ghost"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-4 h-4"
+              >
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+              Voltar
+            </button>
+
+            <button
+              type="button"
+              (click)="enviarPedido()"
+              [disabled]="isProcessando"
+              class="carrinho-btn carrinho-btn-success"
+            >
+              @if (isProcessando) {
+                <svg
+                  class="w-5 h-5 animate-spin"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  ></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 0 1 8-8V0C5.4 0 0 5.4 0 12h4z"
+                  ></path>
+                </svg>
+                Enviando...
+              } @else if (isModoEdicao) {
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="w-5 h-5"
+                >
+                  <polyline points="23 4 23 10 17 10"></polyline>
+                  <polyline points="1 20 1 14 7 14"></polyline>
+                  <path
+                    d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"
+                  ></path>
+                </svg>
+                Atualizar Pedido
+              } @else {
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="w-5 h-5"
+                >
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Confirmar Pedido
+              }
+            </button>
+          </div>
+        }
       </div>
     </div>
   </div>

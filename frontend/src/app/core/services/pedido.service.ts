@@ -29,4 +29,11 @@ export class PedidoService {
   atualizarPedido(codigo: string, request: AtualizarPedidoRequest): Observable<PedidoResponse> {
     return this.http.put<PedidoResponse>(`${this.apiUrl}/rastreio/${codigo}`, request);
   }
+
+  adicionarItensAoPedido(
+    codigo: string,
+    request: AtualizarPedidoRequest,
+  ): Observable<PedidoResponse> {
+    return this.http.post<PedidoResponse>(`${this.apiUrl}/rastreio/${codigo}/adicionar`, request);
+  }
 }

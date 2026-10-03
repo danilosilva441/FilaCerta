@@ -1,132 +1,141 @@
 @if (config) {
-  <!-- BACKDROP (clicável para fechar) -->
+  <!-- ============================================================
+       BACKDROP (clicável para fechar)
+       ============================================================ -->
   <div
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-all duration-200"
+    class="modal-backdrop"
     [ngClass]="{
-      'opacity-100': !saindo,
-      'opacity-0 pointer-events-none': saindo,
+      'modal-backdrop-visivel': !saindo,
+      'modal-backdrop-oculto': saindo,
     }"
     (click)="onBackdropClick($event)"
     (keydown.escape)="fechar()"
     tabindex="-1"
     role="presentation"
-    style="
-      padding-top: max(1rem, env(safe-area-inset-top));
-      padding-bottom: max(1rem, env(safe-area-inset-bottom));
-    "
   >
-    <!-- CARD -->
+    <!-- ============================================================
+         CARD
+         ============================================================ -->
     <div
-      class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transition-all duration-200"
+      class="modal-card modal-card-alert"
       [ngClass]="{
-        'scale-100 opacity-100 translate-y-0': !saindo,
-        'scale-95 opacity-0 translate-y-4': saindo,
+        'modal-card-visivel': !saindo,
+        'modal-card-saindo': saindo,
       }"
       (click)="$event.stopPropagation()"
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="modal-titulo"
-      aria-describedby="modal-mensagem"
+      [attr.aria-describedby]="config.mensagem ? 'modal-mensagem' : null"
     >
-      <div class="p-5 sm:p-6">
+      <!-- =========================
+           CONTEÚDO
+           ========================= -->
+      <div class="modal-body">
         <!-- ÍCONE DINÂMICO -->
         <div
-          class="w-12 h-12 rounded-full flex items-center justify-center mb-4"
+          class="modal-icon"
           [ngClass]="{
-            'bg-yellow-100 text-yellow-600': tipoEfetivo === 'aviso',
-            'bg-red-100 text-red-600': tipoEfetivo === 'perigo',
-            'bg-blue-100 text-blue-600': tipoEfetivo === 'info',
-            'bg-green-100 text-green-600': tipoEfetivo === 'sucesso',
+            'modal-icon-aviso': tipoEfetivo === 'aviso',
+            'modal-icon-perigo': tipoEfetivo === 'perigo',
+            'modal-icon-info': tipoEfetivo === 'info',
+            'modal-icon-sucesso': tipoEfetivo === 'sucesso',
           }"
           aria-hidden="true"
         >
           @switch (tipoEfetivo) {
             @case ('perigo') {
+              <!-- Lixeira -->
               <svg
-                class="w-6 h-6"
+                xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 stroke-width="2.5"
                 stroke-linecap="round"
                 stroke-linejoin="round"
+                class="w-6 h-6"
               >
-                <polyline points="3 6 5 6 21 6" />
-                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                <path d="M10 11v6" />
-                <path d="M14 11v6" />
-                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                <path d="M10 11v6"></path>
+                <path d="M14 11v6"></path>
+                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
               </svg>
             }
             @case ('info') {
+              <!-- Info -->
               <svg
-                class="w-6 h-6"
+                xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 stroke-width="2.5"
                 stroke-linecap="round"
                 stroke-linejoin="round"
+                class="w-6 h-6"
               >
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="16" x2="12" y2="12" />
-                <line x1="12" y1="8" x2="12.01" y2="8" />
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
               </svg>
             }
             @case ('sucesso') {
+              <!-- Check com círculo -->
               <svg
-                class="w-6 h-6"
+                xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 stroke-width="2.5"
                 stroke-linecap="round"
                 stroke-linejoin="round"
+                class="w-6 h-6"
               >
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                <polyline points="22 4 12 14.01 9 11.01" />
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
               </svg>
             }
             @default {
+              <!-- Alerta triângulo (aviso) -->
               <svg
-                class="w-6 h-6"
+                xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 stroke-width="2.5"
                 stroke-linecap="round"
                 stroke-linejoin="round"
+                class="w-6 h-6"
               >
                 <path
                   d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
-                />
-                <line x1="12" y1="9" x2="12" y2="13" />
-                <line x1="12" y1="17" x2="12.01" y2="17" />
+                ></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
               </svg>
             }
           }
         </div>
 
         <!-- TÍTULO -->
-        <h3 id="modal-titulo" class="text-lg sm:text-xl font-black text-gray-900 mb-2 pr-6">
+        <h3 id="modal-titulo" class="modal-title modal-title-alert">
           {{ config.titulo }}
         </h3>
 
-        <!-- MENSAGEM -->
-        <p id="modal-mensagem" class="text-sm sm:text-base text-gray-600 font-medium break-words">
-          {{ config.mensagem }}
-        </p>
+        <!-- MENSAGEM (só renderiza se existir) -->
+        @if (config.mensagem) {
+          <p id="modal-mensagem" class="modal-message">
+            {{ config.mensagem }}
+          </p>
+        }
       </div>
 
-      <!-- AÇÕES -->
-      <div
-        class="bg-gray-50 px-5 sm:px-6 py-4 flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 justify-end border-t border-gray-100"
-      >
-        <button
-          type="button"
-          (click)="fechar()"
-          class="w-full sm:w-auto px-5 py-3 sm:py-2.5 rounded-lg font-bold text-gray-600 hover:bg-gray-200 active:scale-95 transition-all touch-manipulation select-none min-h-[48px] focus:outline-none focus:ring-2 focus:ring-gray-400"
-        >
+      <!-- =========================
+           AÇÕES
+           ========================= -->
+      <div class="modal-actions modal-actions-alert">
+        <button type="button" (click)="fechar()" class="modal-btn-cancel">
           {{ config.textoCancelar || 'Cancelar' }}
         </button>
 
@@ -134,10 +143,10 @@
           #botaoConfirmar
           type="button"
           (click)="confirmar()"
-          class="w-full sm:w-auto px-5 py-3 sm:py-2.5 rounded-lg font-bold text-white shadow-md active:scale-95 transition-all touch-manipulation select-none min-h-[48px] focus:outline-none focus:ring-2 focus:ring-offset-2"
+          class="modal-btn-confirm"
           [ngClass]="{
-            'bg-red-600 hover:bg-red-700 focus:ring-red-400': tipoEfetivo === 'perigo',
-            'bg-primary-600 hover:bg-primary-700 focus:ring-primary-400': tipoEfetivo !== 'perigo',
+            'modal-btn-perigo': tipoEfetivo === 'perigo',
+            'modal-btn-primary': tipoEfetivo !== 'perigo',
           }"
         >
           {{ config.textoConfirmar || 'Confirmar' }}

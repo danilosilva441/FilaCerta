@@ -1,15 +1,13 @@
-<div
-  class="min-h-[100dvh] bg-gray-50 flex flex-col items-center justify-center px-4 py-6 font-sans antialiased"
-  style="
-    padding-top: max(1.5rem, env(safe-area-inset-top));
-    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
-  "
-  aria-live="polite"
-  aria-atomic="true"
->
+<!-- ============================================================
+     ACOMPANHAMENTO DO PEDIDO
+     Status visual + resumo + pagamento + ações
+     ============================================================ -->
+<div class="acompanhamento-page" aria-live="polite" aria-atomic="true">
+  <!-- =========================
+       CARREGANDO
+       ========================= -->
   @if (!pedido()) {
-    <!-- CARREGANDO -->
-    <div class="flex flex-col items-center gap-3 text-gray-500">
+    <div class="acompanhamento-loading">
       <svg
         class="w-8 h-8 animate-spin"
         viewBox="0 0 24 24"
@@ -17,176 +15,304 @@
         stroke="currentColor"
         stroke-width="2.5"
         stroke-linecap="round"
+        aria-hidden="true"
       >
-        <path d="M21 12a9 9 0 1 1-6.22-8.56" />
+        <path d="M21 12a9 9 0 1 1-6.22-8.56"></path>
       </svg>
-      <span class="font-medium">Buscando seu pedido...</span>
+      <span>Buscando seu pedido...</span>
     </div>
-  } @else {
+  }
+
+  <!-- =========================
+       CONTEÚDO
+       ========================= -->
+  @else {
     @let p = pedido()!;
 
-    <!-- HEADER: STATUS VISUAL -->
-    <div class="text-center w-full max-w-sm">
-      <div
-        class="w-28 h-28 sm:w-32 sm:h-32 rounded-full mx-auto mb-6 flex items-center justify-center text-5xl shadow-lg transition-all duration-500"
-        [ngClass]="getCorCirculo(p.status)"
-      >
-        {{ getIconeStatus(p.status) }}
+    <!-- -------- STATUS VISUAL -------- -->
+    <header class="acompanhamento-status">
+      <!-- Círculo com ícone dinâmico -->
+      <div class="acompanhamento-circle" [ngClass]="getCorCirculo(p.status)">
+        <!-- Ícone dinâmico por status -->
+        @switch (p.status) {
+          @case ('RECEBIDO') {
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="w-14 h-14"
+            >
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+          }
+          @case ('PREPARANDO') {
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              class="w-14 h-14"
+            >
+              <path
+                d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"
+              ></path>
+            </svg>
+          }
+          @case ('PRONTO') {
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="w-14 h-14"
+            >
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          }
+          @case ('SERVIDO') {
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="w-14 h-14"
+            >
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          }
+          @case ('CANCELADO') {
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="w-14 h-14"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="15" y1="9" x2="9" y2="15"></line>
+              <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>
+          }
+          @default {
+            <!-- ENTREGUE / CONCLUÍDO — Caixa com check -->
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="w-14 h-14"
+              aria-hidden="true"
+            >
+              <!-- Caixa 3D -->
+              <path
+                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+              ></path>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+              <line x1="12" y1="22.08" x2="12" y2="12"></line>
+
+              <!-- Check flutuante no canto -->
+              <circle cx="18" cy="18" r="5" fill="currentColor" stroke="none"></circle>
+              <polyline points="15.5 18 17 19.5 20.5 16" stroke="white" stroke-width="2"></polyline>
+            </svg>
+          }
+        }
       </div>
 
-      <h1 class="text-3xl font-black mb-2 text-gray-800">Pedido #{{ p.numero }}</h1>
-
+      <!-- Título + mensagem -->
+      <h1 class="acompanhamento-title">Pedido #{{ p.numero }}</h1>
       <p
-        class="text-lg font-medium mb-8"
+        class="acompanhamento-message"
         [ngClass]="{
-          'text-green-600': p.status === 'PRONTO' || p.status === 'SERVIDO',
-          'text-red-600': p.status === 'CANCELADO',
-          'text-gray-600':
+          'acompanhamento-message-success': p.status === 'PRONTO' || p.status === 'SERVIDO',
+          'acompanhamento-message-danger': p.status === 'CANCELADO',
+          'acompanhamento-message-neutral':
             p.status !== 'PRONTO' && p.status !== 'SERVIDO' && p.status !== 'CANCELADO',
         }"
       >
         {{ statusMensagem() }}
       </p>
-    </div>
+    </header>
 
-    <!-- AVISO DE ERRO DE REDE -->
+    <!-- -------- AVISO DE ERRO DE REDE -------- -->
     @if (erroRede()) {
-      <div
-        class="w-full max-w-sm mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-xl text-xs text-yellow-800 flex items-start gap-2"
-      >
+      <div class="acompanhamento-rede" role="status">
         <svg
-          class="w-4 h-4 flex-shrink-0 mt-0.5"
+          xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
           stroke-width="2.5"
           stroke-linecap="round"
           stroke-linejoin="round"
+          class="w-4 h-4 flex-shrink-0 mt-0.5"
+          aria-hidden="true"
         >
           <path
             d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
-          />
-          <line x1="12" y1="9" x2="12" y2="13" />
-          <line x1="12" y1="17" x2="12.01" y2="17" />
+          ></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
         </svg>
-        <span class="text-left"> Sem conexão. Tentando novamente em instantes... </span>
+        <span>Sem conexão. Tentando novamente em instantes...</span>
       </div>
     }
 
-    <!-- LISTA DE ITENS -->
-    <div class="w-full max-w-sm bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-4">
-      <h2 class="font-bold text-gray-700 mb-4 border-b pb-2 text-sm uppercase tracking-wide">
-        Resumo dos itens
-      </h2>
+    <!-- -------- LISTA DE ITENS -------- -->
+    <section class="acompanhamento-card">
+      <h2 class="acompanhamento-card-title">Resumo dos itens</h2>
 
-      <div class="space-y-3">
+      <div class="acompanhamento-itens">
         @for (item of p.itens; track item.id) {
-          <div class="flex justify-between items-center gap-2">
-            <span class="text-gray-800 font-medium text-sm sm:text-base min-w-0 truncate">
+          <div class="acompanhamento-item">
+            <span class="acompanhamento-item-nome">
               {{ item.quantidade }}x {{ item.nomeProduto }}
             </span>
 
             <span class="flex-shrink-0">
               @switch (item.status) {
                 @case ('PRONTO') {
-                  <span
-                    class="bg-green-100 text-green-700 px-2 py-1 rounded-md font-bold text-[10px] uppercase tracking-wide"
-                  >
-                    Pronto
-                  </span>
+                  <span class="acompanhamento-badge acompanhamento-badge-pronto"> Pronto </span>
                 }
                 @case ('PREPARANDO') {
-                  <span
-                    class="bg-orange-100 text-orange-700 px-2 py-1 rounded-md font-bold text-[10px] uppercase tracking-wide"
-                  >
+                  <span class="acompanhamento-badge acompanhamento-badge-preparando">
                     Na chapa
                   </span>
                 }
                 @default {
-                  <span
-                    class="bg-gray-100 text-gray-500 px-2 py-1 rounded-md font-bold text-[10px] uppercase tracking-wide"
-                  >
-                    Fila
-                  </span>
+                  <span class="acompanhamento-badge acompanhamento-badge-fila"> Fila </span>
                 }
               }
             </span>
           </div>
         }
       </div>
-    </div>
+    </section>
 
-    <!-- VALOR TOTAL -->
-    <div class="w-full max-w-sm bg-white rounded-2xl shadow-md border border-gray-200 p-4 sm:p-5">
-      <p class="text-gray-500 text-xs font-medium uppercase tracking-wide text-center">
-        Valor Total
-      </p>
-
-      <p
-        class="text-3xl sm:text-4xl font-black text-primary-600 mt-1 text-center tabular-nums"
-        [ngClass]="{ 'line-through text-gray-400': isCancelado() }"
-      >
+    <!-- -------- VALOR TOTAL -------- -->
+    <section class="acompanhamento-total">
+      <p class="acompanhamento-total-label">Valor Total</p>
+      <p class="acompanhamento-total-valor" [class.acompanhamento-total-cancelado]="isCancelado()">
         R$ {{ p.valorTotal | number: '1.2-2' }}
       </p>
-    </div>
+    </section>
 
-    <!-- STATUS DO PAGAMENTO -->
+    <!-- -------- STATUS DO PAGAMENTO -------- -->
     @if (!isCancelado()) {
-      <div
-        class="w-full max-w-sm mt-4 p-4 rounded-xl border transition-all duration-500 flex items-center justify-between gap-3"
-        [ngClass]="
+      <section
+        class="acompanhamento-pagamento"
+        [class.acompanhamento-pagamento-ok]="
           p.statusPagamento === 'PAGO' || p.status === 'ENTREGUE'
-            ? 'bg-green-50 border-green-200'
-            : 'bg-yellow-50 border-yellow-200'
+        "
+        [class.acompanhamento-pagamento-pendente]="
+          !(p.statusPagamento === 'PAGO' || p.status === 'ENTREGUE')
         "
       >
-        <div class="flex items-center gap-3 min-w-0">
-          <span class="text-2xl flex-shrink-0" aria-hidden="true">
-            {{ p.statusPagamento === 'PAGO' || p.status === 'ENTREGUE' ? '💸' : '⏳' }}
-          </span>
+        <div class="acompanhamento-pagamento-info">
+          <div
+            class="acompanhamento-pagamento-icon"
+            [class.acompanhamento-pagamento-icon-ok]="
+              p.statusPagamento === 'PAGO' || p.status === 'ENTREGUE'
+            "
+            [class.acompanhamento-pagamento-icon-pendente]="
+              !(p.statusPagamento === 'PAGO' || p.status === 'ENTREGUE')
+            "
+            aria-hidden="true"
+          >
+            @if (p.statusPagamento === 'PAGO' || p.status === 'ENTREGUE') {
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-6 h-6"
+              >
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            } @else {
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-6 h-6"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            }
+          </div>
 
           <div class="min-w-0">
-            <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Pagamento</p>
+            <p class="acompanhamento-pagamento-label">Pagamento</p>
             <p
-              class="font-black text-base sm:text-lg truncate"
-              [ngClass]="
+              class="acompanhamento-pagamento-status"
+              [class.acompanhamento-pagamento-status-ok]="
                 p.statusPagamento === 'PAGO' || p.status === 'ENTREGUE'
-                  ? 'text-green-700'
-                  : 'text-yellow-700'
+              "
+              [class.acompanhamento-pagamento-status-pendente]="
+                !(p.statusPagamento === 'PAGO' || p.status === 'ENTREGUE')
               "
             >
-              {{
-                p.statusPagamento === 'PAGO' || p.status === 'ENTREGUE'
-                  ? 'CONFIRMADO'
-                  : 'AGUARDANDO NO CAIXA'
-              }}
+              @if (p.statusPagamento === 'PAGO' || p.status === 'ENTREGUE') {
+                Confirmado
+              } @else {
+                Aguardando no caixa
+              }
             </p>
           </div>
         </div>
 
-        <span
-          class="bg-white px-3 py-1 rounded-lg text-xs font-bold text-gray-500 shadow-sm border border-gray-100 flex-shrink-0"
-        >
+        <!-- Forma de pagamento -->
+        <span class="acompanhamento-pagamento-forma">
           {{ p.formaPagamento }}
         </span>
-      </div>
+      </section>
     }
 
-    <!-- BOTÃO EDITAR -->
+    <!-- -------- BOTÃO EDITAR -------- -->
     @if (p.status === 'RECEBIDO') {
       <button
         type="button"
         (click)="editarPedido()"
-        class="w-full max-w-sm mt-6 py-3.5 bg-white text-primary-600 border-2 border-primary-100 hover:bg-primary-50 hover:border-primary-200 rounded-xl font-bold text-sm transition-all shadow-sm active:scale-95 touch-manipulation select-none min-h-[52px] flex items-center justify-center gap-2"
+        class="acompanhamento-btn acompanhamento-btn-primary"
       >
         <svg
-          class="w-4 h-4"
+          xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
           stroke-width="2.5"
           stroke-linecap="round"
           stroke-linejoin="round"
+          class="w-4 h-4"
+          aria-hidden="true"
         >
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -195,49 +321,87 @@
       </button>
     }
 
-    <!-- BOTÃO CANCELAR -->
-    @if (podeCancelar()) {
+    <!-- -------- BOTÃO PEDIR MAIS -------- -->
+    @if (p.status === 'PRONTO' || p.status === 'SERVIDO') {
       <button
         type="button"
-        (click)="cancelarPedidoPeloCliente()"
-        class="w-full max-w-sm mt-6 py-3.5 bg-white text-red-600 border-2 border-red-100 hover:bg-red-50 hover:border-red-200 rounded-xl font-bold text-sm transition-all shadow-sm active:scale-95 touch-manipulation select-none min-h-[52px] flex items-center justify-center gap-2"
+        (click)="adicionarMaisItens()"
+        class="acompanhamento-btn acompanhamento-btn-primary"
       >
         <svg
-          class="w-4 h-4"
+          xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
           stroke-width="2.5"
           stroke-linecap="round"
           stroke-linejoin="round"
+          class="w-4 h-4"
           aria-hidden="true"
         >
-          <circle cx="12" cy="12" r="10" />
-          <line x1="15" y1="9" x2="9" y2="15" />
-          <line x1="9" y1="9" x2="15" y2="15" />
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Pedir mais itens (Adicionar à conta)
+      </button>
+    }
+
+    <!-- -------- BOTÃO CANCELAR (preenchido, vermelho suave) -------- -->
+    @if (podeCancelar()) {
+      <button
+        type="button"
+        (click)="cancelarPedidoPeloCliente()"
+        class="acompanhamento-btn-cancelar"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="w-4 h-4"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="15" y1="9" x2="9" y2="15"></line>
+          <line x1="9" y1="9" x2="15" y2="15"></line>
         </svg>
         Desistir e cancelar pedido
       </button>
     }
 
-    <!-- AVISO DE CANCELADO -->
+    <!-- -------- AVISO DE CANCELADO -------- -->
     @if (isCancelado()) {
-      <div
-        class="w-full max-w-sm mt-6 bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-center"
-      >
-        <p class="font-black text-lg mb-1">Pedido Cancelado</p>
-        <p class="text-sm">Este pedido foi cancelado e não será preparado.</p>
+      <div class="acompanhamento-cancelado" role="status">
+        <p class="acompanhamento-cancelado-titulo">Pedido Cancelado</p>
+        <p class="acompanhamento-cancelado-texto">
+          Este pedido foi cancelado e não será preparado.
+        </p>
       </div>
     }
 
-    <!-- BOTÃO NOVO PEDIDO -->
+    <!-- -------- BOTÃO NOVO PEDIDO -------- -->
     @if (mostrarNovoPedido()) {
-      <button
-        type="button"
-        (click)="fazerNovoPedido()"
-        class="w-full max-w-sm mt-6 px-6 py-4 bg-primary-600 text-white rounded-2xl font-bold text-base sm:text-lg shadow-md hover:bg-primary-700 active:scale-95 transition-all min-h-[56px] flex items-center justify-center gap-2 touch-manipulation select-none focus:outline-none focus:ring-4 focus:ring-primary-300"
-      >
-        <span class="text-xl sm:text-2xl" aria-hidden="true">🍔</span>
+      <button type="button" (click)="fazerNovoPedido()" class="acompanhamento-btn-novo">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="w-5 h-5"
+          aria-hidden="true"
+        >
+          <path d="M3 11a9 9 0 0 1 18 0"></path>
+          <path d="M3 11h18"></path>
+          <path d="M5 11a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3"></path>
+          <path d="M4 16h16"></path>
+          <path d="M5 20h14"></path>
+        </svg>
         FAZER NOVO PEDIDO
       </button>
     }

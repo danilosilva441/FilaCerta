@@ -1,0 +1,385 @@
+/* ============================================================
+   ESTOQUE E CARDÁPIO
+   ============================================================ */
+
+/* ============================================================
+   PÁGINA
+   ============================================================ */
+.estoque-page {
+  @apply min-h-dvh bg-gray-100 font-sans antialiased;
+  padding-top: max(1rem, env(safe-area-inset-top, 0px));
+  padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+  @apply sm:pb-6;
+}
+
+.estoque-inner {
+  @apply p-4 sm:p-6 max-w-7xl mx-auto;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.estoque-header {
+  @apply bg-gradient-to-br from-primary-600 to-primary-700
+         text-white
+         p-5
+         rounded-2xl
+         mb-6
+         shadow-lg shadow-primary-600/20
+         flex flex-col sm:flex-row
+         justify-between items-start sm:items-center
+         gap-4;
+}
+
+.estoque-header-brand {
+  @apply flex items-center gap-4 min-w-0;
+}
+
+.estoque-header-logo {
+  @apply w-12 h-12
+         bg-primary-800
+         rounded-full
+         flex items-center justify-center
+         flex-shrink-0
+         ring-1 ring-white/20;
+}
+
+.estoque-titulo {
+  @apply text-xl sm:text-2xl font-black;
+}
+
+.estoque-subtitulo {
+  @apply text-primary-100 text-sm;
+}
+
+.estoque-btn-add {
+  @apply w-full sm:w-auto
+         bg-white text-primary-700
+         px-6 py-3
+         rounded-xl
+         font-bold
+         flex items-center justify-center gap-2
+         shadow-md shadow-black/10
+         transition-all
+         hover:bg-primary-50
+         active:scale-95
+         touch-manipulation
+         min-h-[48px];
+}
+
+/* ============================================================
+   GRID
+   ============================================================ */
+.estoque-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3
+         gap-5;
+}
+
+/* ============================================================
+   CARD DE PRODUTO
+   ============================================================ */
+.produto-card {
+  @apply relative
+         bg-white
+         rounded-2xl
+         p-5
+         shadow-sm
+         border border-gray-200
+         flex flex-col gap-3
+         overflow-hidden
+         transition-all duration-200
+         hover:shadow-md;
+}
+
+.produto-card-indisponivel {
+  @apply bg-gray-100 border-gray-300;
+}
+
+/* Faixa lateral */
+.produto-card-faixa {
+  @apply absolute left-0 top-0 bottom-0 w-1.5;
+}
+
+/* Topo */
+.produto-card-top {
+  @apply flex justify-between items-start gap-3 pl-3;
+}
+
+.produto-card-categoria {
+  @apply inline-block
+         text-[10px] font-bold
+         text-primary-700 bg-primary-50
+         px-2 py-1 rounded-md
+         uppercase tracking-wider;
+}
+
+.produto-card-nome {
+  @apply font-black text-gray-800 text-lg
+         mt-2 leading-tight;
+}
+
+.produto-card-preco-wrap {
+  @apply text-right flex-shrink-0;
+}
+
+.produto-card-preco {
+  @apply block font-black text-xl text-primary-600 tabular-nums;
+}
+
+.produto-card-tempo {
+  @apply text-xs font-bold text-gray-400
+         inline-flex items-center gap-1 mt-0.5;
+}
+
+/* Descrição */
+.produto-card-descricao {
+  @apply text-sm text-gray-500
+         line-clamp-2
+         pl-3 flex-1;
+}
+
+/* Status + switch */
+.produto-card-status {
+  @apply pl-3 py-3
+         border-t border-gray-100
+         flex items-center justify-between
+         gap-3;
+}
+
+.produto-card-badges {
+  @apply flex items-center gap-2 flex-wrap;
+}
+
+.produto-badge {
+  @apply px-2 py-1 rounded-md
+         font-bold text-xs;
+}
+
+.produto-badge-danger {
+  @apply bg-danger-light text-danger;
+}
+
+.produto-badge-warning {
+  @apply bg-warning-light text-warning;
+}
+
+.produto-badge-success {
+  @apply bg-success-light text-success;
+}
+
+/* ============================================================
+   SWITCH (Disponibilidade)
+   ============================================================ */
+.estoque-switch {
+  @apply relative inline-flex items-center
+         cursor-pointer flex-shrink-0;
+}
+
+.estoque-switch-track {
+  @apply w-11 h-6 rounded-full
+         bg-gray-200
+         transition-colors
+         relative;
+
+  /* Pseudo-elemento (o "botão" do switch) */
+  @apply after:content-['']
+         after:absolute
+         after:top-[2px]
+         after:left-[2px]
+         after:bg-white
+         after:border after:border-gray-300
+         after:rounded-full
+         after:h-5 after:w-5
+         after:transition-all;
+}
+
+/* Quando o checkbox está marcado */
+.estoque-switch input:checked + .estoque-switch-track {
+  @apply bg-success;
+}
+
+.estoque-switch input:checked + .estoque-switch-track::after {
+  @apply translate-x-full border-white;
+}
+
+/* Focus visível */
+.estoque-switch input:focus-visible + .estoque-switch-track {
+  @apply ring-4 ring-success/30;
+}
+
+/* ============================================================
+   AÇÕES DO CARD
+   ============================================================ */
+.produto-card-actions {
+  @apply grid grid-cols-2 gap-2 mt-auto pl-3;
+}
+
+.produto-btn {
+  @apply py-2.5 px-3
+         font-bold rounded-lg
+         text-sm
+         transition-all
+         flex items-center justify-center gap-2
+         touch-manipulation select-none
+         min-h-[40px];
+}
+
+.produto-btn-editar {
+  @apply bg-gray-100 text-gray-700
+         hover:bg-gray-200;
+}
+
+.produto-btn-excluir {
+  @apply text-danger
+         border border-transparent
+         hover:bg-danger-light
+         hover:border-danger/20;
+}
+
+/* ============================================================
+   ESTADO VAZIO
+   ============================================================ */
+.estoque-vazio {
+  @apply col-span-full
+         py-20
+         text-center text-gray-400
+         bg-white
+         rounded-2xl
+         border border-dashed border-gray-300
+         flex flex-col items-center justify-center;
+}
+
+.estoque-vazio-titulo {
+  @apply font-bold text-xl text-gray-600;
+}
+
+.estoque-vazio-texto {
+  @apply text-sm mt-1;
+}
+
+/* ============================================================
+   MODAL DE PRODUTO
+   ============================================================ */
+.estoque-modal {
+  @apply bg-white
+         w-full max-w-lg
+         rounded-2xl
+         shadow-2xl
+         my-8
+         flex flex-col
+         max-h-[92dvh];
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.estoque-modal-header {
+  @apply p-5 sm:p-6
+         border-b border-gray-100
+         flex justify-between items-center
+         gap-3;
+}
+
+.estoque-modal-titulo {
+  @apply text-lg sm:text-xl font-black text-gray-800;
+}
+
+.estoque-modal-close {
+  @apply w-9 h-9 flex-shrink-0
+         flex items-center justify-center
+         rounded-full
+         bg-gray-100 text-gray-500
+         hover:bg-gray-200
+         active:scale-95
+         transition-all
+         touch-manipulation select-none;
+}
+
+.estoque-modal-body {
+  @apply p-5 sm:p-6
+         space-y-4
+         overflow-y-auto
+         flex-1;
+}
+
+/* -------- Campos -------- */
+.estoque-field {
+  @apply w-full;
+}
+
+.estoque-label {
+  @apply block text-sm font-bold text-gray-700 mb-1;
+}
+
+.estoque-obrigatorio {
+  @apply text-danger;
+}
+
+.estoque-input {
+  @apply w-full
+         px-4 py-3
+         bg-gray-50
+         border border-gray-200
+         rounded-xl
+         text-gray-800
+         placeholder:text-gray-400
+         focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+         focus:outline-none
+         transition-all;
+  font-size: 16px; /* anti-zoom iOS */
+}
+
+.estoque-input-textarea {
+  @apply resize-none;
+}
+
+.estoque-input-wrapper {
+  @apply relative;
+}
+
+.estoque-input-prefix {
+  @apply absolute left-4 top-1/2 -translate-y-1/2
+         text-gray-500 font-bold
+         pointer-events-none;
+}
+
+.estoque-input-com-prefix {
+  @apply pl-12;
+}
+
+.estoque-row-2 {
+  @apply grid grid-cols-1 sm:grid-cols-2 gap-4;
+}
+
+/* -------- Footer -------- */
+.estoque-modal-footer {
+  @apply p-5 sm:p-6
+         border-t border-gray-100
+         bg-gray-50
+         rounded-b-2xl
+         flex gap-3 justify-end;
+}
+
+.estoque-modal-btn {
+  @apply px-5 py-3
+         rounded-xl
+         font-bold text-sm
+         transition-all
+         touch-manipulation select-none
+         min-h-[48px]
+         flex items-center justify-center gap-2;
+}
+
+.estoque-modal-btn-ghost {
+  @apply bg-white text-gray-600
+         border border-gray-200
+         hover:bg-gray-100
+         flex-1 sm:flex-initial;
+}
+
+.estoque-modal-btn-primary {
+  @apply bg-primary-600 text-white
+         shadow-md shadow-primary-600/20
+         hover:bg-primary-700
+         active:scale-95
+         disabled:opacity-50 disabled:cursor-not-allowed
+         flex-1 sm:flex-initial;
+}

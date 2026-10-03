@@ -1,20 +1,15 @@
-<nav
-  class="fixed inset-x-0 bottom-0 z-40 bg-gray-900 text-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] sm:sticky sm:top-0 sm:inset-x-auto sm:bottom-auto sm:shadow-lg isolate"
-  style="
-    padding-bottom: env(safe-area-inset-bottom);
-    transform: translateZ(0);
-    will-change: transform;
-  "
-  aria-label="Navegação principal"
->
-  <div class="max-w-7xl mx-auto px-2 sm:px-4">
-    <div class="flex justify-between items-center h-16">
-      <!-- Logo (só desktop) -->
-      <a
-        routerLink="/"
-        class="hidden sm:flex items-center gap-2 cursor-pointer rounded-lg px-2 py-1 -mx-2 hover:bg-gray-800 transition-colors touch-manipulation select-none"
-        aria-label="Ir para a página inicial"
-      >
+<!-- ============================================================
+     NAVEGAÇÃO PRINCIPAL
+     Mobile: bottom nav fixa | Desktop: top nav sticky
+     ============================================================ -->
+<nav class="bottom-nav" aria-label="Navegação principal" role="navigation">
+  <div class="bottom-nav-inner">
+    <div class="bottom-nav-row">
+      <!-- =========================
+           LOGO (só desktop)
+           ========================= -->
+      <a routerLink="/" class="bottom-nav-logo" aria-label="Ir para a página inicial">
+        <!-- Ícone: pilha de pratos / fila -->
         <svg
           class="w-7 h-7 text-primary-400"
           viewBox="0 0 24 24"
@@ -25,200 +20,191 @@
           stroke-linejoin="round"
           aria-hidden="true"
         >
-          <path d="M3 11a9 9 0 0 1 18 0" />
-          <path d="M3 11h18" />
-          <path d="M5 11a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3" />
-          <path d="M4 16h16" />
-          <path d="M5 20h14" />
+          <path d="M3 11a9 9 0 0 1 18 0"></path>
+          <path d="M3 11h18"></path>
+          <path d="M5 11a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3"></path>
+          <path d="M4 16h16"></path>
+          <path d="M5 20h14"></path>
         </svg>
         <span class="font-black tracking-wider text-xl">Painel Fila Certa</span>
       </a>
 
-      <!-- Links -->
-      <div class="flex items-center justify-around w-full sm:w-auto sm:space-x-1 lg:space-x-2">
+      <!-- =========================
+           LINKS
+           ========================= -->
+      <ul class="bottom-nav-links" role="list">
         <!-- Cardápio -->
-        <a
-          routerLink="/cliente/cardapio"
-          routerLinkActive="bg-gray-800 text-primary-400 shadow-inner"
-          [routerLinkActiveOptions]="{ exact: false }"
-          class="flex flex-col sm:flex-row items-center justify-center flex-1 sm:flex-none px-2 py-2 rounded-xl font-bold text-[11px] sm:text-sm hover:bg-gray-800 active:scale-95 transition-all gap-1 touch-manipulation select-none min-h-[48px] min-w-[48px]"
-        >
-          <svg
-            class="w-5 h-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
+        <li class="bottom-nav-item">
+          <a
+            routerLink="/cliente/cardapio"
+            routerLinkActive="bottom-nav-active"
+            [routerLinkActiveOptions]="{ exact: false }"
+            class="bottom-nav-link"
           >
-            <path d="M4 4h16v16H4z" />
-            <path d="M8 8h8" />
-            <path d="M8 12h8" />
-            <path d="M8 16h5" />
-          </svg>
-          <span class="hidden sm:inline">Cardápio</span>
-        </a>
+            <svg
+              class="bottom-nav-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M4 4h16v16H4z"></path>
+              <path d="M8 8h8"></path>
+              <path d="M8 12h8"></path>
+              <path d="M8 16h5"></path>
+            </svg>
+            <span class="bottom-nav-label">Cardápio</span>
+          </a>
+        </li>
 
         <!-- Cozinha -->
-        <a
-          routerLink="/cozinha/painel"
-          routerLinkActive="bg-gray-800 text-primary-400 shadow-inner"
-          [routerLinkActiveOptions]="{ exact: false }"
-          class="flex flex-col sm:flex-row items-center justify-center flex-1 sm:flex-none px-2 py-2 rounded-xl font-bold text-[11px] sm:text-sm hover:bg-gray-800 active:scale-95 transition-all gap-1 touch-manipulation select-none min-h-[48px] min-w-[48px]"
-        >
-          <svg
-            class="w-5 h-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
+        <li class="bottom-nav-item">
+          <a
+            routerLink="/cozinha/painel"
+            routerLinkActive="bottom-nav-active"
+            [routerLinkActiveOptions]="{ exact: false }"
+            class="bottom-nav-link"
           >
-            <path
-              d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6z"
-            />
-            <path d="M6 17h12" />
-          </svg>
-          <span class="hidden sm:inline">Cozinha</span>
-        </a>
+            <svg
+              class="bottom-nav-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6z"
+              ></path>
+              <path d="M6 17h12"></path>
+            </svg>
+            <span class="bottom-nav-label">Cozinha</span>
+          </a>
+        </li>
 
-        <!-- NOVO BOTÃO DE ESTOQUE/PRODUTOS -->
-        <a
-          routerLink="/estoque/painel"
-          routerLinkActive="bg-gray-800 text-primary-400 shadow-inner"
-          [routerLinkActiveOptions]="{ exact: false }"
-          class="flex flex-col sm:flex-row items-center justify-center flex-1 sm:flex-none px-2 py-2 rounded-xl font-bold text-[11px] sm:text-sm hover:bg-gray-800 transition-colors gap-1 min-h-[48px] min-w-[48px] touch-manipulation select-none"
-        >
-          <!-- SVG DE ESTOQUE (Package) -->
-          <svg
-            class="w-5 h-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
+        <!-- Estoque -->
+        <li class="bottom-nav-item">
+          <a
+            routerLink="/estoque/painel"
+            routerLinkActive="bottom-nav-active"
+            [routerLinkActiveOptions]="{ exact: false }"
+            class="bottom-nav-link"
           >
-            <path
-              d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
-            ></path>
-            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-            <line x1="12" y1="22.08" x2="12" y2="12"></line>
-          </svg>
-          <span class="hidden sm:inline">Estoque</span>
-        </a>
+            <svg
+              class="bottom-nav-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+              ></path>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+              <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+            <span class="bottom-nav-label">Estoque</span>
+          </a>
+        </li>
 
         <!-- Caixa -->
-        <a
-          routerLink="/caixa/painel"
-          routerLinkActive="bg-gray-800 text-primary-400 shadow-inner"
-          [routerLinkActiveOptions]="{ exact: false }"
-          class="flex flex-col sm:flex-row items-center justify-center flex-1 sm:flex-none px-2 py-2 rounded-xl font-bold text-[11px] sm:text-sm hover:bg-gray-800 active:scale-95 transition-all gap-1 touch-manipulation select-none min-h-[48px] min-w-[48px]"
-        >
-          <svg
-            class="w-5 h-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
+        <li class="bottom-nav-item">
+          <a
+            routerLink="/caixa/painel"
+            routerLinkActive="bottom-nav-active"
+            [routerLinkActiveOptions]="{ exact: false }"
+            class="bottom-nav-link"
           >
-            <rect x="2" y="6" width="20" height="12" rx="2" />
-            <path d="M2 10h20" />
-            <circle cx="16" cy="14" r="1.5" />
-          </svg>
-          <span class="hidden sm:inline">Caixa</span>
-        </a>
+            <svg
+              class="bottom-nav-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+              <path d="M2 10h20"></path>
+              <circle cx="16" cy="14" r="1.5"></circle>
+            </svg>
+            <span class="bottom-nav-label">Caixa</span>
+          </a>
+        </li>
 
         <!-- Sair -->
-        <button
-          type="button"
-          (click)="confirmarLogout()"
-          class="flex flex-col sm:flex-row items-center justify-center flex-1 sm:flex-none px-2 sm:px-4 py-2 rounded-xl sm:bg-red-600 sm:hover:bg-red-700 active:scale-95 text-[11px] sm:text-sm font-bold text-red-400 sm:text-white transition-all gap-1 touch-manipulation select-none sm:ml-2 sm:border sm:border-red-500 min-h-[48px] min-w-[48px]"
-          aria-label="Sair do sistema"
-        >
-          <svg
-            class="w-5 h-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
+        <li class="bottom-nav-item">
+          <button
+            type="button"
+            (click)="confirmarLogout()"
+            class="bottom-nav-link bottom-nav-logout"
+            aria-label="Sair do sistema"
           >
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
-          </svg>
-          <span class="hidden sm:inline">Sair</span>
-        </button>
-      </div>
+            <svg
+              class="bottom-nav-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            <span class="bottom-nav-label">Sair</span>
+          </button>
+        </li>
+      </ul>
     </div>
   </div>
 </nav>
 
-<!-- MODAL DE CONFIRMAÇÃO DE LOGOUT -->
+<!-- ============================================================
+     MODAL DE CONFIRMAÇÃO DE LOGOUT
+     ============================================================ -->
 @if (mostrarConfirmacao) {
   <div
-    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-[fadeIn_0.15s_ease-out]"
+    class="modal-backdrop"
     (click)="cancelarLogout()"
     role="dialog"
     aria-modal="true"
     aria-labelledby="titulo-logout"
   >
-    <div
-      class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center animate-[scaleIn_0.2s_ease-out]"
-      (click)="$event.stopPropagation()"
-    >
-      <div
-        class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4"
-        aria-hidden="true"
-      >
-        <svg
-          class="w-8 h-8 text-red-600"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-          <polyline points="16 17 21 12 16 7" />
-          <line x1="21" y1="12" x2="9" y2="12" />
-        </svg>
+    <div class="modal-card modal-card-alert" (click)="$event.stopPropagation()">
+      <div class="modal-body">
+        <div class="modal-icon modal-icon-perigo" aria-hidden="true">
+          <svg
+            class="w-8 h-8 text-red-600"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </div>
+        <h3 id="titulo-logout" class="modal-title modal-title-alert">Sair do sistema?</h3>
+        <p class="modal-message">Você precisará fazer login novamente...</p>
       </div>
-
-      <h3 id="titulo-logout" class="text-lg font-black text-gray-800 mb-2">Sair do sistema?</h3>
-
-      <p class="text-sm text-gray-500 mb-6">
-        Você precisará fazer login novamente para acessar o painel.
-      </p>
-
-      <div class="flex gap-2">
-        <button
-          type="button"
-          (click)="cancelarLogout()"
-          class="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-200 active:scale-95 transition-all touch-manipulation min-h-[48px]"
-        >
-          Cancelar
-        </button>
-
-        <button
-          type="button"
-          (click)="logout()"
-          class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 active:scale-95 transition-all touch-manipulation min-h-[48px]"
-        >
-          Sim, sair
-        </button>
+      <div class="modal-actions modal-actions-alert">
+        <button class="modal-btn-cancel" (click)="cancelarLogout()">Cancelar</button>
+        <button class="modal-btn-confirm modal-btn-perigo" (click)="logout()">Sim, sair</button>
       </div>
     </div>
   </div>

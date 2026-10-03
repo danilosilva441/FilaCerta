@@ -1,0 +1,742 @@
+/* ============================================================
+   PAINEL DO CAIXA — Página + Abas + Modal
+   ============================================================ */
+
+/* ============================================================
+   PÁGINA
+   ============================================================ */
+.caixa-page {
+  @apply min-h-[100dvh] bg-gray-100 font-sans antialiased;
+  padding-top: max(1.5rem, env(safe-area-inset-top, 0px));
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+}
+
+.caixa-inner {
+  @apply px-4 sm:px-6 max-w-7xl mx-auto;
+}
+
+/* ============================================================
+   CARREGANDO
+   ============================================================ */
+.caixa-loading {
+  @apply flex items-center justify-center min-h-[60vh];
+}
+
+.caixa-loading-content {
+  @apply flex flex-col items-center gap-3 text-gray-500;
+}
+
+.caixa-loading-text {
+  @apply font-bold text-base;
+}
+
+/* ============================================================
+   ESTADO FECHADO — CARD DE ABERTURA
+   ============================================================ */
+.caixa-fechado {
+  @apply flex items-center justify-center min-h-[80vh];
+}
+
+.caixa-card {
+  @apply bg-white p-6 sm:p-8
+         rounded-2xl shadow-lg
+         border border-gray-200
+         max-w-md w-full text-center;
+}
+
+.caixa-card-icon {
+  @apply w-16 h-16 sm:w-20 sm:h-20
+         bg-primary-50 text-primary-600
+         rounded-full
+         flex items-center justify-center mx-auto mb-4;
+}
+
+.caixa-card-title {
+  @apply text-2xl font-black text-gray-800 mb-2;
+}
+
+.caixa-card-text {
+  @apply text-gray-500 mb-6 text-sm sm:text-base;
+}
+
+/* -------- Campo valor -------- */
+.caixa-field {
+  @apply text-left mb-6;
+}
+
+.caixa-field-label {
+  @apply block text-sm font-bold text-gray-700 mb-2;
+}
+
+.caixa-input-wrapper {
+  @apply relative;
+}
+
+.caixa-input-prefix {
+  @apply absolute left-4 top-1/2 -translate-y-1/2
+         text-gray-500 font-bold pointer-events-none;
+}
+
+.caixa-input {
+  @apply w-full pl-12 pr-4 py-3.5
+         bg-gray-50 border border-gray-300 rounded-xl
+         font-bold text-xl
+         focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+         transition-all outline-none;
+  font-size: 16px; /* anti-zoom iOS */
+}
+
+/* -------- Botão abrir -------- */
+.caixa-btn-abrir {
+  @apply w-full py-4
+         bg-primary-600 text-white
+         rounded-xl
+         font-bold text-lg
+         hover:bg-primary-700 active:scale-95
+         transition-all
+         disabled:opacity-50
+         flex justify-center items-center gap-2
+         touch-manipulation
+         shadow-md shadow-primary-600/25;
+}
+
+/* ============================================================
+   HEADER — Layout em 2 linhas
+   ============================================================ */
+
+.caixa-header {
+  @apply bg-gradient-to-br from-primary-600 to-primary-700
+         text-white
+         p-4 sm:p-5
+         rounded-xl
+         shadow-md shadow-primary-600/20
+         flex flex-col
+         gap-3 sm:gap-4;
+}
+
+/* -------- LINHA 1: Ícone + Título -------- */
+.caixa-header-top {
+  @apply flex items-center gap-3;
+}
+
+.caixa-header-logo {
+  @apply w-11 h-11 sm:w-12 sm:h-12
+         bg-primary-800
+         rounded-xl
+         flex items-center justify-center
+         flex-shrink-0
+         ring-1 ring-white/20
+         shadow-sm;
+}
+
+.caixa-header-title {
+  @apply text-lg sm:text-xl lg:text-2xl
+         font-black
+         tracking-tight
+         truncate;
+}
+
+/* -------- LINHA 2: Status + Ação -------- */
+.caixa-header-actions {
+  @apply flex items-center
+         gap-2 sm:gap-3
+         flex-wrap;
+}
+
+/* -------- Badge de status -------- */
+.caixa-status {
+  @apply inline-flex items-center gap-1.5
+         px-3 py-1.5
+         rounded-full
+         text-[11px] font-black
+         tracking-wider
+         shadow-sm
+         flex-shrink-0;
+}
+
+.caixa-status-ativo {
+  @apply bg-success text-white;
+}
+
+.caixa-status-pausado {
+  @apply bg-warning text-white;
+}
+
+.caixa-status-dot {
+  @apply w-1.5 h-1.5 rounded-full bg-white flex-shrink-0;
+}
+
+.caixa-status-dot-pulse {
+  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* -------- Botão pausar/retomar -------- */
+.caixa-btn-pausar {
+  @apply flex-1 sm:flex-initial
+         px-3 sm:px-4 py-2.5
+         rounded-lg
+         font-bold text-xs sm:text-sm
+         shadow-sm
+         transition-all
+         border-2
+         disabled:opacity-50
+         active:scale-95
+         touch-manipulation
+         flex items-center justify-center gap-2
+         min-h-[44px];
+}
+
+.caixa-btn-pausar-inativo {
+  @apply bg-transparent border-white text-white
+         hover:bg-white hover:text-primary-800;
+}
+
+.caixa-btn-pausar-ativo {
+  @apply bg-warning border-warning text-white
+         hover:bg-amber-600 hover:border-amber-600;
+}
+
+/* ============================================================
+   ABAS
+   ============================================================ */
+.caixa-abas {
+  @apply flex gap-1
+         mt-4
+         bg-gray-200 p-1
+         rounded-xl
+         w-full sm:max-w-md;
+}
+
+.caixa-aba {
+  @apply flex-1
+         py-2.5 px-3
+         rounded-lg
+         font-bold text-sm
+         transition-all
+         flex items-center justify-center gap-2
+         text-gray-500
+         hover:text-gray-700
+         touch-manipulation select-none;
+}
+
+.caixa-aba-ativa {
+  @apply bg-white text-primary-700 shadow-sm;
+}
+
+/* ============================================================
+   SECTIONS
+   ============================================================ */
+.caixa-section {
+  @apply mt-6;
+  animation: fadeIn 0.25s ease-out;
+}
+
+/* ============================================================
+   ESTADO VAZIO
+   ============================================================ */
+.caixa-vazio {
+  @apply flex flex-col items-center justify-center
+         py-16
+         text-gray-400
+         bg-gray-50
+         rounded-2xl
+         border-2 border-dashed border-gray-200;
+}
+
+.caixa-vazio-title {
+  @apply font-bold text-lg text-gray-600;
+}
+
+.caixa-vazio-text {
+  @apply text-sm mt-1;
+}
+
+/* ============================================================
+   GRID DE PEDIDOS
+   ============================================================ */
+.caixa-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3
+         gap-4 sm:gap-5;
+}
+
+/* ============================================================
+   CARD DE PEDIDO
+   ============================================================ */
+.pedido-card {
+  @apply relative
+         bg-white
+         p-4 sm:p-5
+         rounded-2xl
+         shadow-sm
+         border border-gray-200
+         flex flex-col
+         overflow-hidden;
+}
+
+/* Faixa colorida lateral */
+.pedido-card-faixa {
+  @apply absolute left-0 top-0 bottom-0 w-1.5;
+}
+
+.pedido-card-faixa-info {
+  @apply bg-info;
+}
+
+.pedido-card-faixa-chapa {
+  @apply bg-chapa;
+}
+
+/* -------- Header -------- */
+.pedido-card-header {
+  @apply flex justify-between items-start mb-4 pl-3;
+}
+
+.pedido-card-numero {
+  @apply bg-gray-100 text-gray-700
+         px-2 py-1 rounded
+         font-black text-sm
+         inline-block;
+}
+
+.pedido-card-cliente {
+  @apply font-bold text-base sm:text-lg
+         mt-1 text-gray-800 truncate;
+}
+
+.pedido-card-tipo {
+  @apply px-3 py-1 rounded-md
+         text-[10px] font-black
+         tracking-wider uppercase
+         flex-shrink-0
+         inline-flex items-center gap-1;
+}
+
+.pedido-card-tipo-mesa {
+  @apply bg-info-light text-info;
+}
+
+.pedido-card-tipo-levar {
+  @apply bg-warning-light text-warning;
+}
+
+/* -------- Total -------- */
+.pedido-card-total {
+  @apply flex justify-between items-center
+         bg-gray-50 p-3 rounded-lg mb-4 pl-4
+         border border-gray-100;
+}
+
+.pedido-card-total-label {
+  @apply text-xs font-bold text-gray-500 uppercase;
+}
+
+.pedido-card-total-valor {
+  @apply text-lg sm:text-xl font-black
+         text-primary-600 tabular-nums;
+}
+
+/* -------- Ações -------- */
+.pedido-card-actions {
+  @apply mt-auto space-y-2 pl-3;
+}
+
+.pedido-btn {
+  @apply w-full py-3 px-3
+         font-black rounded-xl
+         transition-all
+         active:scale-95
+         touch-manipulation
+         min-h-[48px]
+         flex items-center justify-center gap-2
+         text-sm;
+}
+
+.pedido-btn-success {
+  @apply bg-success-light text-success
+         hover:bg-green-200;
+}
+
+.pedido-btn-primary {
+  @apply bg-primary-600 text-white
+         hover:bg-primary-700
+         shadow-sm shadow-primary-600/20;
+}
+
+.pedido-btn-dark {
+  @apply bg-gray-900 text-white
+         hover:bg-black;
+}
+
+.pedido-btn-descartar {
+  @apply w-full py-2
+         text-danger font-bold
+         hover:bg-danger-light
+         rounded-lg
+         transition-colors
+         text-sm
+         min-h-[40px]
+         touch-manipulation;
+}
+
+/* ============================================================
+   FINANCEIRO — RESUMO GERAL (compacto)
+   ============================================================ */
+.fin-grid-resumo {
+  @apply grid grid-cols-1 md:grid-cols-2
+         gap-3 sm:gap-4
+         mb-5;
+}
+
+/* Wrapper dos 2 cards menores */
+.fin-resumo-par {
+  @apply grid grid-cols-2
+         gap-3 sm:gap-4;
+}
+
+/* -------- Card base (compacto) -------- */
+.fin-card {
+  @apply rounded-xl
+         p-3 sm:p-4
+         shadow-sm
+         flex flex-col justify-center
+         min-h-[80px];
+}
+
+/* Card escuro (Pedidos Recebidos) — mais alto por ser destaque */
+.fin-card-dark {
+  @apply bg-gray-900 text-white
+         shadow-md
+         min-h-[100px] md:min-h-full;
+}
+
+.fin-card-dark .fin-card-label {
+  @apply text-gray-400;
+}
+
+.fin-card-dark .fin-card-valor-xl {
+  @apply text-white;
+}
+
+/* Labels */
+.fin-card-label {
+  @apply font-bold
+         text-[11px] sm:text-xs
+         uppercase tracking-wider
+         mb-1;
+}
+
+/* Valor grande (card escuro) */
+.fin-card-valor-xl {
+  @apply text-3xl sm:text-4xl
+         font-black tabular-nums
+         leading-none;
+}
+
+/* Valor médio (cards menores) */
+.fin-card-valor {
+  @apply text-2xl sm:text-3xl
+         font-black tabular-nums
+         leading-none;
+}
+
+/* Variações */
+.fin-card-success {
+  @apply bg-success-light
+         border border-success/30;
+}
+
+.fin-card-label-success {
+  @apply text-success;
+}
+.fin-card-valor-success {
+  @apply text-green-900;
+}
+
+.fin-card-danger {
+  @apply bg-danger-light
+         border border-danger/30;
+}
+
+.fin-card-label-danger {
+  @apply text-danger;
+}
+.fin-card-valor-danger {
+  @apply text-red-900;
+}
+
+/* ============================================================
+   FINANCEIRO — Barra de controle (toggle)
+   ============================================================ */
+.fin-controle {
+  @apply flex items-center justify-between gap-3
+         mb-4;
+}
+
+.fin-controle-titulo {
+  @apply text-lg sm:text-xl font-black text-gray-800;
+}
+
+.fin-controle-btn {
+  @apply inline-flex items-center gap-2
+         px-3 py-2
+         rounded-lg
+         text-xs sm:text-sm font-bold
+         transition-all
+         touch-manipulation select-none
+         bg-gray-100 text-gray-600
+         hover:bg-gray-200
+         active:scale-95
+         min-h-[40px]
+         border border-gray-200;
+}
+
+.fin-controle-btn-ativo {
+  @apply bg-primary-600 text-white
+         border-primary-600
+         hover:bg-primary-700;
+}
+
+/* ============================================================
+   FINANCEIRO — Banner faturamento (compacto)
+   ============================================================ */
+.fin-banner {
+  @apply md:col-span-2 lg:col-span-4
+         bg-gradient-to-r from-primary-700 to-primary-900
+         rounded-2xl
+         p-4 sm:p-5
+         text-white
+         shadow-lg shadow-primary-900/20
+         flex items-center justify-between
+         gap-3;
+}
+
+.fin-banner-label {
+  @apply text-primary-200
+         font-bold uppercase tracking-wider
+         text-[11px] sm:text-xs
+         mb-1;
+}
+
+.fin-banner-valor {
+  @apply text-2xl sm:text-3xl lg:text-4xl
+         font-black tabular-nums
+         leading-none
+         transition-all duration-200;
+}
+
+/* ============================================================
+   FINANCEIRO — Cards de método
+   ============================================================ */
+.fin-metodo {
+  @apply bg-white
+         rounded-xl p-4
+         shadow-sm
+         border-t-4
+         transition-shadow duration-200
+         hover:shadow-md;
+}
+
+.fin-metodo-pix {
+  @apply border-success;
+}
+.fin-metodo-cartao {
+  @apply border-info;
+}
+.fin-metodo-dinheiro {
+  @apply border-primary-500;
+}
+
+.fin-metodo-header {
+  @apply flex items-center justify-between
+         mb-2 gap-2;
+}
+
+.fin-metodo-nome {
+  @apply font-bold text-gray-700 text-sm;
+}
+
+.fin-metodo-badge {
+  @apply text-[10px] font-black
+         px-2 py-1 rounded
+         flex-shrink-0;
+}
+
+.fin-metodo-pix .fin-metodo-badge {
+  @apply bg-success-light text-success;
+}
+.fin-metodo-cartao .fin-metodo-badge {
+  @apply bg-info-light text-info;
+}
+.fin-metodo-dinheiro .fin-metodo-badge {
+  @apply bg-primary-50 text-primary-700;
+}
+
+.fin-metodo-valor {
+  @apply text-xl sm:text-2xl
+         font-black text-gray-900
+         tabular-nums
+         leading-none
+         transition-all duration-200;
+}
+
+/* ============================================================
+   FINANCEIRO — Gaveta
+   ============================================================ */
+.fin-gaveta {
+  @apply bg-warning-light
+         rounded-xl p-4
+         border border-warning/30
+         shadow-sm
+         flex flex-col
+         gap-3;
+}
+
+.fin-gaveta-conteudo {
+  @apply flex flex-col
+         items-center text-center;
+}
+
+.fin-gaveta-label {
+  @apply text-amber-800
+         font-bold text-[11px] uppercase tracking-wider
+         mb-1;
+}
+
+.fin-gaveta-valor {
+  @apply text-2xl font-black text-amber-900
+         tabular-nums
+         leading-none
+         transition-all duration-200;
+}
+
+.fin-btn-fechar {
+  @apply w-full
+         bg-danger hover:bg-red-700
+         text-white
+         px-4 py-2.5
+         rounded-lg
+         font-bold
+         shadow-sm
+         transition-all
+         active:scale-95
+         text-sm
+         flex items-center justify-center gap-2
+         touch-manipulation
+         min-h-[44px];
+}
+
+/* ============================================================
+   MODAL DE FECHAMENTO
+   ============================================================ */
+.fechamento-header {
+  @apply bg-gray-900
+         p-5
+         text-center
+         flex-shrink-0;
+}
+
+.fechamento-icon {
+  @apply w-12 h-12
+         bg-success
+         text-white
+         rounded-full
+         flex items-center justify-center
+         mx-auto mb-3
+         ring-4 ring-success/20;
+}
+
+.fechamento-title {
+  @apply text-xl font-black text-white;
+}
+
+.fechamento-subtitle {
+  @apply text-gray-400 text-sm mt-0.5;
+}
+
+.fechamento-body {
+  @apply p-6
+         bg-gray-50
+         space-y-4
+         overflow-y-auto
+         flex-1;
+}
+
+.fechamento-lista {
+  @apply space-y-2;
+}
+
+.fechamento-linha {
+  @apply flex justify-between items-center
+         text-sm gap-2;
+}
+
+.fechamento-linha-label {
+  @apply text-gray-500 font-medium
+         flex items-center gap-1.5 min-w-0;
+}
+
+.fechamento-linha-qtd {
+  @apply text-[10px] bg-gray-200
+         px-1.5 py-0.5 rounded
+         font-bold text-gray-600;
+}
+
+.fechamento-linha-valor {
+  @apply text-gray-800 font-bold
+         tabular-nums whitespace-nowrap;
+}
+
+.fechamento-separador {
+  @apply border-t border-dashed border-gray-300;
+}
+
+.fechamento-total {
+  @apply flex justify-between items-center
+         text-sm;
+}
+
+.fechamento-total-label {
+  @apply text-gray-600 font-bold
+         uppercase tracking-wider;
+}
+
+.fechamento-total-valor {
+  @apply text-lg font-black text-primary-600
+         tabular-nums;
+}
+
+.fechamento-gaveta {
+  @apply bg-warning-light
+         border border-warning/30
+         p-4 rounded-xl
+         text-center mt-4;
+}
+
+.fechamento-gaveta-label {
+  @apply text-xs font-bold text-gray-700
+         uppercase tracking-widest mb-1;
+}
+
+.fechamento-gaveta-valor {
+  @apply text-2xl font-black text-gray-900
+         tabular-nums;
+}
+
+.fechamento-footer {
+  @apply p-4 bg-white
+         border-t border-gray-100
+         flex-shrink-0;
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+}
+
+.fechamento-btn {
+  @apply w-full py-4
+         bg-gray-900 text-white
+         rounded-xl
+         font-bold text-lg
+         hover:bg-black
+         active:scale-95
+         transition-all
+         touch-manipulation
+         min-h-[56px];
+}

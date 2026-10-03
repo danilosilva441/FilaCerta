@@ -1,85 +1,62 @@
-# 🍔 Fila Certa (Mikael Lanches)
+# 🍔 FilaCerta - Sistema de Autoatendimento e Gestão de Pedidos
 
-> **Sistema Inteligente de Autoatendimento e Gestão de Filas para Fast Food.**
+O **FilaCerta** é uma plataforma completa (End-to-End) para restaurantes, lanchonetes e food-trucks, focada em otimizar o fluxo de pedidos, reduzir filas e fornecer controle financeiro em tempo real. O sistema permite que o cliente faça o pedido via smartphone (QR Code) ou diretamente no balcão, acompanhando o status ao vivo na tela.
 
-O **Fila Certa** é uma solução completa de PDV (Ponto de Venda) e autoatendimento projetada para otimizar o fluxo de pedidos em lanchonetes e restaurantes. O sistema elimina gargalos de atendimento, oferecendo um cardápio digital reativo para o cliente e um painel de controle em tempo real para a gestão do caixa e da cozinha.
-
----
-
-## 🚀 O Problema e a Solução
-
-Em horários de pico, restaurantes perdem vendas devido a filas de atendimento e desorganização na cozinha. O **Fila Certa** resolve isso ao descentralizar a entrada de pedidos. 
-
-*   **Para o Cliente:** Um cardápio digital intuitivo via QR Code ou link, onde ele monta o pedido e acompanha o status (Recebido, Preparando, Pronto) em tempo real, sem precisar instalar aplicativos.
-*   **Para a Gestão:** Um painel administrativo seguro que orquestra a fila da cozinha, controla o fluxo financeiro do caixa e possui gatilhos de controle de demanda (ex: Pausar novos pedidos se a cozinha sobrecarregar).
+## 🚀 O Problema que Resolvemos
+Estabelecimentos de fast-food sofrem com gargalos no caixa, erros de anotação de pedidos e falta de visibilidade da fila para a cozinha. O FilaCerta descentraliza o pedido, passando o controle para o smartphone do cliente, enquanto a cozinha e o caixa recebem atualizações instantâneas sem a necessidade de recarregar a página.
 
 ---
 
-## 🏗️ Arquitetura do Sistema
+## 🏗️ Arquitetura e Tecnologias
 
-O projeto foi construído seguindo o padrão de **Arquitetura Desacoplada**, separando claramente as responsabilidades entre a camada de apresentação (Frontend) e as regras de negócio/persistência (Backend).
+O projeto adota uma arquitetura baseada em microsserviços lógicos, com separação estrita de responsabilidades entre o cliente (Frontend) e o servidor (Backend).
 
-*   **Backend (API RESTful):** Desenvolvido em Java com Spring Boot. Atua como o núcleo da aplicação, garantindo segurança (Autenticação JWT), validação de regras de negócio, e transações consistentes com o banco de dados.
-*   **Frontend (SPA - Single Page Application):** Desenvolvido em Angular. Consome a API REST e proporciona uma experiência *Mobile-First*, utilizando técnicas de *Polling* assíncrono via RxJS para reatividade em tempo real.
-
----
-
-## 🛠️ Tecnologias Utilizadas
-
-### Backend
-*   **Java 17** & **Spring Boot 3**
-*   **Spring Security & JWT** (Controle de acesso granular e rotas blindadas)
-*   **Spring Data JPA / Hibernate** (Mapeamento Objeto-Relacional)
-*   **Flyway** (Versionamento e migrações de Banco de Dados)
-*   **Banco de Dados:** H2 (Desenvolvimento) / Preparado para PostgreSQL (Produção)
-
-### Frontend
-*   **Angular 17+** (Framework SPA, Standalone Components, Signals/RxJS)
-*   **Tailwind CSS** (Estilização utilitária e design responsivo)
-*   **TypeScript** (Tipagem estática e segurança no código cliente)
+*   **Backend:** Java 17 + Spring Boot 3
+*   **Frontend:** Angular 17+ (Standalone Components) + TailwindCSS
+*   **Banco de Dados:** PostgreSQL (via Spring Data JPA)
+*   **Comunicação em Tempo Real:** WebSockets (STOMP/SockJS)
 
 ---
 
-## ✨ Principais Funcionalidades
+## 🛡️ Diferenciais: Segurança e Anti-Fraude (Enterprise-Grade)
 
-### 📱 Visão do Cliente
-*   **Cardápio Digital Responsivo:** Navegação fluida e adição de itens ao carrinho.
-*   **Acompanhamento em Tempo Real:** Tela de status reativa que atualiza automaticamente o progresso do pedido sem necessidade de *refresh*.
-*   **Bloqueio de Alta Demanda:** Interface adaptativa que oculta o cardápio automaticamente caso a gestão pause a cozinha.
+Diferente de sistemas convencionais, o FilaCerta foi desenhado com uma postura defensiva ("Security by Design") para evitar fraudes operacionais:
 
-### 💻 Visão Administrativa (Acesso Restrito)
-*   **Controle de Segurança:** Login via Token JWT obrigatório para áreas gerenciais.
-*   **Painel do Caixa:** Abertura, fechamento, resumo financeiro (Valor Inicial, Entradas, Status de Pagamento) e cancelamento de pedidos.
-*   **Fila da Cozinha (Kanban):** Tela de fluxo de preparo com integração sonora e visual, ordenando pedidos por chegada e prioridade.
-*   **Emergency Stop:** Recurso de pausa da cozinha em 1 clique para horários de pico extremo.
+1.  **Vínculo de Sessão (Device Binding):** O sistema utiliza controle rígido via `localStorage` e `sessionStorage` para impedir que um cliente abra múltiplas abas e realize pedidos falsos simultâneos (Spam de fila).
+2.  **Proteção contra IDOR:** Pedidos não utilizam IDs sequenciais e previsíveis na URL. O rastreio é feito por um UUID curto e cifrado (ex: `8F3A2B19`), impedindo que clientes acessem ou cancelem pedidos de terceiros.
+3.  **Backend Soberano (Status Lock):** O frontend não possui poder de decisão. O Backend bloqueia automaticamente o cancelamento ou a edição de pedidos caso a cozinha já tenha alterado o status para `PREPARANDO` ou superior, garantindo **zero desperdício de insumos**.
+4.  **Isolamento Financeiro (Visão Cega):** Separação estrita entre a interface Operacional (Balcão) e a Financeira (Cofre). Funcionários podem operar a fila sem ter acesso a dados sensíveis de faturamento da loja.
 
 ---
 
-## ⚙️ Como Executar o Projeto Localmente
+## ⚖️ Conformidade Legal (LGPD)
 
-Para rodar este projeto na sua máquina, você precisará do **Java 17+**, **Node.js (v18+)** e o **Angular CLI** instalados.
+O FilaCerta está alinhado às diretrizes da Lei Geral de Proteção de Dados (Lei nº 13.709/2018):
+*   **Minimização de Dados (Art. 6º, III):** O sistema exige apenas um "Nome ou Apelido" para identificação visual, sem coleta de CPF, e-mail, telefone ou endereço físico.
+*   **Finalidade Clara (Art. 6º, I):** O dado recolhido tem a finalidade exclusiva de facilitar a chamada do pedido na entrega.
 
-### 1. Clonando o Repositório
-```bash
-git clone [https://github.com/seu-usuario/filacerta.git](https://github.com/seu-usuario/filacerta.git)
-cd filacerta
+---
 
-2. Rodando o Backend (Spring Boot)
+## ⚙️ Principais Funcionalidades
 
-O banco de dados (H2) e as tabelas (via Flyway) serão criadas automaticamente na inicialização.
-Bash
+### 📱 Para o Cliente
+*   **Cardápio Digital:** Navegação fluida e filtro por categorias.
+*   **Modo Acréscimo (Comanda Aberta):** Clientes com pedidos já em andamento (`SERVIDO`) podem adicionar novos itens à mesma conta sem perder o contexto.
+*   **Rastreamento ao Vivo:** Tela de acompanhamento sincronizada via WebSocket que atualiza instantaneamente quando a cozinha altera o status (Na Fila -> Preparando -> Pronto).
 
-cd backend
-mvn spring-boot:run
+### 🍳 Para a Operação (Loja)
+*   **Painel da Cozinha:** Visualização de fila priorizada e controle de preparo por item.
+*   **Painel do Caixa (Balcão):** Aprovação de pagamentos, avanço de fluxo (Servir/Entregar) e botão de emergência para "Pausar Cozinha" em momentos de pico.
+*   **Cofre (Financeiro):** Dashboard em tempo real com conciliação automática de recebimentos segmentados por método (PIX, Cartão, Dinheiro), volume de vendas e contagem de itens na gaveta.
 
-A API estará disponível em http://localhost:8080.
-3. Rodando o Frontend (Angular)
+---
 
-Em um novo terminal:
-Bash
+## 🗺️ Roadmap e Próximos Passos
 
-cd frontend
-npm install
-ng serve
+Apesar de ser um produto funcional e estável, as seguintes implementações estão mapeadas para o ambiente de Produção Oficial:
+- [ ] **Rate Limiting** via Nginx/Bucket4j para prevenir ataques de negação de serviço.
+- [ ] Tarefa automatizada (`@Scheduled`) para **Anonimização Noturna de Dados**, limpando os nomes dos clientes do banco após 24h para conformidade máxima com a LGPD.
+- [ ] Relatórios PDF de fechamento de caixa.
 
-O sistema estará disponível em http://localhost:4200.
+---
+*Desenvolvido com foco na eficiência, segurança e na melhor experiência do utilizador.*

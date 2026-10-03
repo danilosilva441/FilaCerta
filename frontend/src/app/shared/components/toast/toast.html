@@ -1,157 +1,166 @@
-<div
-  class="fixed top-4 right-4 sm:top-6 sm:right-6 z-[9999] flex flex-col gap-3 pointer-events-none w-full sm:w-auto px-4 sm:px-0"
->
+<!-- ============================================================
+     TOAST CONTAINER — Global
+     Mobile-first: safe-areas, posição adaptativa, acessível
+     ============================================================ -->
+<div class="toast-container" role="region" aria-label="Notificações">
   @for (item of toasts; track item.id) {
     <div
-      class="relative w-full max-w-sm pointer-events-auto rounded-xl shadow-lg bg-white border-l-4 p-3 sm:p-4 flex flex-col gap-3 transition-all duration-300 ease-out"
+      class="toast"
       [ngClass]="{
-        'border-green-500': item.tipo === 'sucesso',
-        'border-red-500': item.tipo === 'erro',
-        'border-yellow-500': item.tipo === 'aviso',
-        'border-blue-500': item.tipo === 'info',
-        'animate-[slideDown_0.3s_ease-out]': !item.saindo,
-        'animate-[slideUp_0.3s_ease-out_forwards]': item.saindo,
+        'toast-sucesso': item.tipo === 'sucesso',
+        'toast-erro': item.tipo === 'erro',
+        'toast-aviso': item.tipo === 'aviso',
+        'toast-info': item.tipo === 'info',
+        'toast-entrando': !item.saindo,
+        'toast-saindo': item.saindo,
       }"
-      role="status"
-      aria-live="polite"
+      [attr.role]="item.tipo === 'erro' ? 'alert' : 'status'"
+      [attr.aria-live]="item.tipo === 'erro' ? 'assertive' : 'polite'"
     >
-      <!-- LINHA SUPERIOR (ícone + conteúdo + fechar) -->
-      <div class="flex items-start gap-3">
-        <!-- ÍCONE -->
+      <!-- =========================
+           LINHA PRINCIPAL
+           ========================= -->
+      <div class="toast-row">
+        <!-- ÍCONE CIRCULAR -->
         <div
-          class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
+          class="toast-icon"
           [ngClass]="{
-            'bg-green-100 text-green-600': item.tipo === 'sucesso',
-            'bg-red-100 text-red-600': item.tipo === 'erro',
-            'bg-yellow-100 text-yellow-600': item.tipo === 'aviso',
-            'bg-blue-100 text-blue-600': item.tipo === 'info',
+            'toast-icon-sucesso': item.tipo === 'sucesso',
+            'toast-icon-erro': item.tipo === 'erro',
+            'toast-icon-aviso': item.tipo === 'aviso',
+            'toast-icon-info': item.tipo === 'info',
           }"
           aria-hidden="true"
         >
           @switch (item.tipo) {
             @case ('sucesso') {
+              <!-- Check -->
               <svg
-                class="w-5 h-5"
+                xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 stroke-width="2.5"
                 stroke-linecap="round"
                 stroke-linejoin="round"
+                class="w-5 h-5"
               >
-                <polyline points="20 6 9 17 4 12" />
+                <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
             }
             @case ('erro') {
+              <!-- X -->
               <svg
-                class="w-5 h-5"
+                xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 stroke-width="2.5"
                 stroke-linecap="round"
                 stroke-linejoin="round"
+                class="w-5 h-5"
               >
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
             }
             @case ('aviso') {
+              <!-- Alerta triângulo -->
               <svg
-                class="w-5 h-5"
+                xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 stroke-width="2.5"
                 stroke-linecap="round"
                 stroke-linejoin="round"
+                class="w-5 h-5"
               >
                 <path
                   d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
-                />
-                <line x1="12" y1="9" x2="12" y2="13" />
-                <line x1="12" y1="17" x2="12.01" y2="17" />
+                ></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
               </svg>
             }
             @default {
+              <!-- Info -->
               <svg
-                class="w-5 h-5"
+                xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 stroke-width="2.5"
                 stroke-linecap="round"
                 stroke-linejoin="round"
+                class="w-5 h-5"
               >
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="16" x2="12" y2="12" />
-                <line x1="12" y1="8" x2="12.01" y2="8" />
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
               </svg>
             }
           }
         </div>
 
-        <!-- CONTEÚDO -->
-        <div class="flex-1 min-w-0">
+        <!-- CONTEÚDO (título + mensagem) -->
+        <div class="toast-content">
           <h4
-            class="font-bold text-sm uppercase tracking-wider"
+            class="toast-title"
             [ngClass]="{
-              'text-green-800': item.tipo === 'sucesso',
-              'text-red-800': item.tipo === 'erro',
-              'text-yellow-800': item.tipo === 'aviso',
-              'text-blue-800': item.tipo === 'info',
+              'toast-title-sucesso': item.tipo === 'sucesso',
+              'toast-title-erro': item.tipo === 'erro',
+              'toast-title-aviso': item.tipo === 'aviso',
+              'toast-title-info': item.tipo === 'info',
             }"
           >
             {{ item.titulo }}
           </h4>
-          <p class="text-gray-600 text-sm mt-0.5 font-medium break-words">
-            {{ item.mensagem }}
-          </p>
+          <p class="toast-message">{{ item.mensagem }}</p>
         </div>
 
-        <!-- FECHAR -->
+        <!-- BOTÃO FECHAR -->
         <button
           type="button"
           (click)="removerToast(item.id)"
-          class="flex-shrink-0 w-9 h-9 -mr-1 -mt-1 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 active:scale-90 transition-all flex items-center justify-center touch-manipulation select-none"
+          class="toast-close"
           aria-label="Fechar notificação"
         >
           <svg
-            class="w-4 h-4"
+            xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
             stroke-width="2.5"
             stroke-linecap="round"
             stroke-linejoin="round"
+            class="w-4 h-4"
             aria-hidden="true"
           >
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
         </button>
       </div>
 
-      <!-- BOTÕES DE AÇÃO (só se tiver) -->
+      <!-- =========================
+           AÇÕES (opcional)
+           ========================= -->
       @if (item.textoAcao) {
-        <div class="flex gap-2 pl-11">
-          <button
-            type="button"
-            (click)="removerToast(item.id)"
-            class="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-bold text-xs hover:bg-gray-200 active:scale-95 transition-all touch-manipulation select-none min-h-[40px]"
-          >
+        <div class="toast-actions">
+          <button type="button" (click)="removerToast(item.id)" class="toast-btn-cancel">
             {{ item.textoCancelar }}
           </button>
 
           <button
             type="button"
             (click)="executarAcao(item)"
-            class="flex-1 py-2.5 rounded-lg font-bold text-xs text-white active:scale-95 transition-all touch-manipulation select-none min-h-[40px]"
+            class="toast-btn-confirm"
             [ngClass]="{
-              'bg-green-600 hover:bg-green-700': item.tipo === 'sucesso',
-              'bg-red-600 hover:bg-red-700': item.tipo === 'erro',
-              'bg-orange-600 hover:bg-orange-700': item.tipo === 'aviso',
-              'bg-blue-600 hover:bg-blue-700': item.tipo === 'info',
+              'toast-btn-sucesso': item.tipo === 'sucesso',
+              'toast-btn-erro': item.tipo === 'erro',
+              'toast-btn-aviso': item.tipo === 'aviso',
+              'toast-btn-info': item.tipo === 'info',
             }"
           >
             {{ item.textoAcao }}
@@ -159,17 +168,19 @@
         </div>
       }
 
-      <!-- BARRA DE PROGRESSO (opcional) -->
+      <!-- =========================
+           BARRA DE PROGRESSO
+           ========================= -->
       @if (!item.saindo) {
         <div
-          class="absolute bottom-0 left-0 h-0.5 rounded-bl-xl transition-[width] ease-linear"
+          class="toast-progress"
           [ngClass]="{
-            'bg-green-500': item.tipo === 'sucesso',
-            'bg-red-500': item.tipo === 'erro',
-            'bg-yellow-500': item.tipo === 'aviso',
-            'bg-blue-500': item.tipo === 'info',
+            'toast-progress-sucesso': item.tipo === 'sucesso',
+            'toast-progress-erro': item.tipo === 'erro',
+            'toast-progress-aviso': item.tipo === 'aviso',
+            'toast-progress-info': item.tipo === 'info',
           }"
-          style="width: 100%; animation: progress 4s linear forwards"
+          aria-hidden="true"
         ></div>
       }
     </div>

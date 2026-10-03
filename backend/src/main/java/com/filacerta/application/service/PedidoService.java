@@ -27,6 +27,7 @@ import com.filacerta.domain.enums.StatusItemPedido;
 import com.filacerta.domain.enums.StatusPagamento;
 import com.filacerta.domain.enums.StatusPedido;
 import com.filacerta.domain.exception.NegocioException;
+import com.filacerta.infrastructure.repository.ItemPedidoRepository;
 import com.filacerta.infrastructure.repository.PedidoRepository;
 import com.filacerta.infrastructure.repository.ProdutoRepository;
 
@@ -40,7 +41,7 @@ public class PedidoService {
 	private final ProdutoService produtoService;
 	private final CaixaDiarioService caixaDiarioService;
 	private final ProdutoRepository produtoRepository;
-
+	private final ItemPedidoRepository itemPedidoRepository;
 	private final SimpMessagingTemplate messagingTemplate;
 	
 
@@ -348,5 +349,64 @@ public class PedidoService {
 		messagingTemplate.convertAndSend("/topic/caixa", "ATUALIZOU");
 
 		return PedidoMapper.toResponse(pedido);
+	}
+	
+	@Transactional
+	public PedidoResponse adicionarItensAoPedido(String codigo, AtualizarPedidoRequest request) {
+		Pedido pedido = pedidoRepository.findByCodigoAcompanhamento(codigo)
+				.orElseThrow(() -> new NegocioException("Pedido não encontrado."));
+
+		// Trava: Não pode adicionar se o cliente já pegou o pacote e foi embora (ENTREGUE) ou foi CANCELADO
+		if (pedido.getStatus() == StatusPedido.ENTREGUE || pedido.getStatus() == StatusPedido.CANCELADO) {
+			throw new NegocioException("Este pedido já foi finalizado. Por favor, inicie um novo pedido.");
+		}
+
+		// Processa APENAS os novos itens
+		for (var itemReq : request.itens()) {
+			Produto produto = produtoRepository.findById(itemReq.getProdutoId())
+					.orElseThrow(() -> new NegocioException("Produto não encontrado."));
+
+			// Baixa no estoque
+			if (produto.getQuantidadeDisponivel() != null) {
+				if (produto.getQuantidadeDisponivel() < itemReq.getQuantidade()) {
+					throw new NegocioException("Estoque insuficiente para o produto: " + produto.getNome());
+				}
+				produto.setQuantidadeDisponivel(produto.getQuantidadeDisponivel() - itemReq.getQuantidade());
+			}
+
+			ItemPedido novoItem = new ItemPedido();
+			novoItem.setPedido(pedido);
+			novoItem.setProduto(produto);
+			novoItem.setQuantidade(itemReq.getQuantidade());
+			novoItem.setPrecoUnitario(produto.getPreco());
+			novoItem.setObservacaoItem(itemReq.getObservacaoItem());
+			novoItem.setStatus(StatusItemPedido.PENDENTE);
+
+			// ---> SALVA O ITEM EXPLICITAMENTE ANTES DE ADICIONAR <---
+			itemPedidoRepository.save(novoItem);
+
+			pedido.getItens().add(novoItem);
+		}
+
+		// Recalcula o valor total da comanda
+		pedido.calcularValorTotal();
+
+		// Se a conta já estava paga, agora ficou pendente de novo (porque pediu mais)
+		if (pedido.getStatusPagamento() == StatusPagamento.PAGO) {
+			pedido.setStatusPagamento(StatusPagamento.AGUARDANDO);
+		}
+
+		// Se o pedido estava pronto ou na mesa, volta para a aba "Em Preparo" da Cozinha
+		if (pedido.getStatus() == StatusPedido.PRONTO || pedido.getStatus() == StatusPedido.SERVIDO) {
+			pedido.setStatus(StatusPedido.PREPARANDO);
+		}
+
+		Pedido pedidoSalvo = pedidoRepository.save(pedido);
+
+		// Avisa a TV, a Cozinha e o Caixa
+		messagingTemplate.convertAndSend("/topic/pedidos", "ATUALIZOU");
+		messagingTemplate.convertAndSend("/topic/caixa", "ATUALIZOU");
+
+		return PedidoMapper.toResponse(pedidoSalvo);
 	}
 }

@@ -15,6 +15,7 @@ import { ProdutoService } from '../../core/services/produto.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './painel-produtos.html',
+  styleUrls: ['./painel-produtos.css'],
 })
 export class PainelProdutosComponent implements OnInit {
   private readonly produtoService = inject(ProdutoService);
