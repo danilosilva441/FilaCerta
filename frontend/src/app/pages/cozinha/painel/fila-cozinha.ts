@@ -29,6 +29,7 @@ type StatusItem = 'PENDENTE' | 'PREPARANDO' | 'PRONTO';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './fila-cozinha.html',
+  styleUrls: ['./fila-cozinha.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FilaCozinhaComponent implements OnInit, OnDestroy {
@@ -232,5 +233,16 @@ export class FilaCozinhaComponent implements OnInit, OnDestroy {
           this.notificationService.erro('Erro', 'Não foi possível cancelar o pedido.');
         },
       });
+  }
+
+  // Controla a visibilidade do modal do QR Code
+  readonly exibirModalQrCode = signal<boolean>(false);
+
+  // Pega o endereço atual do cliente (funciona tanto no localhost quanto no IP da rede do celular)
+  readonly linkCardapio = window.location.origin + '/cliente/cardapio';
+
+  // URL geradora de QR Code instantânea
+  get urlQrCodeApi(): string {
+    return `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(this.linkCardapio)}`;
   }
 }

@@ -5,12 +5,11 @@
 <div class="page-cozinha">
   <div class="page-cozinha-inner">
     <!-- ============================================================
-     HEADER — Fila da Cozinha
-     Agora em vermelho (identidade da marca)
-     ============================================================ -->
+         HEADER — Fila da Cozinha
+         ============================================================ -->
     <header class="cozinha-header">
+      <!-- LINHA 1: Título + badge -->
       <div class="cozinha-header-row">
-        <!-- TÍTULO + CONTADOR -->
         <div class="cozinha-title-group">
           <div class="cozinha-logo" aria-hidden="true">
             <svg
@@ -39,57 +38,91 @@
             {{ totalPedidos() }} {{ totalPedidos() === 1 ? 'pedido' : 'pedidos' }}
           </span>
         </div>
+      </div>
 
-        <!-- AÇÃO DE SOM (só o toggle, sem "testar") -->
-        <div class="cozinha-actions">
-          <button
-            type="button"
-            (click)="alternarSom()"
-            [attr.aria-pressed]="somAtivado()"
-            [attr.aria-label]="
-              somAtivado() ? 'Desativar som de novos pedidos' : 'Ativar som de novos pedidos'
-            "
-            class="cozinha-btn-som"
-            [ngClass]="{
-              'cozinha-btn-som-ativo': somAtivado(),
-              'cozinha-btn-som-inativo': !somAtivado(),
-            }"
+      <!-- LINHA 2: Ações (som + QR Code) -->
+      <div class="cozinha-actions">
+        <!-- Toggle de som (mesmo estilo do QR Code) -->
+        <button
+          type="button"
+          (click)="alternarSom()"
+          [attr.aria-pressed]="somAtivado()"
+          [attr.aria-label]="
+            somAtivado() ? 'Desativar som de novos pedidos' : 'Ativar som de novos pedidos'
+          "
+          class="cozinha-btn-som"
+          [ngClass]="{
+            'cozinha-btn-som-ativo': somAtivado(),
+            'cozinha-btn-som-inativo': !somAtivado(),
+          }"
+        >
+          @if (somAtivado()) {
+            <!-- Som LIGADO: ícone com ondas sonoras -->
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="w-5 h-5"
+              aria-hidden="true"
+            >
+              <path d="M11 5 6 9H2v6h4l5 4V5z"></path>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+            </svg>
+            <span class="hidden xs:inline">Som</span>
+          } @else {
+            <!-- Som DESLIGADO: ícone com X -->
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="w-5 h-5"
+              aria-hidden="true"
+            >
+              <path d="M11 5 6 9H2v6h4l5 4V5z"></path>
+              <line x1="23" y1="9" x2="17" y2="15"></line>
+              <line x1="17" y1="9" x2="23" y2="15"></line>
+            </svg>
+            <span class="hidden xs:inline">Som</span>
+          }
+        </button>
+
+        <!-- QR Code -->
+        <button
+          type="button"
+          (click)="exibirModalQrCode.set(true)"
+          class="cozinha-btn-qr"
+          aria-label="Abrir QR Code do cardápio"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="w-5 h-5"
+            aria-hidden="true"
           >
-            @if (somAtivado()) {
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="w-5 h-5"
-                aria-hidden="true"
-              >
-                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
-                <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
-              </svg>
-              <span>Som Ativado</span>
-            } @else {
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="w-5 h-5"
-                aria-hidden="true"
-              >
-                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
-                <line x1="1" y1="1" x2="23" y2="23"></line>
-              </svg>
-              <span>Ativar Som</span>
-            }
-          </button>
-        </div>
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+            <line x1="14" y1="14" x2="14" y2="17"></line>
+            <line x1="14" y1="21" x2="21" y2="21"></line>
+            <line x1="17" y1="14" x2="21" y2="14"></line>
+            <line x1="21" y1="17" x2="21" y2="21"></line>
+          </svg>
+          <span class="hidden xs:inline">QR Code</span>
+        </button>
       </div>
     </header>
 
@@ -224,7 +257,6 @@
 
           <!-- AÇÕES DO CARD -->
           <div class="cozinha-card-actions">
-            <!-- INDICADOR: PEDIDO PRONTO -->
             @if (isPedidoPronto(pedido)) {
               <div class="cozinha-status-pronto" role="status" aria-live="polite">
                 <svg
@@ -245,7 +277,6 @@
               </div>
             }
 
-            <!-- CANCELAR -->
             <button
               type="button"
               (click)="cancelarPedido(pedido.pedidoId)"
@@ -275,3 +306,59 @@
     </div>
   </div>
 </div>
+
+<!-- ============================================================
+     MODAL: QR CODE DO CARDÁPIO
+     ============================================================ -->
+@if (exibirModalQrCode()) {
+  <div class="modal-backdrop" (click)="exibirModalQrCode.set(false)" role="presentation">
+    <div
+      class="cozinha-modal-qr"
+      (click)="$event.stopPropagation()"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="titulo-qrcode"
+    >
+      <!-- Ícone -->
+      <div class="cozinha-modal-qr-icon" aria-hidden="true">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="w-6 h-6"
+        >
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+          <line x1="14" y1="14" x2="14" y2="17"></line>
+          <line x1="14" y1="21" x2="21" y2="21"></line>
+          <line x1="17" y1="14" x2="21" y2="14"></line>
+          <line x1="21" y1="17" x2="21" y2="21"></line>
+        </svg>
+      </div>
+
+      <!-- Título -->
+      <h3 id="titulo-qrcode" class="cozinha-modal-qr-title">Acesse o Cardápio</h3>
+      <p class="cozinha-modal-qr-text">Aponte a câmera do celular para fazer um pedido</p>
+
+      <!-- QR Code -->
+      <div class="cozinha-modal-qr-code">
+        <img [src]="urlQrCodeApi" alt="QR Code do Cardápio" class="w-48 h-48 mx-auto rounded-lg" />
+      </div>
+
+      <!-- Link -->
+      <p class="cozinha-modal-qr-link">
+        {{ linkCardapio }}
+      </p>
+
+      <!-- Botão fechar -->
+      <button type="button" (click)="exibirModalQrCode.set(false)" class="cozinha-modal-qr-btn">
+        FECHAR
+      </button>
+    </div>
+  </div>
+}
