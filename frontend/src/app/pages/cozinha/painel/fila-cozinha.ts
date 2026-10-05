@@ -239,7 +239,7 @@ export class FilaCozinhaComponent implements OnInit, OnDestroy {
   readonly exibirModalQrCode = signal<boolean>(false);
 
   // Pega o endereço atual do cliente (funciona tanto no localhost quanto no IP da rede do celular)
-  readonly linkCardapio = window.location.origin + '/cliente/cardapio';
+  readonly linkCardapio = window.location.origin + '/';
 
   // URL geradora de QR Code instantânea
   get urlQrCodeApi(): string {
