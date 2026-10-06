@@ -210,7 +210,7 @@
        MODAL DE CADASTRO/EDIÇÃO
        ============================================================ -->
   @if (isModalAberto()) {
-    <div class="modal-backdrop" (click)="fecharModal()" role="presentation">
+    <div class="estoque-modal-backdrop" (click)="fecharModal()" role="presentation">
       <div
         class="estoque-modal"
         (click)="$event.stopPropagation()"

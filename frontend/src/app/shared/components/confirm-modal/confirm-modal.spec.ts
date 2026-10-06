@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ConfirmModal } from './confirm-modal';
+import { ConfirmModalComponentirmModal } from './confirm-modal';
 
 describe('ConfirmModal', () => {
   let component: ConfirmModal;

@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import {
@@ -21,7 +21,7 @@ import { WebsocketService } from '../../../core/services/websocket.service';
 @Component({
   selector: 'app-cardapio',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './cardapio.html',
   styleUrls: ['./cardapio.css'],
 })
@@ -173,10 +173,15 @@ export class CardapioComponent implements OnInit, OnDestroy {
     });
   }
 
-  private atualizarStatusCaixa(): void {
+private atualizarStatusCaixa(): void {
     this.caixaService.buscarCaixaAtual().subscribe({
       next: (caixa) => {
-        const disponivel = !!caixa && caixa.status === 'ABERTO' && caixa.cozinhaPausada !== true;
+        // 1. Verifica se a pessoa logada é o dono
+        const isDono = this.authService.isDono(); // ou use this.isDono se já tiver essa variável na classe
+
+        // 2. A MÁGICA AQUI: Fica disponível SE ele for o DONO, OU (se for cliente) o caixa estiver aberto e a cozinha rodando
+        const disponivel = isDono || (!!caixa && caixa.status === 'ABERTO' && caixa.cozinhaPausada !== true);
+
         const mudouEstado = this.cozinhaDisponivel !== disponivel;
 
         this.cozinhaDisponivel = disponivel;
@@ -185,6 +190,7 @@ export class CardapioComponent implements OnInit, OnDestroy {
           this.cdr.detectChanges();
         }
 
+        // 3. O resto do código continua igual, mas agora o Dono nunca vai cair nestes IFs
         if (!disponivel && this.carrinho.length > 0) {
           this.carrinho = [];
           this.isCarrinhoAberto = false;
@@ -380,13 +386,20 @@ export class CardapioComponent implements OnInit, OnDestroy {
 
   // --- MÉTODOS AUXILIARES PARA LIMPAR O CÓDIGO ---
 
-  private finalizarEnvio(codigoAcompanhamento: string): void {
-    this.carrinho = [];
-    this.nomeCliente = '';
-    this.isProcessando = false;
-    this.isCarrinhoAberto = false;
+private finalizarEnvio(codigoAcompanhamento: string): void {
+  this.carrinho = [];
+  this.nomeCliente = '';
+  this.isProcessando = false;
+  this.isCarrinhoAberto = false;
+
+  // Se o usuário está logado (tem token), manda direto pra cozinha.
+  // Senão, manda pro acompanhamento do cliente.
+  if (this.authService.isLogado()) {
+    void this.router.navigate(['/cozinha/painel']);
+  } else {
     void this.router.navigate(['/cliente/acompanhamento', codigoAcompanhamento]);
   }
+}
 
   private tratarErroBackend(err: any): void {
     let mensagemDoBackend = 'O pedido não pôde ser enviado. Tente novamente.';

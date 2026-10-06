@@ -1,5 +1,6 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { Component, inject, signal } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { ModalService } from '../../../core/services/modal.service';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -8,26 +9,34 @@ import { AuthService } from '../../../core/services/auth.service';
   imports: [RouterLink, RouterLinkActive],
   templateUrl: './navbar.html',
   styleUrls: ['./navbar.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NavbarComponent {
-  private readonly authService = inject(AuthService);
+  private readonly modalService = inject(ModalService);
+  public readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
-  /** Controla a exibição do modal de confirmação */
-  mostrarConfirmacao = false;
+  menuAberto = signal(false);
+
+  toggleMenu(): void {
+    this.menuAberto.set(!this.menuAberto());
+  }
+
+  fecharMenu(): void {
+    this.menuAberto.set(false);
+  }
 
   confirmarLogout(): void {
-    this.mostrarConfirmacao = true;
-  }
-
-  cancelarLogout(): void {
-    this.mostrarConfirmacao = false;
-  }
-
-  logout(): void {
-    this.authService.logout();
-    this.mostrarConfirmacao = false;
-    this.router.navigate(['/']);
+    this.fecharMenu();
+    this.modalService.confirmar({
+      titulo: 'Sair do sistema?',
+      mensagem: 'Você precisará fazer login novamente...',
+      tipo: 'perigo',
+      textoConfirmar: 'Sim, sair',
+      textoCancelar: 'Cancelar',
+      onConfirm: () => {
+        this.authService.logout();
+        this.router.navigate(['/login']);
+      },
+    });
   }
 }

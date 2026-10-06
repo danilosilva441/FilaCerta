@@ -8,8 +8,6 @@
      ============================================================ */
 .cardapio-page {
   @apply min-h-dvh bg-gray-50 font-sans antialiased;
-
-  /* Espaço para bottom-nav (64px) + FAB + safe-area */
   padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px));
   padding-top: env(safe-area-inset-top, 0px);
 }
@@ -19,16 +17,14 @@
      ============================================================ */
 .cardapio-header {
   @apply bg-primary-600 text-white
-           px-4 py-3
-           sticky top-0 z-20
-           shadow-md shadow-primary-600/20;
-
+         px-4 py-3
+         sticky top-0 z-20
+         shadow-md shadow-primary-600/20;
   padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
 }
 
 .cardapio-header-inner {
-  @apply flex justify-between items-center
-           max-w-2xl mx-auto;
+  @apply flex justify-between items-center max-w-2xl mx-auto;
 }
 
 .cardapio-header-brand {
@@ -37,10 +33,10 @@
 
 .cardapio-header-logo {
   @apply w-8 h-8 rounded-lg
-           bg-primary-700
-           flex items-center justify-center
-           ring-1 ring-white/20
-           flex-shrink-0;
+         bg-primary-700
+         flex items-center justify-center
+         ring-1 ring-white/20
+         flex-shrink-0;
 }
 
 .cardapio-header-title {
@@ -49,59 +45,52 @@
 
 .cardapio-header-status {
   @apply text-xs sm:text-sm
-           text-primary-100 font-medium
-           whitespace-nowrap
-           flex items-center gap-1.5;
+         text-primary-100 font-medium
+         whitespace-nowrap
+         flex items-center gap-1.5;
 }
 
-/* Modo edição: destaque leve */
 .cardapio-header-status-edicao {
-  @apply bg-white/15
-           text-white
-           px-3 py-1.5
-           rounded-full
-           ring-1 ring-white/20;
+  @apply bg-white/15 text-white px-3 py-1.5
+         rounded-full ring-1 ring-white/20;
 }
 
 /* ============================================================
      CATEGORIAS
      ============================================================ */
 .cardapio-categorias {
-  @apply bg-white shadow-sm mb-4
-           sticky z-10;
+  @apply bg-white shadow-sm mb-4 sticky z-10;
   top: calc(env(safe-area-inset-top, 0px) + 3.25rem);
 }
 
 .cardapio-categorias-scroll {
   @apply flex gap-2 sm:gap-3
-           px-4 py-3
-           overflow-x-auto
-           snap-x snap-mandatory
-           overscroll-x-contain;
-
+         px-4 py-3
+         overflow-x-auto
+         snap-x snap-mandatory
+         overscroll-x-contain;
   -webkit-overflow-scrolling: touch;
 }
 
-/* Chip de categoria */
 .categoria-chip {
   @apply px-4 py-2.5
-           rounded-full
-           whitespace-nowrap
-           text-xs sm:text-sm font-semibold
-           transition-all duration-150
-           border
-           touch-manipulation select-none
-           snap-start
-           min-h-[44px]
-           flex items-center
-           bg-white text-gray-600 border-gray-200
-           active:bg-gray-50
-           active:scale-95;
+         rounded-full
+         whitespace-nowrap
+         text-xs sm:text-sm font-semibold
+         transition-all duration-150
+         border
+         touch-manipulation select-none
+         snap-start
+         min-h-[44px]
+         flex items-center
+         bg-white text-gray-600 border-gray-200
+         active:bg-gray-50
+         active:scale-95;
 }
 
 .categoria-chip-ativo {
   @apply bg-primary-600 text-white border-primary-600
-           shadow-sm shadow-primary-600/25;
+         shadow-sm shadow-primary-600/25;
 }
 
 /* ============================================================
@@ -109,15 +98,12 @@
      ============================================================ */
 .cardapio-main {
   @apply px-3 sm:px-4 pb-4
-           max-w-2xl mx-auto
-           space-y-3;
+         max-w-2xl mx-auto
+         space-y-3;
 }
 
-/* -------- ESTADO VAZIO -------- */
 .cardapio-empty {
-  @apply text-center py-10
-           flex flex-col items-center
-           text-gray-400;
+  @apply text-center py-10 flex flex-col items-center text-gray-400;
 }
 
 .cardapio-empty-title {
@@ -133,20 +119,19 @@
      ============================================================ */
 .produto-card {
   @apply bg-white
-           p-3 sm:p-4
-           rounded-xl
-           shadow-sm
-           border border-gray-100
-           flex justify-between items-center
-           gap-2 sm:gap-4
-           transition-all duration-200;
+         p-3 sm:p-4
+         rounded-xl
+         shadow-sm
+         border border-gray-100
+         flex justify-between items-center
+         gap-2 sm:gap-4
+         transition-all duration-200;
 }
 
 .produto-card-indisponivel {
   @apply opacity-60;
 }
 
-/* -------- INFO -------- */
 .produto-info {
   @apply flex-1 pr-2 sm:pr-4 min-w-0;
 }
@@ -157,12 +142,12 @@
 
 .produto-badge {
   @apply text-[10px] sm:text-xs
-           font-black
-           px-2 py-0.5
-           rounded-md
-           uppercase tracking-wider
-           shadow-sm
-           inline-flex items-center gap-1;
+         font-black
+         px-2 py-0.5
+         rounded-md
+         uppercase tracking-wider
+         shadow-sm
+         inline-flex items-center gap-1;
 }
 
 .produto-badge-pausado {
@@ -195,48 +180,45 @@
 
 .produto-tempo {
   @apply text-[10px] sm:text-xs
-           bg-gray-100 text-gray-600
-           px-2 py-1
-           rounded-md font-medium
-           inline-flex items-center gap-1;
+         bg-gray-100 text-gray-600
+         px-2 py-1
+         rounded-md font-medium
+         inline-flex items-center gap-1;
 }
 
-/* -------- CONTROLES -------- */
 .produto-controles {
   @apply flex flex-col items-center gap-1.5
-           bg-gray-50
-           p-1.5 sm:p-2
-           rounded-lg
-           border border-gray-100
-           min-w-[3.5rem] sm:min-w-[4rem]
-           flex-shrink-0;
+         bg-gray-50
+         p-1.5 sm:p-2
+         rounded-lg
+         border border-gray-100
+         min-w-[3.5rem] sm:min-w-[4rem]
+         flex-shrink-0;
 }
 
 .produto-btn-add,
 .produto-btn-remove {
   @apply w-9 h-9 sm:w-10 sm:h-10
-           rounded-full
-           transition-all
-           touch-manipulation select-none
-           flex items-center justify-center
-           active:scale-90;
+         rounded-full
+         transition-all
+         touch-manipulation select-none
+         flex items-center justify-center
+         active:scale-90;
 }
 
 .produto-btn-add {
   @apply bg-primary-600 text-white
-           hover:bg-primary-700
-           shadow-sm shadow-primary-600/20
-           disabled:bg-gray-300 disabled:cursor-not-allowed disabled:shadow-none;
+         hover:bg-primary-700
+         shadow-sm shadow-primary-600/20
+         disabled:bg-gray-300 disabled:cursor-not-allowed disabled:shadow-none;
 }
 
 .produto-btn-remove {
-  @apply bg-gray-200 text-gray-600
-           hover:bg-gray-300;
+  @apply bg-gray-200 text-gray-600 hover:bg-gray-300;
 }
 
 .produto-qtd-num {
-  @apply font-bold text-gray-800 text-sm sm:text-base
-           tabular-nums;
+  @apply font-bold text-gray-800 text-sm sm:text-base tabular-nums;
 }
 
 /* ============================================================
@@ -244,61 +226,62 @@
      ============================================================ */
 .carrinho-fab {
   @apply fixed right-4 z-30
-           w-16 h-16
-           rounded-full
-           bg-primary-600 text-white
-           flex items-center justify-center
-           shadow-2xl shadow-primary-600/30
-           hover:bg-primary-700
-           active:scale-95
-           transition-all
-           touch-manipulation select-none;
+         w-16 h-16
+         rounded-full
+         bg-primary-600 text-white
+         flex items-center justify-center
+         shadow-2xl shadow-primary-600/30
+         hover:bg-primary-700
+         active:scale-95
+         transition-all
+         touch-manipulation select-none;
 
+  /* Padrão: colado no fundo da tela */
   bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Variante: quando a navbar está visível, sobe para não colidir */
+.carrinho-fab-com-navbar {
+  /* 64px (altura da navbar) + 1.5rem de respiro + safe-area */
+  bottom: calc(64px + 1.5rem + env(safe-area-inset-bottom, 0px));
 }
 
 .carrinho-fab-badge {
   @apply absolute -top-1 -right-1
-           bg-danger text-white
-           text-xs font-black
-           w-7 h-7
-           rounded-full
-           flex items-center justify-center
-           border-2 border-white
-           shadow-sm;
+         bg-danger text-white
+         text-xs font-black
+         w-7 h-7
+         rounded-full
+         flex items-center justify-center
+         border-2 border-white
+         shadow-sm;
 }
 
 /* ============================================================
      MODAL DO CARRINHO — WIZARD
      ============================================================ */
-
-/* -------- BACKDROP -------- */
 .carrinho-backdrop {
   @apply fixed inset-0 z-50
-           flex items-end sm:items-center justify-center
-           bg-black/60 backdrop-blur-sm;
-
+         flex items-end sm:items-center justify-center
+         bg-black/60 backdrop-blur-sm;
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* -------- MODAL -------- */
 .carrinho-modal {
   @apply bg-white w-full sm:max-w-md
-           rounded-t-3xl sm:rounded-2xl
-           shadow-2xl
-           flex flex-col
-           overscroll-contain;
-
+         rounded-t-3xl sm:rounded-2xl
+         shadow-2xl
+         flex flex-col
+         overscroll-contain;
   max-height: 92dvh;
   animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* -------- HEADER DO MODAL -------- */
 .carrinho-header {
   @apply p-4 sm:p-5
-           flex justify-between items-center gap-3
-           border-b border-gray-100;
+         flex justify-between items-center gap-3
+         border-b border-gray-100;
 }
 
 .carrinho-header-title {
@@ -311,20 +294,18 @@
 
 .carrinho-step {
   @apply w-6 h-6 rounded-full
-           flex items-center justify-center
-           text-[11px] font-black
-           bg-gray-200 text-gray-500
-           transition-all duration-300;
+         flex items-center justify-center
+         text-[11px] font-black
+         bg-gray-200 text-gray-500
+         transition-all duration-300;
 }
 
 .carrinho-step-ativo {
-  @apply bg-primary-600 text-white
-           shadow-md shadow-primary-600/30;
+  @apply bg-primary-600 text-white shadow-md shadow-primary-600/30;
 }
 
 .carrinho-step-line {
-  @apply w-6 h-0.5 bg-gray-200 rounded-full
-           transition-colors duration-300;
+  @apply w-6 h-0.5 bg-gray-200 rounded-full transition-colors duration-300;
 }
 
 .carrinho-step-line-ativa {
@@ -337,20 +318,19 @@
 
 .carrinho-close {
   @apply w-10 h-10 flex-shrink-0
-           flex items-center justify-center
-           rounded-full
-           bg-gray-100 text-gray-500
-           hover:bg-gray-200
-           active:scale-95
-           transition-all
-           touch-manipulation select-none;
+         flex items-center justify-center
+         rounded-full
+         bg-gray-100 text-gray-500
+         hover:bg-gray-200
+         active:scale-95
+         transition-all
+         touch-manipulation select-none;
 }
 
-/* -------- BODY DO MODAL -------- */
 .carrinho-body {
   @apply p-4 sm:p-5
-           overflow-y-auto overscroll-contain
-           flex-1;
+         overflow-y-auto overscroll-contain
+         flex-1;
 }
 
 .carrinho-etapa {
@@ -367,9 +347,9 @@
 
 .carrinho-item {
   @apply p-3
-           bg-white border border-gray-200
-           rounded-xl
-           space-y-2.5;
+         bg-white border border-gray-200
+         rounded-xl
+         space-y-2.5;
 }
 
 .carrinho-item-row {
@@ -394,10 +374,10 @@
 
 .carrinho-btn-qtd {
   @apply w-8 h-8 rounded-full
-           font-bold
-           flex items-center justify-center
-           transition-all active:scale-90
-           touch-manipulation select-none;
+         font-bold
+         flex items-center justify-center
+         transition-all active:scale-90
+         touch-manipulation select-none;
 }
 
 .carrinho-btn-menos {
@@ -406,57 +386,53 @@
 
 .carrinho-btn-mais {
   @apply bg-primary-600 text-white
-           hover:bg-primary-700
-           shadow-sm shadow-primary-600/20;
+         hover:bg-primary-700
+         shadow-sm shadow-primary-600/20;
 }
 
 .carrinho-item-qtd-num {
-  @apply w-7 text-center
-           font-bold text-gray-800
-           tabular-nums;
+  @apply w-7 text-center font-bold text-gray-800 tabular-nums;
 }
 
-/* -------- OBSERVAÇÃO -------- */
 .carrinho-obs {
   @apply pt-2 border-t border-gray-100;
 }
 
 .carrinho-obs-label {
   @apply block text-[11px] font-bold text-gray-500
-           mb-1 uppercase tracking-wider;
+         mb-1 uppercase tracking-wider;
 }
 
 .carrinho-obs-input {
   @apply w-full
-           px-3 py-2
-           text-xs md:text-sm
-           bg-gray-50
-           border border-gray-200
-           rounded-lg
-           focus:outline-none
-           focus:border-primary-400
-           focus:ring-1 focus:ring-primary-400
-           transition-all;
-  font-size: 16px; /* anti-zoom iOS */
+         px-3 py-2
+         text-xs md:text-sm
+         bg-gray-50
+         border border-gray-200
+         rounded-lg
+         focus:outline-none
+         focus:border-primary-400
+         focus:ring-1 focus:ring-primary-400
+         transition-all;
+  font-size: 16px;
 }
 
-/* -------- TOTAL -------- */
 .carrinho-total {
   @apply flex justify-between items-center
-           bg-gray-50
-           p-4 rounded-xl
-           border border-gray-200;
+         bg-gray-50
+         p-4 rounded-xl
+         border border-gray-200;
 }
 
 .carrinho-total-label {
   @apply font-bold text-gray-600
-           uppercase tracking-wider
-           text-xs sm:text-sm;
+         uppercase tracking-wider
+         text-xs sm:text-sm;
 }
 
 .carrinho-total-valor {
   @apply text-xl sm:text-2xl font-black
-           text-primary-600 tabular-nums;
+         text-primary-600 tabular-nums;
 }
 
 /* ============================================================
@@ -464,15 +440,14 @@
      ============================================================ */
 .carrinho-resumo {
   @apply flex justify-between items-center
-           bg-primary-50
-           border border-primary-100
-           rounded-xl
-           px-4 py-3;
+         bg-primary-50
+         border border-primary-100
+         rounded-xl
+         px-4 py-3;
 }
 
 .carrinho-resumo-itens {
-  @apply text-xs font-bold text-primary-700
-           uppercase tracking-wider;
+  @apply text-xs font-bold text-primary-700 uppercase tracking-wider;
 }
 
 .carrinho-resumo-total {
@@ -493,12 +468,12 @@
 
 .carrinho-input {
   @apply w-full
-           px-4 py-3
-           border rounded-xl
-           font-semibold text-base
-           focus:ring-2 focus:ring-primary-500 focus:border-primary-500
-           transition-all outline-none;
-  font-size: 16px; /* anti-zoom */
+         px-4 py-3
+         border rounded-xl
+         font-semibold text-base
+         focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+         transition-all outline-none;
+  font-size: 16px;
 }
 
 .carrinho-input-ok {
@@ -507,80 +482,72 @@
 
 .carrinho-input-erro {
   @apply border-danger
-           focus:ring-danger focus:border-danger
-           bg-danger-light
-           animate-shake;
+         focus:ring-danger focus:border-danger
+         bg-danger-light
+         animate-shake;
 }
 
 .carrinho-erro {
-  @apply text-danger text-xs font-bold
-           flex items-center gap-1.5;
+  @apply text-danger text-xs font-bold flex items-center gap-1.5;
 }
 
-/* -------- COMER AQUI / LEVAR -------- */
 .carrinho-tipo {
-  @apply flex gap-2
-           bg-gray-100 p-1
-           rounded-xl;
+  @apply flex gap-2 bg-gray-100 p-1 rounded-xl;
 }
 
 .carrinho-tipo-btn {
   @apply flex-1
-           py-3 px-3
-           rounded-lg
-           font-bold text-sm
-           transition-all
-           touch-manipulation select-none
-           flex items-center justify-center gap-2
-           text-gray-500;
+         py-3 px-3
+         rounded-lg
+         font-bold text-sm
+         transition-all
+         touch-manipulation select-none
+         flex items-center justify-center gap-2
+         text-gray-500;
 }
 
 .carrinho-tipo-btn-ativo {
-  @apply bg-white text-primary-700
-           shadow-sm ring-1 ring-primary-100;
+  @apply bg-white text-primary-700 shadow-sm ring-1 ring-primary-100;
 }
 
-/* -------- PAGAMENTO -------- */
 .carrinho-pagamento {
   @apply grid grid-cols-3 gap-2 sm:gap-3;
 }
 
 .carrinho-pgto-btn {
   @apply border-2 rounded-xl
-           p-3
-           flex flex-col items-center gap-1.5
-           transition-all
-           touch-manipulation select-none
-           min-h-[80px]
-           border-gray-200
-           text-gray-600
-           active:bg-gray-50;
+         p-3
+         flex flex-col items-center gap-1.5
+         transition-all
+         touch-manipulation select-none
+         min-h-[80px]
+         border-gray-200
+         text-gray-600
+         active:bg-gray-50;
 }
 
 .carrinho-pgto-btn-ativo {
   @apply border-primary-500 bg-primary-50 text-primary-700
-           shadow-sm ring-1 ring-primary-100;
+         shadow-sm ring-1 ring-primary-100;
 }
 
-/* -------- MODO DONO -------- */
 .carrinho-dono {
   @apply p-4
-           bg-primary-50
-           rounded-xl
-           border border-primary-200
-           space-y-3;
+         bg-primary-50
+         rounded-xl
+         border border-primary-200
+         space-y-3;
 }
 
 .carrinho-dono-label {
-  @apply flex items-center gap-1.5
-           text-sm font-black text-primary-800;
+  @apply flex items-center gap-1.5 text-sm font-black text-primary-800;
 }
 
 .carrinho-dono-toggle {
   @apply flex items-center justify-between
-           bg-white p-3 rounded-lg
-           border border-primary-100
-           shadow-sm gap-2;
+         bg-white p-3 rounded-lg
+         border border-primary-100
+         shadow-sm gap-2;
 }
 
 .carrinho-dono-text {
@@ -593,11 +560,11 @@
 
 .carrinho-dono-btn {
   @apply px-3 sm:px-4 py-2
-           rounded-md
-           font-bold text-xs
-           transition-all
-           touch-manipulation select-none
-           text-gray-500;
+         rounded-md
+         font-bold text-xs
+         transition-all
+         touch-manipulation select-none
+         text-gray-500;
 }
 
 .carrinho-dono-btn-ativo-nao {
@@ -613,10 +580,9 @@
      ============================================================ */
 .carrinho-footer {
   @apply p-4 sm:p-5
-           border-t border-gray-100
-           bg-gray-50
-           rounded-b-2xl;
-
+         border-t border-gray-100
+         bg-gray-50
+         rounded-b-2xl;
   padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
 }
 
@@ -626,38 +592,38 @@
 
 .carrinho-btn {
   @apply py-3.5 px-4
-           rounded-xl
-           font-bold text-sm
-           transition-all
-           touch-manipulation select-none
-           min-h-[52px]
-           flex items-center justify-center gap-2
-           flex-1
-           active:scale-[0.98];
+         rounded-xl
+         font-bold text-sm
+         transition-all
+         touch-manipulation select-none
+         min-h-[52px]
+         flex items-center justify-center gap-2
+         flex-1
+         active:scale-[0.98];
 }
 
 .carrinho-btn-ghost {
   @apply bg-white text-gray-700
-           border border-gray-300
-           hover:bg-gray-100
-           flex-[0.6];
+         border border-gray-300
+         hover:bg-gray-100
+         flex-[0.6];
 }
 
 .carrinho-btn-primary {
   @apply bg-primary-600 text-white
-           shadow-md shadow-primary-600/25
-           hover:bg-primary-700;
+         shadow-md shadow-primary-600/25
+         hover:bg-primary-700;
 }
 
 .carrinho-btn-success {
   @apply bg-success text-white
-           shadow-md shadow-success/25
-           hover:bg-green-700
-           disabled:opacity-50 disabled:cursor-not-allowed;
+         shadow-md shadow-success/25
+         hover:bg-green-700
+         disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
 /* ============================================================
-   ANIMAÇÕES LOCAIS (fora do @layer para funcionar global)
+   ANIMAÇÕES LOCAIS
    ============================================================ */
 @keyframes fadeSlide {
   from {
@@ -668,4 +634,267 @@
     opacity: 1;
     transform: translateX(0);
   }
+}
+
+/* ============================================================
+   MODELO 1 — Lista Compacta com Controles Laterais
+   ============================================================ */
+
+.m1-produto-card {
+  @apply bg-white
+         p-3 sm:p-4
+         rounded-xl
+         shadow-sm
+         border border-gray-100
+         flex justify-between items-center
+         gap-2 sm:gap-4
+         transition-all duration-200
+         hover:shadow-md;
+}
+
+.m1-produto-card-indisponivel {
+  @apply opacity-60;
+}
+
+.m1-produto-info {
+  @apply flex-1 pr-2 sm:pr-4 min-w-0;
+}
+
+.m1-produto-badges {
+  @apply flex gap-2 mb-1 flex-wrap;
+}
+
+.m1-produto-badge {
+  @apply text-[10px] sm:text-xs
+         font-black
+         px-2 py-0.5
+         rounded-md
+         uppercase tracking-wider
+         shadow-sm
+         inline-flex items-center gap-1;
+}
+
+.m1-produto-badge-pausado {
+  @apply bg-gray-500 text-white;
+}
+
+.m1-produto-badge-esgotado {
+  @apply bg-danger text-white;
+}
+
+.m1-produto-badge-ultimas {
+  @apply bg-warning text-white font-bold normal-case tracking-normal;
+}
+
+.m1-produto-nome {
+  @apply font-bold text-gray-800 text-base sm:text-lg truncate;
+}
+
+.m1-produto-descricao {
+  @apply text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1 line-clamp-2;
+}
+
+.m1-produto-meta {
+  @apply flex items-center gap-2 sm:gap-3 mt-1.5 sm:mt-2;
+}
+
+.m1-produto-preco {
+  @apply text-primary-600 font-black text-base sm:text-lg tabular-nums;
+}
+
+.m1-produto-tempo {
+  @apply text-[10px] sm:text-xs
+         bg-gray-100 text-gray-600
+         px-2 py-1
+         rounded-md font-medium
+         inline-flex items-center gap-1;
+}
+
+.m1-produto-controles {
+  @apply flex flex-col items-center gap-1.5
+         bg-gray-50
+         p-1.5 sm:p-2
+         rounded-lg
+         border border-gray-100
+         min-w-[3.5rem] sm:min-w-[4rem]
+         flex-shrink-0;
+}
+
+.m1-produto-btn-add,
+.m1-produto-btn-remove {
+  @apply w-9 h-9 sm:w-10 sm:h-10
+         rounded-full
+         transition-all
+         touch-manipulation select-none
+         flex items-center justify-center
+         active:scale-90;
+}
+
+.m1-produto-btn-add {
+  @apply bg-primary-600 text-white
+         hover:bg-primary-700
+         shadow-sm shadow-primary-600/20
+         disabled:bg-gray-300 disabled:cursor-not-allowed disabled:shadow-none;
+}
+
+.m1-produto-btn-remove {
+  @apply bg-gray-200 text-gray-600 hover:bg-gray-300;
+}
+
+.m1-produto-qtd-num {
+  @apply font-bold text-gray-800 text-sm sm:text-base tabular-nums;
+}
+
+/* ============================================================
+   MODELO 2 — Card Horizontal com Imagem
+   ============================================================ */
+
+.m2-produto-card {
+  @apply bg-white
+         p-3
+         rounded-2xl
+         shadow-sm
+         border border-gray-100
+         flex items-stretch gap-3
+         transition-all duration-200
+         hover:shadow-md
+         overflow-hidden;
+}
+
+.m2-produto-card-indisponivel {
+  @apply opacity-60 grayscale;
+}
+
+.m2-produto-thumb {
+  @apply w-24 h-24 sm:w-28 sm:h-28
+         rounded-xl
+         object-cover
+         flex-shrink-0
+         bg-gray-100;
+}
+
+.m2-produto-info {
+  @apply flex-1 min-w-0 flex flex-col justify-between;
+}
+
+.m2-produto-nome {
+  @apply font-bold text-gray-800 text-sm sm:text-base
+         leading-tight line-clamp-2;
+}
+
+.m2-produto-desc {
+  @apply text-xs text-gray-500 mt-1 line-clamp-2;
+}
+
+.m2-produto-preco {
+  @apply text-primary-600 font-black text-base sm:text-lg
+         tabular-nums mt-1;
+}
+
+.m2-produto-acoes {
+  @apply flex flex-col justify-end items-end gap-1;
+}
+
+.m2-produto-qtd {
+  @apply text-xs font-bold text-gray-500
+         bg-gray-100 px-2 py-0.5 rounded;
+}
+
+.m2-produto-btn-add {
+  @apply self-end
+         bg-primary-600 text-white
+         px-4 py-2
+         rounded-lg
+         font-bold text-xs sm:text-sm
+         shadow-sm shadow-primary-600/20
+         transition-all
+         hover:bg-primary-700
+         active:scale-95
+         flex items-center gap-1.5
+         disabled:bg-gray-300 disabled:cursor-not-allowed;
+}
+
+/* ============================================================
+   MODELO 3 — Grid de Cards (Catálogo Visual)
+   ============================================================ */
+
+.m3-produto-grid {
+  @apply grid
+         grid-cols-1
+         sm:grid-cols-2
+         lg:grid-cols-3
+         gap-4;
+}
+
+.m3-produto-card {
+  @apply bg-white
+         rounded-2xl
+         overflow-hidden
+         shadow-sm
+         border border-gray-100
+         flex flex-col
+         transition-all duration-200
+         hover:shadow-lg
+         hover:-translate-y-0.5;
+}
+
+.m3-produto-card-indisponivel {
+  @apply opacity-60 grayscale;
+}
+
+.m3-produto-img-wrap {
+  @apply relative aspect-[4/3] bg-gray-100 overflow-hidden;
+}
+
+.m3-produto-img {
+  @apply w-full h-full object-cover
+         transition-transform duration-300;
+}
+
+.m3-produto-card:hover .m3-produto-img {
+  @apply scale-105;
+}
+
+.m3-produto-badge {
+  @apply absolute top-2 right-2
+         bg-danger text-white
+         text-[10px] font-black
+         px-2 py-1
+         rounded-md
+         uppercase tracking-wider;
+}
+
+.m3-produto-content {
+  @apply p-4 flex flex-col flex-1 gap-2;
+}
+
+.m3-produto-nome {
+  @apply font-black text-gray-800 text-base
+         leading-tight line-clamp-2;
+}
+
+.m3-produto-desc {
+  @apply text-xs text-gray-500
+         line-clamp-2 flex-1;
+}
+
+.m3-produto-footer {
+  @apply flex items-center justify-between
+         mt-auto pt-2;
+}
+
+.m3-produto-preco {
+  @apply text-primary-600 font-black text-lg tabular-nums;
+}
+
+.m3-produto-btn-add {
+  @apply w-10 h-10
+         rounded-full
+         bg-primary-600 text-white
+         flex items-center justify-center
+         shadow-sm shadow-primary-600/20
+         transition-all
+         hover:bg-primary-700
+         active:scale-90
+         disabled:bg-gray-300 disabled:cursor-not-allowed;
 }

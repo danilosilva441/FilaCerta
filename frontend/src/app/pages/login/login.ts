@@ -1,28 +1,45 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './login.html',
   styleUrls: ['./login.css'],
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   username = '';
   password = '';
   isLoading = false;
   mensagemErro = '';
+
+  /** Controla visibilidade da senha */
+  mostrarSenha = false;
 
   constructor(
     private authService: AuthService,
     private router: Router,
     private notificationService: NotificationService,
   ) {}
+
+  // ==========================================
+  // REDIRECIONA SE JÁ ESTIVER LOGADO
+  // ==========================================
+  ngOnInit(): void {
+    if (this.authService.isLogado()) {
+      this.router.navigate(['/caixa/painel']);
+    }
+  }
+
+  /** Alterna entre mostrar/ocultar senha */
+  toggleMostrarSenha(): void {
+    this.mostrarSenha = !this.mostrarSenha;
+  }
 
   fazerLogin(): void {
     if (!this.username || !this.password) {
@@ -55,7 +72,7 @@ export class LoginComponent {
           );
         }
 
-        this.isLoading = false; // Corrigido para desligar o spinner corretamente
+        this.isLoading = false;
       },
     });
   }

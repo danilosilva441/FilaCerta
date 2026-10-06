@@ -271,14 +271,19 @@
      ============================================================ */
 .estoque-modal {
   @apply bg-white
-           w-full max-w-lg
-           rounded-2xl
-           shadow-2xl
-           my-8
-           flex flex-col;
+         w-full max-w-lg
+         rounded-2xl
+         shadow-2xl
+         flex flex-col;
+
+  position: relative;
+  z-index: 51;
 
   max-height: 92dvh;
   animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Remove o my-8 (conflita com o flex center do backdrop) */
+  margin: 0;
 }
 
 .estoque-modal-header {
@@ -394,4 +399,18 @@
            active:scale-95
            disabled:opacity-50 disabled:cursor-not-allowed
            flex-1 sm:flex-initial;
+}
+
+/* ============================================================
+     BACKDROP DO MODAL (específico do Estoque)
+     ============================================================ */
+.estoque-modal-backdrop {
+  @apply fixed inset-0 z-50
+         flex items-center justify-center
+         bg-black/60 backdrop-blur-sm
+         p-4
+         overflow-y-auto;
+
+  padding-top: max(1rem, env(safe-area-inset-top, 0px));
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
 }

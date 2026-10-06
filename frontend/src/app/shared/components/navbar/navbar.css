@@ -16,7 +16,7 @@
   background-color: #111827;
   color: #ffffff;
 
-  /* Safe-area do iPhone APENAS aqui (não no :host nem no wrapper) */
+  /* Safe-area do iPhone APENAS aqui */
   padding-bottom: env(safe-area-inset-bottom, 0px);
 
   box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
@@ -35,10 +35,7 @@
     bottom: auto;
     left: auto;
     right: auto;
-
-    /* Zera o safe-area (não tem notch em cima do desktop) */
     padding-bottom: 0;
-
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   }
 }
@@ -92,7 +89,7 @@
   }
 
   .bottom-nav-logo:hover {
-    background-color: #1f2937; /* gray-800 */
+    background-color: #1f2937;
   }
 }
 
@@ -141,10 +138,12 @@
   gap: 0.25rem;
   min-height: 48px;
   min-width: 48px;
-  color: #d1d5db; /* gray-300 */
+  color: #d1d5db;
   transition: all 0.2s;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  background: transparent;
+  border: none;
 }
 
 .bottom-nav-link:hover {
@@ -170,8 +169,8 @@
    ESTADO ATIVO
    ============================================================ */
 .bottom-nav-active {
-  background-color: rgba(239, 68, 68, 0.15); /* primary-500/15 */
-  color: #f87171; /* primary-400 */
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #f87171;
   box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
 }
 
@@ -198,21 +197,106 @@
 }
 
 /* ============================================================
-   BOTÃO SAIR
+   DROPDOWN MENU (Estoque, Configurações, Sair)
    ============================================================ */
-.bottom-nav-logout {
-  color: #f87171; /* red-400 */
+
+/* Overlay invisível — captura cliques fora do menu para fechar */
+.dropdown-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+/* Container do menu */
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  margin-bottom: 0.5rem;
+  width: 14rem;
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #f3f4f6;
+  animation: dropdownFadeIn 0.15s ease-out;
 }
 
 @media (min-width: 768px) {
-  .bottom-nav-logout {
-    color: #ffffff;
-    background-color: #dc2626;
-    margin-left: 0.5rem;
-    border: 1px solid #ef4444;
+  .dropdown-menu {
+    bottom: auto;
+    top: 100%;
+    margin-bottom: 0;
+    margin-top: 0.5rem;
   }
+}
 
-  .bottom-nav-logout:hover {
-    background-color: #b91c1c;
+/* Item do menu */
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  font-size: 14px;
+  font-weight: 700;
+  color: #374151;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #f3f4f6;
+  width: 100%;
+  text-align: left;
+  transition: background-color 0.15s;
+  cursor: pointer;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.dropdown-item-danger {
+  color: #dc2626;
+}
+
+.dropdown-item-danger:hover {
+  background-color: #fef2f2;
+  color: #b91c1c;
+}
+
+/* ============================================================
+   ANIMAÇÃO — Dropdown
+   ============================================================ */
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
   }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================
+   DROPDOWN — Posicionamento do container
+   ============================================================ */
+.bottom-nav-item-dropdown {
+  position: relative;
+}
+
+/* Ícone dentro dos itens do dropdown */
+.dropdown-icon {
+  width: 1.125rem; /* 18px */
+  height: 1.125rem;
+  flex-shrink: 0;
 }

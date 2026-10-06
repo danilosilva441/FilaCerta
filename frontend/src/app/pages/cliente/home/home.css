@@ -196,3 +196,19 @@
 .home-hours-time {
   @apply text-primary-600 font-bold text-lg mt-0.5;
 }
+
+/* ------------------------------------------------------------
+     ACESSO RESTRITO — Link discreto para login
+     ------------------------------------------------------------ */
+.home-login-link {
+  @apply inline-flex items-center gap-1.5
+         mt-8
+         px-3 py-2
+         rounded-lg
+         text-xs font-medium
+         text-gray-400
+         transition-colors
+         hover:text-primary-600
+         hover:bg-white/60
+         touch-manipulation select-none;
+}

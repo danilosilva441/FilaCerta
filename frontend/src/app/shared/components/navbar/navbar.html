@@ -1,15 +1,8 @@
-<!-- ============================================================
-     NAVEGAÇÃO PRINCIPAL
-     Mobile: bottom nav fixa | Desktop: top nav sticky
-     ============================================================ -->
 <nav class="bottom-nav" aria-label="Navegação principal" role="navigation">
   <div class="bottom-nav-inner">
     <div class="bottom-nav-row">
-      <!-- =========================
-           LOGO (só desktop)
-           ========================= -->
+      <!-- LOGO -->
       <a routerLink="/" class="bottom-nav-logo" aria-label="Ir para a página inicial">
-        <!-- Ícone: pilha de pratos / fila -->
         <svg
           class="w-7 h-7 text-primary-400"
           viewBox="0 0 24 24"
@@ -29,11 +22,8 @@
         <span class="font-black tracking-wider text-xl">Painel Fila Certa</span>
       </a>
 
-      <!-- =========================
-           LINKS
-           ========================= -->
       <ul class="bottom-nav-links" role="list">
-        <!-- Cardápio -->
+        <!-- Cardápio (sempre visível) -->
         <li class="bottom-nav-item">
           <a
             routerLink="/cliente/cardapio"
@@ -60,152 +50,172 @@
           </a>
         </li>
 
-        <!-- Cozinha -->
-        <li class="bottom-nav-item">
-          <a
-            routerLink="/cozinha/painel"
-            routerLinkActive="bottom-nav-active"
-            [routerLinkActiveOptions]="{ exact: false }"
-            class="bottom-nav-link"
-          >
-            <svg
-              class="bottom-nav-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
+        @if (authService.isDono()) {
+          <!-- Cozinha -->
+          <li class="bottom-nav-item">
+            <a
+              routerLink="/cozinha/painel"
+              routerLinkActive="bottom-nav-active"
+              [routerLinkActiveOptions]="{ exact: false }"
+              class="bottom-nav-link"
             >
-              <path
-                d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6z"
-              ></path>
-              <path d="M6 17h12"></path>
-            </svg>
-            <span class="bottom-nav-label">Cozinha</span>
-          </a>
-        </li>
+              <svg
+                class="bottom-nav-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path
+                  d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6z"
+                ></path>
+                <path d="M6 17h12"></path>
+              </svg>
+              <span class="bottom-nav-label">Cozinha</span>
+            </a>
+          </li>
 
-        <!-- Estoque -->
-        <li class="bottom-nav-item">
-          <a
-            routerLink="/estoque/painel"
-            routerLinkActive="bottom-nav-active"
-            [routerLinkActiveOptions]="{ exact: false }"
-            class="bottom-nav-link"
-          >
-            <svg
-              class="bottom-nav-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
+          <!-- Balcão -->
+          <li class="bottom-nav-item">
+            <a
+              routerLink="/caixa/painel"
+              routerLinkActive="bottom-nav-active"
+              [routerLinkActiveOptions]="{ exact: false }"
+              class="bottom-nav-link"
             >
-              <path
-                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
-              ></path>
-              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-              <line x1="12" y1="22.08" x2="12" y2="12"></line>
-            </svg>
-            <span class="bottom-nav-label">Estoque</span>
-          </a>
-        </li>
+              <svg
+                class="bottom-nav-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                <path d="M2 10h20"></path>
+                <circle cx="16" cy="14" r="1.5"></circle>
+              </svg>
+              <span class="bottom-nav-label">Balcão</span>
+            </a>
+          </li>
 
-        <!-- Caixa -->
-        <li class="bottom-nav-item">
-          <a
-            routerLink="/caixa/painel"
-            routerLinkActive="bottom-nav-active"
-            [routerLinkActiveOptions]="{ exact: false }"
-            class="bottom-nav-link"
-          >
-            <svg
-              class="bottom-nav-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <rect x="2" y="6" width="20" height="12" rx="2"></rect>
-              <path d="M2 10h20"></path>
-              <circle cx="16" cy="14" r="1.5"></circle>
-            </svg>
-            <span class="bottom-nav-label">Caixa</span>
-          </a>
-        </li>
+<!-- Ajustes (dropdown) -->
+<li class="bottom-nav-item bottom-nav-item-dropdown">
+  <button
+    type="button"
+    (click)="toggleMenu()"
+    [class.bottom-nav-active]="menuAberto()"
+    class="bottom-nav-link"
+    aria-label="Menu de Configurações"
+    [attr.aria-expanded]="menuAberto()"
+    aria-haspopup="menu"
+  >
+    <!-- Ícone: 3 barrinhas verticais (kebab menu) -->
+<svg
+  class="bottom-nav-icon"
+  viewBox="0 0 283.426 283.426"
+  fill="currentColor"
+  aria-hidden="true"
+>
+  <rect x="0" y="40.84" width="283.426" height="47.735"></rect>
+  <rect x="0" y="117.282" width="283.426" height="47.735"></rect>
+  <rect x="0" y="194.851" width="283.426" height="47.735"></rect>
+</svg>
+    <span class="bottom-nav-label">Mais</span>
+  </button>
 
-        <!-- Sair -->
-        <li class="bottom-nav-item">
-          <button
-            type="button"
-            (click)="confirmarLogout()"
-            class="bottom-nav-link bottom-nav-logout"
-            aria-label="Sair do sistema"
-          >
-            <svg
-              class="bottom-nav-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-              <polyline points="16 17 21 12 16 7"></polyline>
-              <line x1="21" y1="12" x2="9" y2="12"></line>
-            </svg>
-            <span class="bottom-nav-label">Sair</span>
-          </button>
-        </li>
+            <!-- Dropdown -->
+            @if (menuAberto()) {
+              <div class="dropdown-overlay" (click)="fecharMenu()"></div>
+
+              <div class="dropdown-menu" role="menu">
+                <!-- Estoque -->
+                <a
+                  routerLink="/estoque/painel"
+                  (click)="fecharMenu()"
+                  class="dropdown-item"
+                  role="menuitem"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="dropdown-icon"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+                    ></path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                  </svg>
+                  <span>Estoque</span>
+                </a>
+
+                <!-- Configurações -->
+                <a
+                  routerLink="/admin/configuracoes"
+                  (click)="fecharMenu()"
+                  class="dropdown-item"
+                  role="menuitem"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="dropdown-icon"
+                    aria-hidden="true"
+                  >
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path
+                      d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+                    ></path>
+                  </svg>
+                  <span>Configurações</span>
+                </a>
+
+                <!-- Sair do Sistema -->
+                <button
+                  type="button"
+                  (click)="confirmarLogout()"
+                  class="dropdown-item dropdown-item-danger"
+                  role="menuitem"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="dropdown-icon"
+                    aria-hidden="true"
+                  >
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                  </svg>
+                  <span>Sair</span>
+                </button>
+              </div>
+            }
+          </li>
+        }
       </ul>
     </div>
   </div>
 </nav>
-
-<!-- ============================================================
-     MODAL DE CONFIRMAÇÃO DE LOGOUT
-     ============================================================ -->
-@if (mostrarConfirmacao) {
-  <div
-    class="modal-backdrop"
-    (click)="cancelarLogout()"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="titulo-logout"
-  >
-    <div class="modal-card modal-card-alert" (click)="$event.stopPropagation()">
-      <div class="modal-body">
-        <div class="modal-icon modal-icon-perigo" aria-hidden="true">
-          <svg
-            class="w-8 h-8 text-red-600"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-            <polyline points="16 17 21 12 16 7"></polyline>
-            <line x1="21" y1="12" x2="9" y2="12"></line>
-          </svg>
-        </div>
-        <h3 id="titulo-logout" class="modal-title modal-title-alert">Sair do sistema?</h3>
-        <p class="modal-message">Você precisará fazer login novamente...</p>
-      </div>
-      <div class="modal-actions modal-actions-alert">
-        <button class="modal-btn-cancel" (click)="cancelarLogout()">Cancelar</button>
-        <button class="modal-btn-confirm modal-btn-perigo" (click)="logout()">Sim, sair</button>
-      </div>
-    </div>
-  </div>
-}

@@ -8,17 +8,13 @@
      ------------------------------------------------------------ */
 .modal-backdrop {
   @apply fixed inset-0 z-50
-           flex items-center justify-center
-           bg-black/60 backdrop-blur-sm
-           p-4
-           transition-all duration-200;
+         flex items-center justify-center
+         bg-black/60 backdrop-blur-sm
+         p-4
+         overflow-y-auto;
 
-  /* Safe-areas mobile (notch e home indicator) */
   padding-top: max(1rem, env(safe-area-inset-top, 0px));
   padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
-
-  /* Permite scroll interno se o conteúdo for grande */
-  overflow-y: auto;
 }
 
 .modal-backdrop-visivel {
@@ -34,12 +30,11 @@
      ------------------------------------------------------------ */
 .modal-card {
   @apply bg-white rounded-2xl shadow-2xl
-           w-full max-w-sm
-           overflow-hidden
-           transition-all duration-200;
+         w-full max-w-sm
+         overflow-hidden
+         transition-all duration-200;
 }
 
-/* Variante "alert" (ícone + título + ações verticais no mobile) */
 .modal-card-alert {
   @apply max-w-md;
 }
@@ -64,8 +59,8 @@
      ------------------------------------------------------------ */
 .modal-icon {
   @apply w-12 h-12 rounded-full
-           flex items-center justify-center
-           mb-4;
+         flex items-center justify-center
+         mb-4;
 }
 
 .modal-icon-aviso {
@@ -88,15 +83,14 @@
   @apply text-lg font-black text-gray-900 mb-2;
 }
 
-/* Variante alert: título ligeiramente maior + padding-right pro "X" */
 .modal-title-alert {
   @apply sm:text-xl pr-6;
 }
 
 .modal-message {
   @apply text-sm sm:text-base
-           text-gray-600 font-medium
-           break-words leading-relaxed;
+         text-gray-600 font-medium
+         break-words leading-relaxed;
 }
 
 /* ------------------------------------------------------------
@@ -106,13 +100,12 @@
   @apply flex gap-2 sm:gap-3;
 }
 
-/* Variante alert: empilhado no mobile, lado a lado no desktop */
 .modal-actions-alert {
   @apply flex-col-reverse sm:flex-row
-           justify-end
-           bg-gray-50
-           px-5 sm:px-6 py-4
-           border-t border-gray-100;
+         justify-end
+         bg-gray-50
+         px-5 sm:px-6 py-4
+         border-t border-gray-100;
 }
 
 /* ------------------------------------------------------------
@@ -120,36 +113,36 @@
      ------------------------------------------------------------ */
 .modal-btn-cancel {
   @apply w-full sm:w-auto
-           px-5 py-3 sm:py-2.5
-           rounded-lg
-           font-bold text-gray-600
-           hover:bg-gray-200
-           active:scale-95
-           transition-all
-           touch-manipulation select-none
-           min-h-[48px]
-           focus:outline-none focus:ring-2 focus:ring-gray-400;
+         px-5 py-3 sm:py-2.5
+         rounded-lg
+         font-bold text-gray-600
+         hover:bg-gray-200
+         active:scale-95
+         transition-all
+         touch-manipulation select-none
+         min-h-[48px]
+         focus:outline-none focus:ring-2 focus:ring-gray-400;
 }
 
 .modal-btn-confirm {
   @apply w-full sm:w-auto
-           px-5 py-3 sm:py-2.5
-           rounded-lg
-           font-bold text-white
-           shadow-md
-           active:scale-95
-           transition-all
-           touch-manipulation select-none
-           min-h-[48px]
-           focus:outline-none focus:ring-2 focus:ring-offset-2;
+         px-5 py-3 sm:py-2.5
+         rounded-lg
+         font-bold text-white
+         shadow-md
+         active:scale-95
+         transition-all
+         touch-manipulation select-none
+         min-h-[48px]
+         focus:outline-none focus:ring-2 focus:ring-offset-2;
 }
 
 .modal-btn-primary {
   @apply bg-primary-600 hover:bg-primary-700
-           focus:ring-primary-400;
+         focus:ring-primary-400;
 }
 
 .modal-btn-perigo {
   @apply bg-danger hover:bg-red-700
-           focus:ring-red-400;
+         focus:ring-red-400;
 }
