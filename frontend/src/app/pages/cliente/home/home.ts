@@ -11,6 +11,7 @@ import { CaixaService } from '../../../core/services/caixa.service';
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './home.html',
+  styleUrls: ['./home.css'],
 })
 export class HomeComponent implements OnInit, OnDestroy {
   isAberto = false;

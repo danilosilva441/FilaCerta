@@ -1,14 +1,19 @@
 /* ============================================================
-   PAINEL DA COZINHA
+   COZINHA.CSS — Painel da Cozinha
+   Grid responsivo, estado vazio, checklist por item
    ============================================================ */
 
 /* ============================================================
-   PÁGINA
-   ============================================================ */
+     PÁGINA
+     ============================================================ */
 .page-cozinha {
-  @apply min-h-[100dvh] bg-gray-200 font-sans antialiased;
+  @apply min-h-dvh bg-gray-200 font-sans antialiased;
+
+  /* Safe-area mobile + espaço para a bottom-nav */
   padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
   padding-top: max(1rem, env(safe-area-inset-top, 0px));
+
+  /* Desktop: nav vira top, então libera o padding-bottom */
   @apply sm:pb-0;
 }
 
@@ -17,22 +22,22 @@
 }
 
 /* ============================================================
-   HEADER
-   ============================================================ */
+     HEADER
+     ============================================================ */
 .cozinha-header {
   @apply bg-gradient-to-br from-primary-600 to-primary-700
-         text-white
-         p-4 sm:p-5
-         rounded-xl
-         mb-6
-         shadow-lg shadow-primary-600/20
-         ring-1 ring-white/10;
+           text-white
+           p-4 sm:p-5
+           rounded-xl
+           mb-6
+           shadow-lg shadow-primary-600/20
+           ring-1 ring-white/10;
 }
 
 /* Linha 1: título + badge */
 .cozinha-header-row {
   @apply flex items-center justify-between gap-3
-         mb-3 sm:mb-4;
+           mb-3 sm:mb-4;
 }
 
 .cozinha-title-group {
@@ -41,11 +46,11 @@
 
 .cozinha-logo {
   @apply w-12 h-12
-         bg-primary-800
-         rounded-full
-         flex items-center justify-center
-         flex-shrink-0
-         ring-1 ring-white/20;
+           bg-primary-800
+           rounded-full
+           flex items-center justify-center
+           flex-shrink-0
+           ring-1 ring-white/20;
 }
 
 .cozinha-title {
@@ -58,14 +63,14 @@
 
 .cozinha-badge {
   @apply bg-primary-800/70
-         backdrop-blur-sm
-         text-white
-         px-3 py-1.5
-         rounded-full
-         font-bold text-sm
-         whitespace-nowrap
-         ring-1 ring-white/15
-         flex-shrink-0;
+           backdrop-blur-sm
+           text-white
+           px-3 py-1.5
+           rounded-full
+           font-bold text-sm
+           whitespace-nowrap
+           ring-1 ring-white/15
+           flex-shrink-0;
 }
 
 /* Linha 2: ações */
@@ -74,50 +79,53 @@
 }
 
 /* ============================================================
-   BOTÃO DE SOM — mesmo estilo do QR Code
-   ============================================================ */
-.cozinha-btn-som {
+     BOTÕES DO HEADER (Som + QR Code)
+     ============================================================ */
+
+/* Base compartilhada para os dois botões */
+.cozinha-btn-som,
+.cozinha-btn-qr {
   @apply inline-flex items-center justify-center gap-2
-         px-3 sm:px-4 py-3
-         rounded-lg
-         font-bold text-sm
-         transition-all
-         active:scale-95
-         touch-manipulation select-none
-         min-h-[48px]
-         ring-1;
+           px-3 sm:px-4 py-3
+           rounded-lg
+           font-bold text-sm
+           transition-all
+           active:scale-95
+           touch-manipulation select-none
+           min-h-[48px]
+           ring-1;
 }
 
-/* ATIVO (som ligado) — branco destacado, igual CTA de sucesso */
+/* ATIVO (som ligado) — branco destacado */
 .cozinha-btn-som-ativo {
   @apply bg-white text-primary-700
-         ring-white/30
-         shadow-md shadow-black/10
-         hover:bg-primary-50;
+           ring-white/30
+           shadow-md shadow-black/10
+           hover:bg-primary-50;
 }
 
-/* INATIVO (som desligado) — mesmo tom do QR Code */
+/* INATIVO (som desligado) */
 .cozinha-btn-som-inativo {
   @apply bg-primary-800 text-white
-         ring-white/20
-         shadow-md shadow-black/10
-         hover:bg-primary-900;
+           ring-white/20
+           shadow-md shadow-black/10
+           hover:bg-primary-900;
 }
 
-/* -------- QR Code -------- */
+/* QR Code */
 .cozinha-btn-qr {
   @apply bg-primary-800 text-white
-         ring-1 ring-white/20
-         shadow-md shadow-black/10
-         hover:bg-primary-900;
+           ring-white/20
+           shadow-md shadow-black/10
+           hover:bg-primary-900;
 }
 
 /* ============================================================
-   ESTADO VAZIO
-   ============================================================ */
+     ESTADO VAZIO
+     ============================================================ */
 .cozinha-empty {
   @apply flex flex-col items-center justify-center
-         py-20 text-gray-400;
+           py-20 text-gray-400;
 }
 
 .cozinha-empty-title {
@@ -129,25 +137,25 @@
 }
 
 /* ============================================================
-   GRID DE PEDIDOS
-   ============================================================ */
+     GRID DE PEDIDOS
+     ============================================================ */
 .cozinha-grid {
   @apply grid grid-cols-1
-         md:grid-cols-2
-         lg:grid-cols-3
-         xl:grid-cols-4
-         gap-4;
+           md:grid-cols-2
+           lg:grid-cols-3
+           xl:grid-cols-4
+           gap-4;
 }
 
 /* ============================================================
-   CARD DO PEDIDO
-   ============================================================ */
+     CARD DO PEDIDO
+     ============================================================ */
 .cozinha-card {
   @apply bg-white rounded-xl
-         shadow-md border-t-8
-         flex flex-col overflow-hidden
-         transition-shadow duration-200
-         hover:shadow-card-hover;
+           shadow-md border-t-8
+           flex flex-col overflow-hidden
+           transition-shadow duration-200
+           hover:shadow-card-hover;
 }
 
 .cozinha-card-chapa {
@@ -161,8 +169,8 @@
 /* -------- Header do card -------- */
 .cozinha-card-header {
   @apply p-4 border-b border-gray-100
-         flex justify-between items-center
-         bg-gray-50;
+           flex justify-between items-center
+           bg-gray-50;
 }
 
 .cozinha-card-numero {
@@ -175,10 +183,10 @@
 
 .cozinha-card-tempo {
   @apply flex items-center gap-1.5
-         text-xs font-bold text-gray-500
-         bg-white px-2.5 py-1.5 rounded
-         shadow-sm border border-gray-200
-         flex-shrink-0;
+           text-xs font-bold text-gray-500
+           bg-white px-2.5 py-1.5 rounded
+           shadow-sm border border-gray-200
+           flex-shrink-0;
 }
 
 /* -------- Lista de itens -------- */
@@ -189,12 +197,12 @@
 /* -------- Item -------- */
 .cozinha-item {
   @apply w-full flex items-center justify-between
-         p-3 rounded-lg
-         transition-all
-         border text-left
-         touch-manipulation select-none
-         min-h-[56px]
-         active:scale-[0.98];
+           p-3 rounded-lg
+           transition-all
+           border text-left
+           touch-manipulation select-none
+           min-h-[56px]
+           active:scale-[0.98];
 }
 
 .cozinha-item-pendente {
@@ -216,8 +224,8 @@
 /* -------- Checkbox circular -------- */
 .cozinha-item-check {
   @apply w-9 h-9 rounded-full border-2
-         flex items-center justify-center
-         transition-colors flex-shrink-0;
+           flex items-center justify-center
+           transition-colors flex-shrink-0;
 }
 
 .cozinha-item-check-pendente {
@@ -225,8 +233,7 @@
 }
 
 .cozinha-item-check-preparando {
-  @apply border-warning bg-warning/15 text-warning
-         animate-pulse;
+  @apply border-warning bg-warning/15 text-warning animate-pulse;
 }
 
 .cozinha-item-check-pronto {
@@ -244,9 +251,9 @@
 
 .cozinha-item-obs {
   @apply text-xs text-danger font-bold
-         bg-danger-light
-         px-1.5 py-0.5 rounded
-         inline-block mt-1 break-words;
+           bg-danger-light
+           px-1.5 py-0.5 rounded
+           inline-block mt-1 break-words;
 }
 
 /* -------- Ações do card -------- */
@@ -257,31 +264,31 @@
 /* -------- Status "PRONTO" -------- */
 .cozinha-status-pronto {
   @apply w-full py-3
-         bg-success-light
-         border border-success/40
-         text-success
-         rounded-xl
-         font-bold text-sm
-         flex items-center justify-center gap-2;
+           bg-success-light
+           border border-success/40
+           text-success
+           rounded-xl
+           font-bold text-sm
+           flex items-center justify-center gap-2;
 }
 
 /* -------- Botão cancelar -------- */
 .cozinha-btn-cancelar {
   @apply w-full py-2.5
-         bg-danger-light text-danger
-         hover:bg-red-100
-         rounded-lg
-         font-bold text-sm
-         transition-colors
-         border border-danger/30
-         touch-manipulation select-none
-         min-h-[44px]
-         flex items-center justify-center gap-2;
+           bg-danger-light text-danger
+           hover:bg-red-100
+           rounded-lg
+           font-bold text-sm
+           transition-colors
+           border border-danger/30
+           touch-manipulation select-none
+           min-h-[44px]
+           flex items-center justify-center gap-2;
 }
 
 /* ============================================================
-   MODAL: QR CODE DO CARDÁPIO
-   ============================================================ */
+     MODAL: QR CODE DO CARDÁPIO
+     ============================================================ */
 .cozinha-modal-qr {
   @apply bg-white
          w-full max-w-sm
@@ -291,16 +298,26 @@
          p-6
          text-center
          flex flex-col items-center;
+
+  /* ✅ FORÇA o modal a ficar por cima de tudo */
+  position: relative;
+  z-index: 51;
+
+  /* Animação de entrada */
   animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ✅ Safe-area (usa padding, não margin) */
+  margin-top: max(1rem, env(safe-area-inset-top, 0px));
+  margin-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
 }
 
 .cozinha-modal-qr-icon {
   @apply w-14 h-14
-         bg-primary-50 text-primary-600
-         rounded-full
-         flex items-center justify-center
-         mb-3
-         ring-4 ring-primary-100;
+           bg-primary-50 text-primary-600
+           rounded-full
+           flex items-center justify-center
+           mb-3
+           ring-4 ring-primary-100;
 }
 
 .cozinha-modal-qr-title {
@@ -314,32 +331,44 @@
 /* -------- QR Code image -------- */
 .cozinha-modal-qr-code {
   @apply bg-gray-50
-         p-4 rounded-xl
-         border border-gray-200
-         inline-block mb-4
-         shadow-inner;
+           p-4 rounded-xl
+           border border-gray-200
+           inline-block mb-4
+           shadow-inner;
 }
 
 /* -------- Link -------- */
 .cozinha-modal-qr-link {
   @apply text-[11px] text-gray-400
-         break-all
-         bg-gray-100
-         p-2 rounded
-         mb-5
-         font-mono
-         w-full;
+           break-all
+           bg-gray-100
+           p-2 rounded
+           mb-5
+           font-mono
+           w-full;
 }
 
 /* -------- Botão fechar -------- */
 .cozinha-modal-qr-btn {
   @apply w-full py-3
-         bg-gray-900 text-white
-         rounded-xl
-         font-bold
-         hover:bg-gray-800
-         transition-all
-         active:scale-95
-         touch-manipulation
-         min-h-[48px];
+           bg-gray-900 text-white
+           rounded-xl
+           font-bold
+           hover:bg-gray-800
+           transition-all
+           active:scale-95
+           touch-manipulation
+           min-h-[48px];
+}
+
+/* modal.css */
+.cozinha-modal-backdrop {
+  @apply fixed inset-0 z-50
+         flex items-center justify-center
+         bg-black/60 backdrop-blur-sm
+         p-4
+         overflow-y-auto; /* permite scroll se o modal for grande */
+
+  padding-top: max(1rem, env(safe-area-inset-top, 0px));
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
 }

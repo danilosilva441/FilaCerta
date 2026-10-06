@@ -1,10 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ['./src/**/*.{html,ts}', './src/index.html'],
+
   theme: {
     extend: {
       // ============================================================
-      // 1. MOBILE — altura dinâmica + safe areas
+      // 1. ALTURAS DINÂMICAS + SAFE AREAS
       // ============================================================
       height: {
         dvh: '100dvh',
@@ -13,26 +14,28 @@ module.exports = {
         dvh: '100dvh',
       },
       spacing: {
-        'safe-top': 'env(safe-area-inset-top)',
-        'safe-bottom': 'env(safe-area-inset-bottom)',
-        'safe-left': 'env(safe-area-inset-left)',
-        'safe-right': 'env(safe-area-inset-right)',
+        'safe-top': 'env(safe-area-inset-top, 0px)',
+        'safe-bottom': 'env(safe-area-inset-bottom, 0px)',
+        'safe-left': 'env(safe-area-inset-left, 0px)',
+        'safe-right': 'env(safe-area-inset-right, 0px)',
       },
 
       // ============================================================
-      // 2. BREAKPOINTS
+      // 2. BREAKPOINTS (mobile-first)
       // ============================================================
       screens: {
         xs: '375px', // iPhone SE
-        sm: '414px', // iPhone 11 / Pro Max
+        sm: '640px', // iPhone 11 / Pro Max
         md: '768px', // Tablet
         lg: '1024px', // Desktop
+        xl: '1280px', // Desktop grande
       },
 
       // ============================================================
       // 3. CORES
       // ============================================================
       colors: {
+        // Cor principal (vermelha)
         primary: {
           50: '#fef2f2',
           100: '#fee2e2',
@@ -46,6 +49,8 @@ module.exports = {
           900: '#7f1d1d',
           950: '#450a0a',
         },
+
+        // Cores semânticas
         success: {
           DEFAULT: '#16a34a',
           light: '#dcfce7',
@@ -62,6 +67,7 @@ module.exports = {
           DEFAULT: '#2563eb',
           light: '#dbeafe',
         },
+
         // Cores de negócio
         chapa: '#ef4444',
         montagem: '#f59e0b',
@@ -77,22 +83,28 @@ module.exports = {
       },
 
       // ============================================================
-      // 5. ANIMAÇÕES
+      // 5. SOMBRAS
+      // ============================================================
+      boxShadow: {
+        card: '0 2px 8px rgba(0, 0, 0, 0.08)',
+        'card-hover': '0 4px 16px rgba(0, 0, 0, 0.12)',
+        'bottom-sheet': '0 -4px 20px rgba(0, 0, 0, 0.15)',
+      },
+
+      // ============================================================
+      // 6. ANIMAÇÕES
       // ============================================================
       animation: {
         'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'bounce-in': 'bounceIn 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
         'fade-in': 'fadeIn 0.2s ease-out',
         shake: 'shake 0.4s ease-in-out',
-
-        // Entradas
         'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
         'slide-down': 'slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-
-        // Saídas (para toasts que estão indo embora)
         'slide-up-out': 'slideUpOut 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         'slide-down-out': 'slideDownOut 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
       },
+
       keyframes: {
         // -------- ENTRADA --------
         bounceIn: {
@@ -106,24 +118,20 @@ module.exports = {
           '100%': { opacity: '1' },
         },
         slideUp: {
-          // Vem de baixo para cima (banner LGPD, bottom-sheet)
           '0%': { transform: 'translateY(100%)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
         },
         slideDown: {
-          // Vem de cima para baixo (toast no topo)
           '0%': { transform: 'translateY(-100%)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
         },
 
         // -------- SAÍDA --------
         slideUpOut: {
-          // Sobe e desaparece
           '0%': { transform: 'translateY(0)', opacity: '1' },
           '100%': { transform: 'translateY(-16px)', opacity: '0' },
         },
         slideDownOut: {
-          // Desce e desaparece
           '0%': { transform: 'translateY(0)', opacity: '1' },
           '100%': { transform: 'translateY(16px)', opacity: '0' },
         },
@@ -135,16 +143,8 @@ module.exports = {
           '75%': { transform: 'translateX(6px)' },
         },
       },
-
-      // ============================================================
-      // 6. SOMBRAS
-      // ============================================================
-      boxShadow: {
-        card: '0 2px 8px rgba(0, 0, 0, 0.08)',
-        'card-hover': '0 4px 16px rgba(0, 0, 0, 0.12)',
-        'bottom-sheet': '0 -4px 20px rgba(0, 0, 0, 0.15)',
-      },
     },
   },
+
   plugins: [],
 };

@@ -21,6 +21,7 @@ interface ToastItem extends ToastMessage {
   standalone: true,
   imports: [CommonModule],
   templateUrl: './toast.html',
+  styleUrls: ['./toast.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ToastComponent implements OnInit, OnDestroy {

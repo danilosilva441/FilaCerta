@@ -1,3 +1,8 @@
+/* ============================================================
+   STYLES-MATERIAL.SCSS — Tema Angular Material
+   Arquivo separado para evitar conflito com Tailwind
+   ============================================================ */
+
 @use '@angular/material' as mat;
 
 html {

@@ -311,7 +311,7 @@
      MODAL: QR CODE DO CARDÁPIO
      ============================================================ -->
 @if (exibirModalQrCode()) {
-  <div class="modal-backdrop" (click)="exibirModalQrCode.set(false)" role="presentation">
+  <div class="cozinha-modal-backdrop" (click)="exibirModalQrCode.set(false)" role="presentation">
     <div
       class="cozinha-modal-qr"
       (click)="$event.stopPropagation()"

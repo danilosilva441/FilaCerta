@@ -1,10 +1,16 @@
 /* ============================================================
-   ACOMPANHAMENTO DO PEDIDO
+   ACOMPANHAMENTO.CSS — Acompanhamento do Pedido
+   Status visual + resumo + pagamento + ações
    ============================================================ */
+
+/* ============================================================
+     PÁGINA
+     ============================================================ */
 .acompanhamento-page {
-  @apply min-h-[100dvh] bg-gray-50
-         flex flex-col items-center justify-center
-         px-4 py-6 font-sans antialiased;
+  @apply min-h-dvh bg-gray-50
+           flex flex-col items-center justify-center
+           px-4 py-6 font-sans antialiased;
+
   padding-top: max(1.5rem, env(safe-area-inset-top, 0px));
   padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
 }
@@ -15,22 +21,22 @@
 }
 
 /* ============================================================
-   STATUS VISUAL
-   ============================================================ */
+     STATUS VISUAL
+     ============================================================ */
 .acompanhamento-status {
   @apply text-center w-full max-w-sm;
 }
 
 .acompanhamento-circle {
   @apply w-28 h-28 sm:w-32 sm:h-32
-         rounded-full
-         mx-auto mb-6
-         flex items-center justify-center
-         shadow-lg
-         transition-all duration-500;
+           rounded-full
+           mx-auto mb-6
+           flex items-center justify-center
+           shadow-lg
+           transition-all duration-500;
 }
 
-/* Círculo — cores por status */
+/* -------- Círculo: cores por status -------- */
 .acompanhamento-circle.circle-recebido {
   @apply bg-info-light text-info;
 }
@@ -57,6 +63,13 @@
   @apply bg-gray-100 text-gray-500;
 }
 
+/* Estado entregue/concluído */
+.acompanhamento-circle.circle-entregue {
+  @apply bg-success-light text-success
+           ring-2 ring-success/30;
+  animation: bounceIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 .acompanhamento-title {
   @apply text-3xl font-black mb-2 text-gray-800;
 }
@@ -76,31 +89,31 @@
 }
 
 /* ============================================================
-   AVISO DE REDE
-   ============================================================ */
+     AVISO DE REDE
+     ============================================================ */
 .acompanhamento-rede {
   @apply w-full max-w-sm mb-4
-         p-3 rounded-xl
-         bg-warning-light border border-warning/40
-         text-warning
-         text-xs
-         flex items-start gap-2;
+           p-3 rounded-xl
+           bg-warning-light border border-warning/40
+           text-warning
+           text-xs
+           flex items-start gap-2;
 }
 
 /* ============================================================
-   CARD DE ITENS
-   ============================================================ */
+     CARD DE ITENS
+     ============================================================ */
 .acompanhamento-card {
   @apply w-full max-w-sm
-         bg-white rounded-xl
-         shadow-sm border border-gray-100
-         p-5 mb-4;
+           bg-white rounded-xl
+           shadow-sm border border-gray-100
+           p-5 mb-4;
 }
 
 .acompanhamento-card-title {
   @apply font-bold text-gray-700 mb-4
-         border-b border-gray-100 pb-2
-         text-sm uppercase tracking-wide;
+           border-b border-gray-100 pb-2
+           text-sm uppercase tracking-wide;
 }
 
 .acompanhamento-itens {
@@ -113,16 +126,16 @@
 
 .acompanhamento-item-nome {
   @apply text-gray-800 font-medium
-         text-sm sm:text-base
-         min-w-0 truncate;
+           text-sm sm:text-base
+           min-w-0 truncate;
 }
 
 /* -------- BADGES -------- */
 .acompanhamento-badge {
   @apply px-2 py-1 rounded-md
-         font-bold text-[10px]
-         uppercase tracking-wide
-         inline-block;
+           font-bold text-[10px]
+           uppercase tracking-wide
+           inline-block;
 }
 
 .acompanhamento-badge-pronto {
@@ -136,23 +149,23 @@
 }
 
 /* ============================================================
-   VALOR TOTAL
-   ============================================================ */
+     VALOR TOTAL
+     ============================================================ */
 .acompanhamento-total {
   @apply w-full max-w-sm
-         bg-white rounded-2xl
-         shadow-md border border-gray-200
-         p-4 sm:p-5;
+           bg-white rounded-2xl
+           shadow-md border border-gray-200
+           p-4 sm:p-5;
 }
 
 .acompanhamento-total-label {
   @apply text-gray-500 text-xs font-medium
-         uppercase tracking-wide text-center;
+           uppercase tracking-wide text-center;
 }
 
 .acompanhamento-total-valor {
   @apply text-3xl sm:text-4xl font-black text-primary-600
-         mt-1 text-center tabular-nums;
+           mt-1 text-center tabular-nums;
 }
 
 .acompanhamento-total-cancelado {
@@ -160,14 +173,14 @@
 }
 
 /* ============================================================
-   PAGAMENTO
-   ============================================================ */
+     PAGAMENTO
+     ============================================================ */
 .acompanhamento-pagamento {
   @apply w-full max-w-sm
-         mt-4 p-4 rounded-xl
-         border
-         transition-all duration-500
-         flex items-center justify-between gap-3;
+           mt-4 p-4 rounded-xl
+           border
+           transition-all duration-500
+           flex items-center justify-between gap-3;
 }
 
 .acompanhamento-pagamento-ok {
@@ -184,8 +197,8 @@
 
 .acompanhamento-pagamento-icon {
   @apply w-11 h-11 rounded-full
-         flex items-center justify-center
-         flex-shrink-0;
+           flex items-center justify-center
+           flex-shrink-0;
 }
 
 .acompanhamento-pagamento-icon-ok {
@@ -199,7 +212,7 @@
 
 .acompanhamento-pagamento-label {
   @apply text-xs font-bold text-gray-500
-         uppercase tracking-wider;
+           uppercase tracking-wider;
 }
 
 .acompanhamento-pagamento-status {
@@ -216,65 +229,92 @@
 
 .acompanhamento-pagamento-forma {
   @apply bg-white px-3 py-1 rounded-lg
-         text-xs font-bold text-gray-500
-         shadow-sm border border-gray-100
-         flex-shrink-0;
+           text-xs font-bold text-gray-500
+           shadow-sm border border-gray-100
+           flex-shrink-0;
 }
 
 /* ============================================================
-   BOTÕES
-   ============================================================ */
+     BOTÕES
+     ============================================================ */
 .acompanhamento-btn {
   @apply w-full max-w-sm
-         mt-4 py-3.5 px-6
-         rounded-xl
-         font-bold text-sm
-         transition-all
-         shadow-sm
-         active:scale-95
-         touch-manipulation select-none
-         min-h-[52px]
-         flex items-center justify-center gap-2;
+           mt-4 py-3.5 px-6
+           rounded-xl
+           font-bold text-sm
+           transition-all
+           shadow-sm
+           active:scale-95
+           touch-manipulation select-none
+           min-h-[52px]
+           flex items-center justify-center gap-2;
 }
 
 .acompanhamento-btn-primary {
   @apply bg-white text-primary-600
-         border-2 border-primary-100
-         hover:bg-primary-50
-         hover:border-primary-200;
+           border-2 border-primary-100
+           hover:bg-primary-50
+           hover:border-primary-200;
 }
 
 .acompanhamento-btn-danger {
   @apply bg-white text-danger
-         border-2 border-danger/30
-         hover:bg-danger-light
-         hover:border-danger/50;
+           border-2 border-danger/30
+           hover:bg-danger-light
+           hover:border-danger/50;
 }
 
 .acompanhamento-btn-novo {
   @apply w-full max-w-sm
-         mt-6 px-6 py-4
-         bg-primary-600 text-white
-         rounded-2xl
-         font-bold text-base sm:text-lg
-         shadow-md shadow-primary-600/25
-         hover:bg-primary-700
-         active:scale-95
-         transition-all
-         min-h-[56px]
-         flex items-center justify-center gap-2
-         touch-manipulation select-none
-         focus:outline-none focus:ring-4 focus:ring-primary-300;
+           mt-6 px-6 py-4
+           bg-primary-600 text-white
+           rounded-2xl
+           font-bold text-base sm:text-lg
+           shadow-md shadow-primary-600/25
+           hover:bg-primary-700
+           active:scale-95
+           transition-all
+           min-h-[56px]
+           flex items-center justify-center gap-2
+           touch-manipulation select-none
+           focus:outline-none focus:ring-4 focus:ring-primary-300;
 }
 
 /* ============================================================
-   CANCELADO
-   ============================================================ */
+     BOTÃO CANCELAR — Preenchido, vermelho suave
+     ============================================================ */
+.acompanhamento-btn-cancelar {
+  @apply w-full max-w-sm
+           mt-6 py-3.5 px-6
+           rounded-xl
+           font-bold text-sm
+           text-danger
+           bg-danger-light
+           border-2 border-danger/50
+           transition-all duration-200
+           active:scale-[0.98]
+           touch-manipulation select-none
+           min-h-[52px]
+           flex items-center justify-center gap-2;
+
+  /* Hover/press → intensifica levemente */
+  @apply hover:bg-danger/20 hover:border-danger/70;
+  @apply active:bg-danger/20 active:border-danger;
+}
+
+/* Ícone herda a cor (currentColor) */
+.acompanhamento-btn-cancelar svg {
+  @apply text-danger;
+}
+
+/* ============================================================
+     CANCELADO
+     ============================================================ */
 .acompanhamento-cancelado {
   @apply w-full max-w-sm mt-6
-         bg-danger-light border border-danger/30
-         text-danger
-         p-4 rounded-xl text-center;
+           bg-danger-light border border-danger/30
+           text-danger
+           p-4 rounded-xl text-center;
 }
 
 .acompanhamento-cancelado-titulo {
@@ -286,7 +326,7 @@
 }
 
 /* ============================================================
-   ANIMAÇÕES LOCAIS
+   ANIMAÇÕES LOCAIS (fora do @layer para funcionar global)
    ============================================================ */
 @keyframes pulseSoft {
   0%,
@@ -298,39 +338,4 @@
     transform: scale(1.02);
     box-shadow: 0 0 0 12px rgba(245, 158, 11, 0);
   }
-}
-/* ============================================================
-   BOTÃO CANCELAR — Preenchido, vermelho suave
-   ============================================================
-   Destaque em relação aos CTAs brancos, mas sem o peso
-   agressivo de um vermelho sólido forte.
-   ============================================================ */
-.acompanhamento-btn-cancelar {
-  @apply w-full max-w-sm
-         mt-6 py-3.5 px-6
-         rounded-xl
-         font-bold text-sm
-         text-danger
-         bg-danger-light
-         border-2 border-danger/50
-         transition-all duration-200
-         active:scale-[0.98]
-         touch-manipulation select-none
-         min-h-[52px]
-         flex items-center justify-center gap-2;
-
-  /* Hover/press → intensifica levemente */
-  @apply hover:bg-red-200 hover:border-danger/70;
-  @apply active:bg-red-200 active:border-danger;
-}
-
-/* Ícone herda a cor (currentColor) e fica levemente mais forte que o texto */
-.acompanhamento-btn-cancelar svg {
-  @apply text-danger;
-}
-
-.acompanhamento-circle.circle-entregue {
-  @apply bg-success-light text-success
-         ring-2 ring-success/30;
-  animation: bounceIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }

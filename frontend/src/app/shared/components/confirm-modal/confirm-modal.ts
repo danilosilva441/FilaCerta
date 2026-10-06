@@ -20,6 +20,7 @@ import { ModalService, ModalConfig, ModalTipo } from '../../../core/services/mod
   standalone: true,
   imports: [CommonModule],
   templateUrl: './confirm-modal.html',
+  styleUrls: ['./confirm-modal.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ConfirmModalComponent implements OnInit, OnDestroy {

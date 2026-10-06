@@ -1,0 +1,198 @@
+/* ============================================================
+   HOME.CSS — Home do Cliente (Status da Loja)
+   Mobile-first: safe-areas, 4 estados, acessível
+   ============================================================ */
+
+/* ------------------------------------------------------------
+     PÁGINA — Container principal
+     ------------------------------------------------------------ */
+.home-page {
+  @apply min-h-dvh bg-gray-100
+           flex flex-col items-center justify-center
+           px-4 py-6
+           font-sans relative antialiased;
+
+  /* Safe-areas mobile (notch e home indicator) */
+  padding-top: max(1.5rem, env(safe-area-inset-top, 0px));
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+}
+
+/* ------------------------------------------------------------
+     HEADER — Logo + título + slogan
+     ------------------------------------------------------------ */
+.home-header {
+  @apply text-center mb-8 sm:mb-10;
+  animation: slideDown 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.home-logo {
+  @apply w-20 h-20 sm:w-28 sm:h-28
+           bg-gradient-to-br from-primary-500 to-primary-700
+           rounded-full
+           flex items-center justify-center mx-auto mb-4
+           shadow-xl shadow-primary-500/25
+           border-4 border-white
+           text-white
+           ring-2 ring-primary-500/20;
+}
+
+.home-title {
+  @apply text-3xl sm:text-4xl font-black text-gray-900 tracking-tight;
+}
+
+.home-slogan {
+  @apply text-xl sm:text-2xl text-primary-600 font-bold italic mt-1;
+}
+
+/* ------------------------------------------------------------
+     MAIN — Container do card de status
+     ------------------------------------------------------------ */
+.home-main {
+  @apply w-full max-w-sm transition-all duration-300;
+}
+
+/* ------------------------------------------------------------
+     CARD BASE — Todos os estados
+     ------------------------------------------------------------ */
+.home-card {
+  @apply bg-white p-6 rounded-2xl shadow-xl
+           border-t-8 text-center
+           transition-transform duration-200
+           animate-fade-in;
+
+  /* Borda superior colorida por variante (definida abaixo) */
+}
+
+/* Hover apenas em dispositivos com mouse (não trava no touch) */
+@media (hover: hover) {
+  .home-card {
+    @apply hover:scale-[1.02];
+  }
+}
+
+/* ------------------------------------------------------------
+     VARIANTES DO CARD
+     ------------------------------------------------------------ */
+.home-card-loading {
+  @apply flex flex-col items-center text-gray-500 shadow-md border-t-0;
+}
+
+.home-card-success {
+  @apply border-success;
+}
+
+.home-card-warning {
+  @apply border-warning;
+}
+
+.home-card-danger {
+  @apply border-danger;
+}
+
+/* ------------------------------------------------------------
+     TÍTULOS E TEXTOS
+     ------------------------------------------------------------ */
+.home-card-title {
+  @apply text-2xl font-bold text-gray-800 mb-2;
+}
+
+.home-card-text {
+  @apply text-gray-500 mb-6 font-medium leading-relaxed;
+}
+
+.home-loading-text {
+  @apply font-medium text-center animate-pulse;
+}
+
+/* ------------------------------------------------------------
+     BADGE DE STATUS (ESTAMOS ABERTOS, FECHADOS, etc.)
+     ------------------------------------------------------------ */
+.home-badge {
+  @apply inline-flex items-center gap-1.5
+           px-4 py-1.5
+           rounded-full
+           text-sm font-black
+           mb-4
+           tracking-wider;
+}
+
+.home-badge-dot {
+  @apply w-2 h-2 rounded-full flex-shrink-0;
+}
+
+/* Dot com pulso (usado no estado "aberto") */
+.home-badge-dot-pulse {
+  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Variantes de cor do badge */
+.home-badge-success {
+  @apply bg-success-light text-success;
+}
+.home-badge-success .home-badge-dot {
+  @apply bg-success;
+}
+
+.home-badge-warning {
+  @apply bg-warning-light text-warning;
+}
+.home-badge-warning .home-badge-dot {
+  @apply bg-warning;
+}
+
+.home-badge-danger {
+  @apply bg-danger-light text-danger;
+}
+.home-badge-danger .home-badge-dot {
+  @apply bg-danger;
+}
+
+/* ------------------------------------------------------------
+     BOTÕES
+     ------------------------------------------------------------ */
+.home-btn {
+  @apply w-full
+           py-4
+           rounded-xl
+           font-black text-lg
+           transition-all duration-200
+           text-center
+           touch-manipulation select-none
+           min-h-[56px]
+           flex items-center justify-center gap-2;
+}
+
+.home-btn-primary {
+  @apply bg-primary-600 text-white
+           shadow-md shadow-primary-600/25
+           hover:bg-primary-700
+           active:scale-95;
+}
+
+.home-btn-disabled {
+  @apply bg-gray-300 text-gray-500
+           shadow-inner
+           cursor-not-allowed;
+}
+
+/* ------------------------------------------------------------
+     HORÁRIO (estado "fechado")
+     ------------------------------------------------------------ */
+.home-hours {
+  @apply bg-gray-50 rounded-xl
+           p-4 text-sm text-gray-700
+           border border-gray-200;
+}
+
+.home-hours-title {
+  @apply font-black text-gray-800 mb-2
+           flex items-center justify-center gap-2;
+}
+
+.home-hours-day {
+  @apply font-medium;
+}
+
+.home-hours-time {
+  @apply text-primary-600 font-bold text-lg mt-0.5;
+}

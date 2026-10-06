@@ -53,7 +53,7 @@ export class WebsocketService implements OnDestroy {
         console.log('🔴 Desconectado do WebSocket.');
       },
 
-      onStompError: (frame) => {
+      onStompError: (frame: any) => {
         console.error('❌ Erro no WebSocket: ', frame.headers['message']);
       },
     });

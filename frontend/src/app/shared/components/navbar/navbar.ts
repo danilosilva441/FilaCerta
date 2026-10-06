@@ -7,6 +7,7 @@ import { AuthService } from '../../../core/services/auth.service';
   standalone: true,
   imports: [RouterLink, RouterLinkActive],
   templateUrl: './navbar.html',
+  styleUrls: ['./navbar.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NavbarComponent {

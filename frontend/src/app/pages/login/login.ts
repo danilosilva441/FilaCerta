@@ -10,6 +10,7 @@ import { NotificationService } from '../../core/services/notification.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './login.html',
+  styleUrls: ['./login.css'],
 })
 export class LoginComponent {
   username = '';

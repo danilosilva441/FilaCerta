@@ -2,17 +2,17 @@
 <app-toast></app-toast>
 <app-confirm-modal></app-confirm-modal>
 
-<!-- O resto do seu código continua normal abaixo... -->
-<div class="min-h-screen flex flex-col pb-20 sm:pb-0 bg-gray-50">
+<!-- 
+  ⚠️ A classe `has-bottom-nav` adiciona padding-bottom SOMENTE 
+  quando a navbar está visível (evita espaço extra em telas sem nav)
+-->
+<div class="min-h-screen flex flex-col bg-gray-50" [class.has-bottom-nav]="mostrarNavbar">
   @if (mostrarNavbar) {
     <app-navbar></app-navbar>
   }
 
   <main class="flex-1">
-    <!-- Suas rotas e conteúdos atuais -->
     <router-outlet></router-outlet>
-
-    <!-- BANNER LGPD GLOBAL -->
     <app-lgpd-banner />
   </main>
 </div>

@@ -1,11 +1,13 @@
+/* ============================================================
+   APP.COMPONENT.CSS — Layout raiz
+   O :host NÃO deve aplicar safe-area (quem faz isso é a navbar
+   e o wrapper do conteúdo)
+   ============================================================ */
+
 :host {
   display: block;
   min-height: 100dvh;
   background-color: #f9fafb;
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
   -webkit-tap-highlight-color: transparent;
   -webkit-text-size-adjust: 100%;
 }
@@ -31,7 +33,7 @@
   }
 }
 
-/* Evita "zoom" automático em inputs no iOS (precisa ser >= 16px) */
+/* Evita "zoom" automático em inputs no iOS */
 input,
 select,
 textarea {
@@ -45,7 +47,6 @@ textarea {
   }
 }
 
-/* Melhora scroll em iOS antigo */
 * {
   -webkit-tap-highlight-color: transparent;
 }

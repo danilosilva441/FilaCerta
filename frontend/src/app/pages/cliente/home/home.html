@@ -3,9 +3,6 @@
      4 estados: carregando | pausado | aberto | fechado
      ============================================================ -->
 <div class="home-page">
-  <!-- =========================
-       LOGO / CABEÇALHO
-       ========================= -->
   <header class="home-header">
     <div class="home-logo" aria-hidden="true">
       <!-- Hambúrguer SVG -->
@@ -38,7 +35,6 @@
        STATUS DA LOJA
        ========================= -->
   <main class="home-main" aria-live="polite" aria-atomic="true">
-    <!-- ========== CARREGANDO ========== -->
     @if (carregando) {
       <section class="home-card home-card-loading">
         <!-- Chama SVG animada -->
@@ -84,7 +80,7 @@
           ESTAMOS ABERTOS
         </span>
 
-        <h2 class="home-card-title">Bateu a fome?</h2>
+        <h2 class="home-card-title">Bem vindo!</h2>
         <p class="home-card-text">Faça seu pedido agora e acompanhe o preparo em tempo real!</p>
 
         <a routerLink="/cliente/cardapio" class="home-btn home-btn-primary">
