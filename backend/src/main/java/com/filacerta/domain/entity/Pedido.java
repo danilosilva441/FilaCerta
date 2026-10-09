@@ -120,6 +120,19 @@ public class Pedido {
 	}
 
 	public boolean todosItensProntos() {
-		return itens.stream().allMatch(item -> item.getStatus() == StatusItemPedido.PRONTO);
-	}
+        if (itens == null || itens.isEmpty()) return false;
+        
+        // Conta quantos itens NÃO foram cancelados
+        long itensAtivos = itens.stream()
+                .filter(i -> i.getStatus() != StatusItemPedido.CANCELADO)
+                .count();
+        
+        // Se todos foram cancelados (0 ativos), obviamente não está "Pronto"
+        if (itensAtivos == 0) return false;
+        
+        // Se tem itens ativos, verifica se todos eles estão com status PRONTO
+        return itens.stream()
+                .filter(i -> i.getStatus() != StatusItemPedido.CANCELADO)
+                .allMatch(i -> i.getStatus() == StatusItemPedido.PRONTO);
+    }
 }

@@ -105,7 +105,18 @@ export class FilaCozinhaComponent implements OnInit, OnDestroy {
   }
 
   private processarFila(pedidos: FilaCozinhaResponse[]): void {
-    const novaQtd = pedidos.length;
+    // 1. O FILTRO MÁGICO: Remove os itens cancelados assim que chegam do backend
+    const pedidosLimpos = pedidos
+      .map((pedido) => {
+        return {
+          ...pedido,
+          itens: pedido.itens.filter((i) => i.status !== 'CANCELADO'),
+        };
+      })
+      // 2. Se um pedido ficou sem nenhum item (tudo foi cancelado), ele some da tela da cozinha
+      .filter((pedido) => pedido.itens.length > 0);
+
+    const novaQtd = pedidosLimpos.length;
 
     // Toca sino se a fila AUMENTOU (chegou pedido novo)
     if (novaQtd > this.quantidadeAnterior) {
@@ -113,7 +124,7 @@ export class FilaCozinhaComponent implements OnInit, OnDestroy {
     }
 
     this.quantidadeAnterior = novaQtd;
-    this.filaPedidos.set(pedidos);
+    this.filaPedidos.set(pedidosLimpos);
   }
 
   // ====== Ações nos itens ======
@@ -218,6 +229,45 @@ export class FilaCozinhaComponent implements OnInit, OnDestroy {
       textoCancelar: 'Voltar',
       onConfirm: () => this.executarCancelamento(pedidoId),
     });
+  }
+
+  // ====== Cancelamento de Item Individual ======
+  cancelarItem(pedidoId: number, item: any): void {
+    this.modalService.abrir({
+      titulo: 'Cancelar este Lanche?',
+      mensagem: `Tem certeza que deseja remover "${item.quantidade}x ${item.nomeProduto}"? O valor será descontado da conta do cliente e o estoque será devolvido.`,
+      tipo: 'perigo',
+      textoConfirmar: 'Sim, remover',
+      textoCancelar: 'Voltar',
+      onConfirm: () => this.executarCancelamentoItem(pedidoId, item.itemId),
+    });
+  }
+
+  private executarCancelamentoItem(pedidoId: number, itemId: number): void {
+    this.cozinhaService
+      .atualizarStatusItem(pedidoId, itemId, 'CANCELADO')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.notificationService.sucesso('Item Removido', 'O lanche foi cancelado com sucesso.');
+
+          // Atualização Otimista: Remove o item da tela na hora!
+          this.filaPedidos.update((fila) =>
+            fila
+              .map((pedido) => {
+                if (pedido.pedidoId !== pedidoId) return pedido;
+                // Filtra o item cancelado para fora da lista
+                const novosItens = pedido.itens.filter((i) => i.itemId !== itemId);
+                return { ...pedido, itens: novosItens };
+              })
+              // Se o pedido ficar sem itens (removeu tudo), o cartão do pedido inteiro some da cozinha
+              .filter((pedido) => pedido.itens.length > 0),
+          );
+        },
+        error: () => {
+          this.notificationService.erro('Erro', 'Não foi possível cancelar o item.');
+        },
+      });
   }
 
   private executarCancelamento(pedidoId: number): void {

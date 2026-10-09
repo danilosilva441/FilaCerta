@@ -107,6 +107,9 @@ export class AcompanhamentoComponent implements OnInit, OnDestroy {
 
     this.pedidoService.acompanharPedido(this.codigoAcompanhamento).subscribe({
       next: (pedido) => {
+        // FILTRO: Joga fora os itens cancelados para o cliente não ver
+        pedido.itens = pedido.itens.filter((item: any) => item.status !== 'CANCELADO');
+
         this.processarAtualizacao(pedido);
         this.cdr.detectChanges();
       },

@@ -9,6 +9,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,7 +46,6 @@ public class PedidoService {
 	private final ProdutoRepository produtoRepository;
 	private final ItemPedidoRepository itemPedidoRepository;
 	private final SimpMessagingTemplate messagingTemplate;
-	
 
 	@Transactional
 	public PedidoResponse criarPedido(CriarPedidoRequest request) {
@@ -133,9 +135,9 @@ public class PedidoService {
 	@Transactional(readOnly = true)
 	public List<FilaCozinhaResponse> buscarFilaCozinha() {
 		// Busca pedidos que estão RECEBIDO, PREPARANDO ou PRONTO
-		List<Pedido> pedidosAtivos = pedidoRepository.findAll().stream()
-				.filter(p -> p.getStatus() == StatusPedido.RECEBIDO || p.getStatus() == StatusPedido.PREPARANDO
-						|| p.getStatus() == StatusPedido.PRONTO) 
+		List<Pedido> pedidosAtivos = pedidoRepository
+				.findAll().stream().filter(p -> p.getStatus() == StatusPedido.RECEBIDO
+						|| p.getStatus() == StatusPedido.PREPARANDO || p.getStatus() == StatusPedido.PRONTO)
 				.collect(java.util.stream.Collectors.toList());
 
 		// Ordenação e Mapeamento DENTRO da transação
@@ -160,32 +162,41 @@ public class PedidoService {
 		ItemPedido item = pedido.getItens().stream().filter(i -> i.getId().equals(itemId)).findFirst()
 				.orElseThrow(() -> new NegocioException("Item não encontrado: " + itemId));
 
-		// --- NOVA REGRA: DEVOLUÇÃO DE ESTOQUE (Item Individual) ---
-		// Se o status novo for CANCELADO e o item já não estiver cancelado
+		// --- NOVA REGRA: CANCELAMENTO INDIVIDUAL DE ITEM ---
 		if (novoStatus == StatusItemPedido.CANCELADO && item.getStatus() != StatusItemPedido.CANCELADO) {
+			
+			// 1. Devolve ao Estoque
 			Produto produto = item.getProduto();
 			if (produto.getQuantidadeDisponivel() != null) {
 				produto.setQuantidadeDisponivel(produto.getQuantidadeDisponivel() + item.getQuantidade());
 			}
+			
+			// 2. Abate o valor do item da conta total do pedido!
+			BigDecimal valorParaAbater = item.getPrecoUnitario().multiply(new BigDecimal(item.getQuantidade()));
+			pedido.setValorTotal(pedido.getValorTotal().subtract(valorParaAbater));
+			
+			// Prevenção de segurança para a conta nunca ficar negativa
+			if (pedido.getValorTotal().compareTo(BigDecimal.ZERO) < 0) {
+				pedido.setValorTotal(BigDecimal.ZERO);
+			}
 		}
-		// ----------------------------------------------------------
 
 		item.setStatus(novoStatus);
 
-		// Se o pedido estava como RECEBIDO e alguém começou a preparar um item,
-		// atualiza o pedido para PREPARANDO
+		// Se o pedido estava como RECEBIDO e alguém começou a preparar um item, atualiza para PREPARANDO
 		if (pedido.getStatus() == StatusPedido.RECEBIDO && novoStatus == StatusItemPedido.PREPARANDO) {
 			pedido.setStatus(StatusPedido.PREPARANDO);
 		}
 
-		// Verifica se TODOS os itens do pedido estão PRONTOS
+		// Verifica se TODOS os itens do pedido (que não foram cancelados) estão PRONTOS
 		if (pedido.todosItensProntos()) {
 			pedido.setStatus(StatusPedido.PRONTO);
 			pedido.setDataHoraPronto(LocalDateTime.now());
 		}
 
 		messagingTemplate.convertAndSend("/topic/pedidos", "ATUALIZOU");
-
+		messagingTemplate.convertAndSend("/topic/caixa", "ATUALIZOU");
+		
 		pedidoRepository.save(pedido);
 	}
 
@@ -199,15 +210,12 @@ public class PedidoService {
 
 	@Transactional(readOnly = true)
 	public List<PedidoResponse> listarPedidoPagamentoPendente() {
-		return pedidoRepository.findAll().stream()
-				// ---> A MÁGICA AQUI: Filtra e expulsa os cancelados da lista! <---
-				.filter(p -> p.getStatus() != StatusPedido.CANCELADO)
-
-				.filter(p -> p.getStatusPagamento() == StatusPagamento.AGUARDANDO
-						|| p.getStatus() == StatusPedido.PRONTO || p.getStatus() == StatusPedido.SERVIDO)
-				.sorted(Comparator.comparing(Pedido::getDataHoraPedido).reversed()).map(PedidoMapper::toResponse)
-				.collect(Collectors.toList());
-	}
+		// Busca os pedidos ativos do dia e filtra para EXCLUIR os cancelados
+				return pedidoRepository.findAll().stream()
+						.filter(p -> p.getStatus() != StatusPedido.CANCELADO) // <--- ADICIONE ESTA LINHA
+						.map(PedidoMapper::toResponse)
+						.collect(Collectors.toList());
+			}
 
 	@Transactional
 	public void atualizarStatusPagamento(Long pedidoId, StatusPagamento novoStatus) {
@@ -255,36 +263,39 @@ public class PedidoService {
 	}
 
 	@Transactional
-    public void cancelarPedido(Long pedidoId) {
-        Pedido pedido = pedidoRepository.findById(pedidoId)
-                .orElseThrow(() -> new NegocioException("Pedido não encontrado: " + pedidoId));
-        
-        System.out.println(">>> CANCELAR - Status atual: " + pedido.getStatus()); 
+	public void cancelarPedido(Long pedidoId) {
+		Pedido pedido = pedidoRepository.findById(pedidoId)
+				.orElseThrow(() -> new NegocioException("Pedido não encontrado: " + pedidoId));
 
-        // ---> CORREÇÃO AQUI: Adicionado o ENTREGUE na lista de bloqueio <---
-        if (pedido.getStatus() == StatusPedido.PREPARANDO || 
-            pedido.getStatus() == StatusPedido.PRONTO || 
-            pedido.getStatus() == StatusPedido.SERVIDO || 
-            pedido.getStatus() == StatusPedido.ENTREGUE) {
-            throw new NegocioException("Este pedido já está em preparo ou foi concluído e não pode ser cancelado.");
-        }
+		System.out.println(">>> CANCELAR - Status atual: " + pedido.getStatus());
 
-		// Trava de segurança original: só devolve se o pedido ainda não estiver
-		// cancelado
-		if (pedido.getStatus() != StatusPedido.CANCELADO) {
+		// 1. Verifica se quem está a fazer a requisição é o Dono (tem um token válido)
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		boolean isDono = auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken);
 
-			// Varre todos os itens do pedido para devolver ao estoque
-			for (ItemPedido item : pedido.getItens()) {
-				Produto produto = item.getProduto();
+		// 2. REGRA DO CLIENTE: O cliente só pode cancelar se estiver apenas RECEBIDO.
+		if (!isDono && pedido.getStatus() != StatusPedido.RECEBIDO) {
+			throw new NegocioException(
+					"O seu pedido já está a ser preparado. Por favor, dirija-se ao balcão para cancelar.");
+		}
 
-				if (produto.getQuantidadeDisponivel() != null) {
-					produto.setQuantidadeDisponivel(produto.getQuantidadeDisponivel() + item.getQuantidade());
-				}
+		// 3. REGRA GERAL (Inclui o Dono): Ninguém cancela um pedido que já foi ENTREGUE e o cliente já foi embora.
+		if (pedido.getStatus() == StatusPedido.ENTREGUE || pedido.getStatus() == StatusPedido.CANCELADO) {
+			throw new NegocioException("Este pedido já foi finalizado ou cancelado e não pode ser alterado.");
+		}
 
-				// Atualiza o status do item individual para manter a tela da cozinha
-				// consistente
-				item.setStatus(StatusItemPedido.CANCELADO);
+		// --- Se chegou até aqui, ou é o cliente cancelando no início, ou é o Dono dando a carteirada! ---
+
+		// Varre todos os itens do pedido para devolver ao estoque
+		for (ItemPedido item : pedido.getItens()) {
+			Produto produto = item.getProduto();
+
+			if (produto.getQuantidadeDisponivel() != null) {
+				produto.setQuantidadeDisponivel(produto.getQuantidadeDisponivel() + item.getQuantidade());
 			}
+
+			// Atualiza o status do item individual para manter a tela da cozinha consistente
+			item.setStatus(StatusItemPedido.CANCELADO);
 		}
 
 		pedido.setStatus(StatusPedido.CANCELADO);
@@ -292,14 +303,15 @@ public class PedidoService {
 
 		messagingTemplate.convertAndSend("/topic/pedidos", "ATUALIZOU");
 	}
-	
+
 	@Transactional
 	public PedidoResponse atualizarPedido(String codigo, AtualizarPedidoRequest request) {
 		Pedido pedido = pedidoRepository.findByCodigoAcompanhamento(codigo)
 				.orElseThrow(() -> new NegocioException("Pedido não encontrado."));
 
 		// ---> TRAVA DE STATUS (Verifique se o seu Enum usa "AGUARDANDO" ou "PENDENTE")
-		// Se o seu enum de status do pedido usa outro valor, ajuste aqui (ex: StatusPedido.AGUARDANDO_PAGAMENTO)
+		// Se o seu enum de status do pedido usa outro valor, ajuste aqui (ex:
+		// StatusPedido.AGUARDANDO_PAGAMENTO)
 		if (pedido.getStatus() != StatusPedido.RECEBIDO) {
 			throw new NegocioException("O pedido já está em preparo e não pode ser alterado.");
 		}
@@ -315,10 +327,12 @@ public class PedidoService {
 		// 2. Limpa a lista antiga (o orphanRemoval remove do banco)
 		pedido.getItens().clear();
 
-		// 3. Processa os novos itens (usando getProdutoId(), getQuantidade() e getObservacaoItem())
+		// 3. Processa os novos itens (usando getProdutoId(), getQuantidade() e
+		// getObservacaoItem())
 		BigDecimal valorTotal = BigDecimal.ZERO;
 		for (var itemReq : request.itens()) {
-			// Usando o seu repositório padrão de produtos (produtoRepository ou o que já injetou na classe)
+			// Usando o seu repositório padrão de produtos (produtoRepository ou o que já
+			// injetou na classe)
 			Produto produto = produtoRepository.findById(itemReq.getProdutoId())
 					.orElseThrow(() -> new NegocioException("Produto não encontrado."));
 
@@ -352,13 +366,14 @@ public class PedidoService {
 
 		return PedidoMapper.toResponse(pedido);
 	}
-	
+
 	@Transactional
 	public PedidoResponse adicionarItensAoPedido(String codigo, AtualizarPedidoRequest request) {
 		Pedido pedido = pedidoRepository.findByCodigoAcompanhamento(codigo)
 				.orElseThrow(() -> new NegocioException("Pedido não encontrado."));
 
-		// Trava: Não pode adicionar se o cliente já pegou o pacote e foi embora (ENTREGUE) ou foi CANCELADO
+		// Trava: Não pode adicionar se o cliente já pegou o pacote e foi embora
+		// (ENTREGUE) ou foi CANCELADO
 		if (pedido.getStatus() == StatusPedido.ENTREGUE || pedido.getStatus() == StatusPedido.CANCELADO) {
 			throw new NegocioException("Este pedido já foi finalizado. Por favor, inicie um novo pedido.");
 		}
@@ -398,7 +413,8 @@ public class PedidoService {
 			pedido.setStatusPagamento(StatusPagamento.AGUARDANDO);
 		}
 
-		// Se o pedido estava pronto ou na mesa, volta para a aba "Em Preparo" da Cozinha
+		// Se o pedido estava pronto ou na mesa, volta para a aba "Em Preparo" da
+		// Cozinha
 		if (pedido.getStatus() == StatusPedido.PRONTO || pedido.getStatus() == StatusPedido.SERVIDO) {
 			pedido.setStatus(StatusPedido.PREPARANDO);
 		}

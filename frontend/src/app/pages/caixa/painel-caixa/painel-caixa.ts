@@ -269,7 +269,8 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
   cancelarPedido(pedidoId: number): void {
     this.modalService.abrir({
       titulo: 'Descartar pedido?',
-      mensagem: 'Os itens serão devolvidos ao estoque e o pedido será cancelado.',
+      mensagem:
+        'Os itens serão devolvidos ao estoque e o pedido será cancelado. Esta ação não pode ser desfeita.',
       tipo: 'perigo',
       textoConfirmar: 'Sim, descartar',
       textoCancelar: 'Voltar',
@@ -278,9 +279,30 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
           .cancelarPedido(pedidoId)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
-            next: () =>
-              this.notificationService.sucesso('Cancelado', 'O pedido foi descartado com sucesso.'),
-            error: () => this.notificationService.erro('Erro', 'Não foi possível cancelar.'),
+            next: () => {
+              this.notificationService.sucesso('Cancelado', 'O pedido foi descartado com sucesso.');
+
+              // Atualização Otimista: Remove o pedido da tela do caixa instantaneamente!
+              this.pedidosBalcao.update((pedidos) => pedidos.filter((p) => p.id !== pedidoId));
+            },
+            error: (err) => {
+              // Tenta ler a mensagem exata de erro que o Spring Boot (Java) enviou
+              let mensagemDoBackend = 'Não foi possível cancelar o pedido no momento.';
+
+              if (err.error) {
+                try {
+                  const erroFormatado =
+                    typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+                  if (erroFormatado?.mensagem) {
+                    mensagemDoBackend = erroFormatado.mensagem;
+                  }
+                } catch (e) {
+                  console.error('Falha ao ler o erro do backend', e);
+                }
+              }
+
+              this.notificationService.erro('Ação Negada', mensagemDoBackend);
+            },
           });
       },
     });

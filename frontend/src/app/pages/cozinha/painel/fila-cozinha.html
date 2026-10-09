@@ -191,67 +191,97 @@
           <!-- CHECKLIST DE ITENS -->
           <div class="cozinha-card-itens">
             @for (item of pedido.itens; track item.itemId) {
-              <button
-                type="button"
-                (click)="marcarItem(pedido.pedidoId, item.itemId, item.status)"
-                class="cozinha-item"
-                [ngClass]="{
-                  'cozinha-item-pendente': item.status === 'PENDENTE',
-                  'cozinha-item-preparando': item.status === 'PREPARANDO',
-                  'cozinha-item-pronto': item.status === 'PRONTO',
-                }"
-                [attr.aria-label]="'Marcar ' + item.nomeProduto + ' como ' + item.status"
-              >
-                <div class="cozinha-item-content">
-                  <!-- CHECKBOX CIRCULAR -->
-                  <div
-                    class="cozinha-item-check"
-                    [ngClass]="{
-                      'cozinha-item-check-pendente': item.status === 'PENDENTE',
-                      'cozinha-item-check-preparando': item.status === 'PREPARANDO',
-                      'cozinha-item-check-pronto': item.status === 'PRONTO',
-                    }"
-                    aria-hidden="true"
+              <div class="flex items-stretch gap-2 w-full">
+                <!-- BOTÃO PRINCIPAL (Marcar Status) -->
+                <button
+                  type="button"
+                  (click)="marcarItem(pedido.pedidoId, item.itemId, item.status)"
+                  class="cozinha-item flex-1"
+                  [ngClass]="{
+                    'cozinha-item-pendente': item.status === 'PENDENTE',
+                    'cozinha-item-preparando': item.status === 'PREPARANDO',
+                    'cozinha-item-pronto': item.status === 'PRONTO',
+                  }"
+                  [attr.aria-label]="'Marcar ' + item.nomeProduto + ' como ' + item.status"
+                >
+                  <div class="cozinha-item-content">
+                    <!-- CHECKBOX CIRCULAR -->
+                    <div
+                      class="cozinha-item-check"
+                      [ngClass]="{
+                        'cozinha-item-check-pendente': item.status === 'PENDENTE',
+                        'cozinha-item-check-preparando': item.status === 'PREPARANDO',
+                        'cozinha-item-check-pronto': item.status === 'PRONTO',
+                      }"
+                      aria-hidden="true"
+                    >
+                      @if (item.status === 'PRONTO') {
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="3"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="w-5 h-5"
+                        >
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                      } @else if (item.status === 'PREPARANDO') {
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                          class="w-4 h-4"
+                        >
+                          <path
+                            d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"
+                          ></path>
+                        </svg>
+                      }
+                    </div>
+
+                    <!-- TEXTO -->
+                    <div class="cozinha-item-text">
+                      <span
+                        class="cozinha-item-nome"
+                        [class.line-through]="item.status === 'PRONTO'"
+                      >
+                        {{ item.quantidade }}x {{ item.nomeProduto }}
+                      </span>
+
+                      @if (item.observacaoItem) {
+                        <span class="cozinha-item-obs"> OBS: {{ item.observacaoItem }} </span>
+                      }
+                    </div>
+                  </div>
+                </button>
+
+                <!-- NOVO BOTÃO: CANCELAR ITEM (Lixeira) -->
+                <button
+                  type="button"
+                  (click)="cancelarItem(pedido.pedidoId, item)"
+                  class="flex-shrink-0 flex items-center justify-center w-12 bg-white border border-gray-200 text-danger hover:bg-danger-light hover:border-danger/40 rounded-lg transition-all active:scale-95"
+                  title="Cancelar Lanche"
+                  aria-label="Cancelar Lanche"
+                >
+                  <svg
+                    class="w-5 h-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
                   >
-                    @if (item.status === 'PRONTO') {
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="3"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="w-5 h-5"
-                      >
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                    } @else if (item.status === 'PREPARANDO') {
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        class="w-4 h-4"
-                      >
-                        <path
-                          d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"
-                        ></path>
-                      </svg>
-                    }
-                  </div>
-
-                  <!-- TEXTO -->
-                  <div class="cozinha-item-text">
-                    <span class="cozinha-item-nome" [class.line-through]="item.status === 'PRONTO'">
-                      {{ item.quantidade }}x {{ item.nomeProduto }}
-                    </span>
-
-                    @if (item.observacaoItem) {
-                      <span class="cozinha-item-obs"> OBS: {{ item.observacaoItem }} </span>
-                    }
-                  </div>
-                </div>
-              </button>
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                </button>
+              </div>
             }
           </div>
 

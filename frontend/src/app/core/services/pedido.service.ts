@@ -36,4 +36,8 @@ export class PedidoService {
   ): Observable<PedidoResponse> {
     return this.http.post<PedidoResponse>(`${this.apiUrl}/rastreio/${codigo}/adicionar`, request);
   }
+
+  atualizarStatusItem(pedidoId: number, itemId: number, status: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${pedidoId}/itens/${itemId}/status`, { status });
+  }
 }

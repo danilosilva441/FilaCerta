@@ -65,6 +65,9 @@ export class CardapioComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    // 1. PRIMEIRA COISA: Descobre se quem abriu o cardápio tem a chave do restaurante
+    this.isDono = this.authService.isDono();
+
     const pedidoAtivo = localStorage.getItem('filacerta_pedido_ativo');
 
     // Se não tem pedido, faz a faxina e rasga os crachás antigos
@@ -79,10 +82,17 @@ export class CardapioComponent implements OnInit, OnDestroy {
     this.isModoEdicao = !!modoEdicao;
     this.isModoAcrescimo = !!modoAcrescimo;
 
-    // Se ele tem pedido, mas NÃO está editando E NÃO está acrescentando, expulsa pra fila!
-    if (pedidoAtivo && !modoEdicao && !modoAcrescimo) {
+    // ---> CORREÇÃO AQUI <---
+    // Se ele tem pedido, NÃO está editando E NÃO está acrescentando:
+    // Expulsa pra fila... MAS SÓ SE FOR CLIENTE (!this.isDono)
+    if (pedidoAtivo && !modoEdicao && !modoAcrescimo && !this.isDono) {
       void this.router.navigate(['/cliente/acompanhamento', pedidoAtivo]);
       return;
+    }
+
+    // Se for o Dono e ele tem um pedido guardado na memória (lixo), limpamos silenciosamente!
+    if (this.isDono && pedidoAtivo && !modoEdicao && !modoAcrescimo) {
+      localStorage.removeItem('filacerta_pedido_ativo');
     }
 
     // Se for modo edição, carrega o lanche antigo
@@ -90,15 +100,12 @@ export class CardapioComponent implements OnInit, OnDestroy {
       this.carregarCarrinhoParaEdicao(pedidoAtivo);
       this.iniciarMonitoramentoPedido(pedidoAtivo);
     }
-
     // Se for acréscimo, puxa o nome do cliente em silêncio e deixa o carrinho limpo
     else if (pedidoAtivo && modoAcrescimo) {
       this.prepararAcrescimo(pedidoAtivo);
       this.iniciarMonitoramentoPedido(pedidoAtivo);
     }
 
-    // Código original mantido
-    this.isDono = this.authService.isDono();
     this.carregarCategorias();
     this.carregarProdutos();
     this.iniciarMonitoramentoCaixa();
@@ -173,14 +180,15 @@ export class CardapioComponent implements OnInit, OnDestroy {
     });
   }
 
-private atualizarStatusCaixa(): void {
+  private atualizarStatusCaixa(): void {
     this.caixaService.buscarCaixaAtual().subscribe({
       next: (caixa) => {
         // 1. Verifica se a pessoa logada é o dono
         const isDono = this.authService.isDono(); // ou use this.isDono se já tiver essa variável na classe
 
         // 2. A MÁGICA AQUI: Fica disponível SE ele for o DONO, OU (se for cliente) o caixa estiver aberto e a cozinha rodando
-        const disponivel = isDono || (!!caixa && caixa.status === 'ABERTO' && caixa.cozinhaPausada !== true);
+        const disponivel =
+          isDono || (!!caixa && caixa.status === 'ABERTO' && caixa.cozinhaPausada !== true);
 
         const mudouEstado = this.cozinhaDisponivel !== disponivel;
 
@@ -374,9 +382,12 @@ private atualizarStatusCaixa(): void {
 
       this.pedidoService.criarPedido(request).subscribe({
         next: (response) => {
-          if (response.codigoAcompanhamento) {
+          // ---> CORREÇÃO AQUI <---
+          // Só salva no localStorage (amarrando o telemóvel ao pedido) se NÃO for o dono!
+          if (response.codigoAcompanhamento && !this.isDono) {
             localStorage.setItem('filacerta_pedido_ativo', response.codigoAcompanhamento);
           }
+
           this.finalizarEnvio(response.codigoAcompanhamento);
         },
         error: (err) => this.tratarErroBackend(err),
@@ -386,20 +397,20 @@ private atualizarStatusCaixa(): void {
 
   // --- MÉTODOS AUXILIARES PARA LIMPAR O CÓDIGO ---
 
-private finalizarEnvio(codigoAcompanhamento: string): void {
-  this.carrinho = [];
-  this.nomeCliente = '';
-  this.isProcessando = false;
-  this.isCarrinhoAberto = false;
+  private finalizarEnvio(codigoAcompanhamento: string): void {
+    this.carrinho = [];
+    this.nomeCliente = '';
+    this.isProcessando = false;
+    this.isCarrinhoAberto = false;
 
-  // Se o usuário está logado (tem token), manda direto pra cozinha.
-  // Senão, manda pro acompanhamento do cliente.
-  if (this.authService.isLogado()) {
-    void this.router.navigate(['/cozinha/painel']);
-  } else {
-    void this.router.navigate(['/cliente/acompanhamento', codigoAcompanhamento]);
+    // Se o usuário está logado (tem token), manda direto pra cozinha.
+    // Senão, manda pro acompanhamento do cliente.
+    if (this.authService.isLogado()) {
+      void this.router.navigate(['/cozinha/painel']);
+    } else {
+      void this.router.navigate(['/cliente/acompanhamento', codigoAcompanhamento]);
+    }
   }
-}
 
   private tratarErroBackend(err: any): void {
     let mensagemDoBackend = 'O pedido não pôde ser enviado. Tente novamente.';
