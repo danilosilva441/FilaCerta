@@ -135,7 +135,7 @@ public class PedidoService {
 		// Busca pedidos que estão RECEBIDO, PREPARANDO ou PRONTO
 		List<Pedido> pedidosAtivos = pedidoRepository.findAll().stream()
 				.filter(p -> p.getStatus() == StatusPedido.RECEBIDO || p.getStatus() == StatusPedido.PREPARANDO
-						|| p.getStatus() == StatusPedido.PRONTO) // <--- ADICIONAMOS AQUI
+						|| p.getStatus() == StatusPedido.PRONTO) 
 				.collect(java.util.stream.Collectors.toList());
 
 		// Ordenação e Mapeamento DENTRO da transação
@@ -258,6 +258,8 @@ public class PedidoService {
     public void cancelarPedido(Long pedidoId) {
         Pedido pedido = pedidoRepository.findById(pedidoId)
                 .orElseThrow(() -> new NegocioException("Pedido não encontrado: " + pedidoId));
+        
+        System.out.println(">>> CANCELAR - Status atual: " + pedido.getStatus()); 
 
         // ---> CORREÇÃO AQUI: Adicionado o ENTREGUE na lista de bloqueio <---
         if (pedido.getStatus() == StatusPedido.PREPARANDO || 

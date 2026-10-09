@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
@@ -43,10 +43,127 @@ export class PainelProdutosComponent implements OnInit {
     tempoPreparoMinutos: 0,
     disponivel: true,
     quantidadeDisponivel: null,
-    versao: 0, // <--- NOVO
+    versao: 0,
   });
 
   private produtoIdEditando: number | null = null;
+
+  // ==========================================
+  // FILTROS E PESQUISA (Com reatividade moderna)
+  // ==========================================
+  termoPesquisa = signal<string>('');
+  categoriaSelecionada = signal<number | null>(null);
+  // ==========================================
+  // CONTROLE DO MODAL DE CATEGORIAS
+  // ==========================================
+  readonly isModalCategoriaAberto = signal(false);
+  readonly isProcessandoCategoria = signal(false);
+  categoriaForm = signal<{ id: number | null; nome: string }>({ id: null, nome: '' });
+
+  abrirModalCategorias(): void {
+    this.categoriaForm.set({ id: null, nome: '' });
+    this.isModalCategoriaAberto.set(true);
+  }
+
+  fecharModalCategorias(): void {
+    this.isModalCategoriaAberto.set(false);
+  }
+
+  editarCategoria(cat: any): void {
+    this.categoriaForm.set({ id: cat.id, nome: cat.nome });
+  }
+
+  cancelarEdicaoCategoria(): void {
+    this.categoriaForm.set({ id: null, nome: '' });
+  }
+
+  salvarCategoria(): void {
+    const form = this.categoriaForm();
+    if (!form.nome || form.nome.trim() === '') {
+      this.notificationService.aviso('Atenção', 'O nome da categoria não pode ser vazio.');
+      return;
+    }
+
+    this.isProcessandoCategoria.set(true);
+    const requisicao$ = form.id
+      ? this.categoriaService.atualizar(form.id, { nome: form.nome })
+      : this.categoriaService.criar({ nome: form.nome });
+
+    requisicao$
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.isProcessandoCategoria.set(false)),
+      )
+      .subscribe({
+        next: () => {
+          this.notificationService.sucesso('Sucesso', 'Categoria salva com sucesso!');
+          this.carregarCategorias(); // Recarrega a lista de categorias
+
+          this.carregarProdutos(); // Recarrega os produtos para que peguem o novo nome da categoria!
+
+          this.cancelarEdicaoCategoria();
+        },
+        error: () => this.notificationService.erro('Erro', 'Falha ao salvar a categoria.'),
+      });
+  }
+
+  excluirCategoria(cat: any): void {
+    this.modalService.abrir({
+      titulo: 'Excluir Categoria?',
+      mensagem: `Tem certeza que deseja excluir "${cat.nome}"?`,
+      tipo: 'perigo',
+      textoConfirmar: 'Sim, excluir',
+      textoCancelar: 'Cancelar',
+      onConfirm: () => {
+        this.categoriaService.excluir(cat.id).subscribe({
+          next: () => {
+            this.notificationService.sucesso('Excluída', 'Categoria removida com sucesso.');
+            this.carregarCategorias();
+          },
+          error: (err) => {
+            // Caso tente excluir uma categoria que já tem produtos cadastrados
+            this.notificationService.erro(
+              'Ação Negada',
+              'Não é possível excluir uma categoria que possui produtos.',
+            );
+          },
+        });
+      },
+    });
+  }
+
+  // O 'computed' vigia automaticamente os sinais acima. Mudou um, ele refaz a lista!
+  produtosFiltrados = computed(() => {
+    const lista = this.produtos();
+    const termo = this.termoPesquisa().toLowerCase().trim();
+    const catId = this.categoriaSelecionada();
+
+    if (!lista || lista.length === 0) return [];
+
+    let filtrados = lista;
+
+    // 1. Filtra de forma blindada pelo Nome da Categoria
+    if (catId !== null && catId !== undefined && String(catId) !== 'null') {
+      // Encontra qual é o nome da categoria que está selecionada no filtro
+      const categoriaEncontrada = this.categorias().find((c) => Number(c.id) === Number(catId));
+      const nomeCatSelecionada = categoriaEncontrada ? categoriaEncontrada.nome : null;
+
+      if (nomeCatSelecionada) {
+        filtrados = filtrados.filter((p) => {
+          // O backend pode mandar o objeto completo ou apenas a string do nome
+          const nomeCategoriaProduto = p.categoria?.nome || p.categoria;
+          return nomeCategoriaProduto === nomeCatSelecionada;
+        });
+      }
+    }
+
+    // 2. Filtra APENAS pelo Nome do Produto
+    if (termo !== '') {
+      filtrados = filtrados.filter((p) => p.nome.toLowerCase().includes(termo));
+    }
+
+    return filtrados;
+  });
 
   ngOnInit(): void {
     this.carregarCategorias();
@@ -91,18 +208,27 @@ export class PainelProdutosComponent implements OnInit {
     this.isModalAberto.set(true);
   }
 
-  abrirModalEdicao(produto: Produto): void {
+  abrirModalEdicao(produto: any): void {
     this.modoEdicao.set(true);
     this.produtoIdEditando = produto.id;
+
+    // A LINHA QUE FALTAVA ESTÁ AQUI ABAIXO 👇
+    // Ela garante que o ID da categoria seja extraído como um Número puro
+    const idDaCategoria = produto.categoria?.id
+      ? Number(produto.categoria.id)
+      : produto.categoriaId
+        ? Number(produto.categoriaId)
+        : null;
+
     this.produtoForm.set({
       nome: produto.nome,
       descricao: produto.descricao,
       preco: produto.preco,
-      categoriaId: produto.categoria?.id || produto.categoriaId,
+      categoriaId: idDaCategoria, // Agora o Angular vai encontrar a variável!
       tempoPreparoMinutos: produto.tempoPreparoMinutos,
       disponivel: produto.disponivel,
       quantidadeDisponivel: produto.quantidadeDisponivel,
-      versao: produto.versao, // <--- NOVO
+      versao: produto.versao,
     });
     this.isModalAberto.set(true);
   }

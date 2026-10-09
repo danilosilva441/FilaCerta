@@ -277,7 +277,7 @@
          flex flex-col;
 
   position: relative;
-  z-index: 51;
+  z-index: 41;
 
   max-height: 92dvh;
   animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -405,7 +405,7 @@
      BACKDROP DO MODAL (específico do Estoque)
      ============================================================ */
 .estoque-modal-backdrop {
-  @apply fixed inset-0 z-50
+  @apply fixed inset-0 z-40 /* Antes era z-50 */
          flex items-center justify-center
          bg-black/60 backdrop-blur-sm
          p-4
@@ -413,4 +413,98 @@
 
   padding-top: max(1rem, env(safe-area-inset-top, 0px));
   padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+}
+
+/* ============================================================
+   HEADER — Ações (Categorias + Adicionar)
+   ============================================================ */
+.estoque-header-actions {
+  @apply flex flex-col sm:flex-row gap-3
+         w-full sm:w-auto;
+}
+
+/* Botão secundário (Categorias) */
+.estoque-btn-secondary {
+  @apply px-5 py-3
+         rounded-xl
+         font-bold text-sm
+         bg-primary-800 hover:bg-primary-900
+         text-white
+         transition-all
+         shadow-md
+         flex items-center justify-center gap-2
+         touch-manipulation
+         min-h-[48px];
+}
+
+/* ============================================================
+   BARRA DE PESQUISA E FILTROS
+   ============================================================ */
+.estoque-filtros {
+  @apply bg-white
+         p-4
+         rounded-2xl
+         shadow-sm
+         border border-gray-200
+         mb-6
+         flex flex-col sm:flex-row
+         gap-4
+         items-stretch sm:items-center
+         justify-between;
+}
+
+/* -------- Busca -------- */
+.estoque-busca {
+  @apply relative
+         w-full sm:w-1/2;
+}
+
+.estoque-busca-icon {
+  @apply absolute inset-y-0 left-0 pl-3
+         flex items-center
+         pointer-events-none
+         text-gray-400;
+}
+
+.estoque-busca-input {
+  @apply w-full
+         pl-10 pr-4 py-3
+         rounded-xl
+         border border-gray-200
+         bg-gray-50
+         text-sm
+         text-gray-800
+         placeholder:text-gray-400
+         focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+         focus:bg-white
+         focus:outline-none
+         transition-all;
+  font-size: 16px; /* anti-zoom iOS */
+}
+
+/* -------- Filtro de Categoria -------- */
+.estoque-filtro-categoria {
+  @apply w-full sm:w-auto
+         flex items-center gap-3;
+}
+
+.estoque-filtro-label {
+  @apply text-sm font-bold text-gray-600
+         whitespace-nowrap;
+}
+
+.estoque-filtro-select {
+  @apply w-full sm:w-48
+         rounded-xl
+         border border-gray-200
+         bg-gray-50
+         text-sm
+         text-gray-800
+         p-3
+         cursor-pointer
+         focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+         focus:bg-white
+         focus:outline-none
+         transition-all;
+  font-size: 16px; /* anti-zoom iOS */
 }
