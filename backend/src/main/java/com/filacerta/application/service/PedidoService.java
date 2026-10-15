@@ -210,12 +210,18 @@ public class PedidoService {
 
 	@Transactional(readOnly = true)
 	public List<PedidoResponse> listarPedidoPagamentoPendente() {
-		// Busca os pedidos ativos do dia e filtra para EXCLUIR os cancelados
-				return pedidoRepository.findAll().stream()
-						.filter(p -> p.getStatus() != StatusPedido.CANCELADO) // <--- ADICIONE ESTA LINHA
-						.map(PedidoMapper::toResponse)
-						.collect(Collectors.toList());
-			}
+		return pedidoRepository.findAll().stream()
+				
+				// ---> BLINDAGEM TOTAL: Se foi Cancelado ou Entregue (conta fechada), sai do balcão! <---
+				.filter(p -> p.getStatus() != StatusPedido.CANCELADO && p.getStatus() != StatusPedido.ENTREGUE)
+
+				// Continua a verificar se precisa de pagamento ou se tem ação pendente na mesa
+				.filter(p -> p.getStatusPagamento() == StatusPagamento.AGUARDANDO
+						|| p.getStatus() == StatusPedido.PRONTO || p.getStatus() == StatusPedido.SERVIDO)
+				
+				.sorted(Comparator.comparing(Pedido::getDataHoraPedido).reversed()).map(PedidoMapper::toResponse)
+				.collect(Collectors.toList());
+	}
 
 	@Transactional
 	public void atualizarStatusPagamento(Long pedidoId, StatusPagamento novoStatus) {

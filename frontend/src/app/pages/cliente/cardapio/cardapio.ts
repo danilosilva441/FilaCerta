@@ -470,21 +470,35 @@ export class CardapioComponent implements OnInit, OnDestroy {
       // Vamos verificar como está o nosso pedido
       this.pedidoService.acompanharPedido(codigo).subscribe({
         next: (pedidoAtualizado) => {
-          // Se a cozinha cancelou ou começou a preparar, expulsa da edição!
-          if (pedidoAtualizado.status !== 'RECEBIDO') {
+          // REGRA 1 (EDIÇÃO): Se o cliente tentar alterar um lanche, mas a cozinha já começou (saiu de RECEBIDO), expulsa!
+          if (this.isModoEdicao && pedidoAtualizado.status !== 'RECEBIDO') {
             this.notificationService.aviso(
               'Edição Encerrada',
               'O status do seu pedido mudou na cozinha. Não é mais possível editar.',
             );
+            sessionStorage.removeItem('filacerta_modo_edicao');
+            void this.router.navigate(['/cliente/acompanhamento', codigo]);
+          }
 
-            sessionStorage.removeItem('filacerta_modo_edicao'); // Tira o crachá
-            void this.router.navigate(['/cliente/acompanhamento', codigo]); // Leva para a tela de rastreio
+          // REGRA 2 (COMANDA/ACRÉSCIMO): O cliente PODE pedir mais coisas mesmo com o pedido na mesa (SERVIDO).
+          // Ele só é expulso se o Seu Mikael fechar a conta (ENTREGUE ou CANCELADO).
+          if (
+            this.isModoAcrescimo &&
+            (pedidoAtualizado.status === 'ENTREGUE' || pedidoAtualizado.status === 'CANCELADO')
+          ) {
+            this.notificationService.aviso(
+              'Conta Encerrada',
+              'Esta conta já foi finalizada pelo caixa.',
+            );
+            sessionStorage.removeItem('filacerta_modo_acrescimo');
+            void this.router.navigate(['/cliente/acompanhamento', codigo]);
           }
         },
         error: (err) => {
           // Se o pedido foi apagado da base de dados, limpa tudo e joga para a Home
           if (err.status === 404 || err.status === 400 || err.status === 500) {
             sessionStorage.removeItem('filacerta_modo_edicao');
+            sessionStorage.removeItem('filacerta_modo_acrescimo');
             localStorage.removeItem('filacerta_pedido_ativo');
             void this.router.navigate(['/']);
           }

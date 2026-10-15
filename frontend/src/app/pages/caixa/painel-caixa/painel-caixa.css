@@ -752,3 +752,15 @@
            touch-manipulation
            min-h-[56px];
 }
+
+/* modal.css */
+.caixa-modal-backdrop {
+  @apply fixed inset-0 z-50
+         flex items-center justify-center
+         bg-black/60 backdrop-blur-sm
+         p-4
+         overflow-y-auto; /* permite scroll se o modal for grande */
+
+  padding-top: max(1rem, env(safe-area-inset-top, 0px));
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+}
