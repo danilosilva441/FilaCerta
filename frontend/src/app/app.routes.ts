@@ -7,6 +7,12 @@ export const routes: Routes = [
     path: '', // Home
     loadComponent: () => import('./pages/cliente/home/home').then((m) => m.HomeComponent),
   },
+
+  {
+    path: 'sobre', // Sobre
+    loadComponent: () => import('./pages/sobre/sobre-contato').then((m) => m.SobreContatoComponent),
+  },
+
   {
     path: 'login', // A nossa nova tela de login
     loadComponent: () => import('./pages/login/login').then((m) => m.LoginComponent),

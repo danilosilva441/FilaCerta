@@ -635,3 +635,35 @@
     transform: translateX(0);
   }
 }
+
+/* ============================================================
+   HEADER — Ações (Sobre + Status)
+   ============================================================ */
+.cardapio-header-actions {
+  @apply flex items-center gap-2 flex-shrink-0;
+}
+
+/* Link "Sobre nós" */
+.cardapio-header-sobre {
+  @apply inline-flex items-center gap-1.5
+         text-xs sm:text-sm font-bold
+         text-primary-100
+         hover:text-white
+         hover:bg-white/15
+         transition-colors
+         px-2.5 py-2
+         rounded-lg
+         touch-manipulation select-none
+         active:scale-95;
+}
+
+.cardapio-header-sobre-label {
+  @apply hidden xs:inline;
+}
+
+/* Esconde o label em telas muito pequenas (só o ícone) */
+@media (max-width: 400px) {
+  .cardapio-header-sobre-label {
+    display: none;
+  }
+}

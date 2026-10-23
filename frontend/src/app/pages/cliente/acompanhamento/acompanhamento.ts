@@ -11,7 +11,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { PedidoResponse } from '../../../core/models/pedido.model';
@@ -37,7 +37,7 @@ const TIMEOUT_REQ = 5000;
 @Component({
   selector: 'app-acompanhamento',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './acompanhamento.html',
   styleUrls: ['./acompanhamento.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -250,7 +250,13 @@ export class AcompanhamentoComponent implements OnInit, OnDestroy {
         return 'circle-neutro';
     }
   }
+  /** Controla se a lista de itens está expandida */
+  itensExpandidos = true;
 
+  /** Alterna entre expandir/recolher */
+  toggleItens(): void {
+    this.itensExpandidos = !this.itensExpandidos;
+  }
   editarPedido(): void {
     // Só deixa editar se a cozinha não tocou
     if (this.pedido()?.status !== 'RECEBIDO') {

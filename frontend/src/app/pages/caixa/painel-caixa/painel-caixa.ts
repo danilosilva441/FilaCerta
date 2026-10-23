@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, DecimalPipe } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subscription, finalize } from 'rxjs';
 
@@ -45,7 +46,7 @@ type AbaAtiva = 'BALCAO' | 'FINANCEIRO';
 @Component({
   selector: 'app-painel-caixa',
   standalone: true,
-  imports: [CommonModule, DecimalPipe, FormsModule],
+  imports: [CommonModule, DecimalPipe, FormsModule, RouterModule],
   templateUrl: './painel-caixa.html',
   styleUrls: ['./painel-caixa.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,

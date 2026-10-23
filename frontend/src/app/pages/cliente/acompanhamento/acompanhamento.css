@@ -339,3 +339,218 @@
     box-shadow: 0 0 0 12px rgba(245, 158, 11, 0);
   }
 }
+
+/* ============================================================
+   HEADER SUPERIOR — Home do Cliente
+   ============================================================ */
+.home-top-header {
+  @apply flex justify-between items-center
+         p-4
+         max-w-2xl mx-auto;
+}
+
+.home-top-header-title {
+  @apply text-xl font-black text-gray-900 tracking-tight;
+}
+
+.home-top-header-link {
+  @apply inline-flex items-center gap-1
+         text-sm font-bold
+         text-primary-600
+         hover:text-primary-700
+         transition-colors
+         px-3 py-2 rounded-lg
+         hover:bg-primary-50
+         touch-manipulation select-none
+         active:scale-95;
+}
+
+/* ============================================================
+   LISTA DE ITENS — Expandir/Recolher
+   ============================================================ */
+
+/* Header do card (botão clicável) */
+.acompanhamento-card-header {
+  @apply w-full
+         flex items-center justify-between
+         gap-3
+         pb-2
+         border-b border-gray-100
+         bg-transparent
+         cursor-pointer
+         touch-manipulation select-none
+         transition-colors
+         hover:border-gray-200;
+}
+
+/* Título (remove o border-bottom antigo, que agora está no header) */
+.acompanhamento-card-header .acompanhamento-card-title {
+  @apply mb-0 pb-0 border-none;
+}
+
+/* Chevron (seta) */
+.acompanhamento-chevron {
+  @apply w-5 h-5
+         flex-shrink-0
+         text-gray-400
+         transition-transform duration-300 ease-out;
+}
+
+/* Quando está aberto, a seta aponta para cima */
+.acompanhamento-chevron-aberto {
+  transform: rotate(180deg);
+}
+
+/* Container dos itens — animação suave */
+.acompanhamento-itens {
+  @apply space-y-3
+         pt-3
+         overflow-hidden
+         transition-all duration-300 ease-out;
+  max-height: 2000px; /* valor alto o suficiente */
+  opacity: 1;
+}
+
+/* Quando recolhido */
+.acompanhamento-itens-recolhido {
+  max-height: 0;
+  padding-top: 0;
+  opacity: 0;
+}
+
+/* ============================================================
+   RESUMO FINANCEIRO — Total + Pagamento (unificado)
+   ============================================================ */
+.acompanhamento-resumo-financeiro {
+  @apply w-full max-w-sm
+         bg-white rounded-2xl
+         shadow-md
+         border border-gray-200
+         p-4
+         grid grid-cols-2
+         gap-4
+         items-start
+         transition-all duration-500;
+}
+
+/* Variantes de cor */
+.acompanhamento-resumo-ok {
+  @apply bg-success-light/40 border-success/40;
+}
+
+.acompanhamento-resumo-pendente {
+  @apply bg-warning-light/40 border-warning/40;
+}
+
+.acompanhamento-resumo-cancelado {
+  @apply bg-gray-100 border-gray-300 opacity-70;
+}
+
+/* -------- Colunas -------- */
+.acompanhamento-resumo-col {
+  @apply flex flex-col gap-0.5 min-w-0;
+}
+
+.acompanhamento-resumo-col-right {
+  @apply border-l border-gray-200 pl-4;
+}
+
+/* -------- Labels -------- */
+.acompanhamento-resumo-label {
+  @apply text-[10px] sm:text-xs
+         font-bold
+         text-gray-500
+         uppercase tracking-wider;
+}
+
+/* -------- Valor total (coluna esquerda) -------- */
+.acompanhamento-resumo-total {
+  @apply text-xl sm:text-2xl
+         font-black
+         text-primary-600
+         tabular-nums
+         mt-0.5;
+}
+
+/* Quando cancelado, valor fica riscado */
+.acompanhamento-resumo-cancelado .acompanhamento-resumo-total {
+  @apply line-through text-gray-400;
+}
+
+/* -------- Forma de pagamento (coluna direita) -------- */
+.acompanhamento-resumo-forma {
+  @apply text-sm font-black text-gray-700
+         truncate;
+}
+
+/* -------- Status (coluna direita, abaixo da forma) -------- */
+.acompanhamento-resumo-status {
+  @apply inline-flex items-center gap-1
+         text-xs font-bold
+         mt-1
+         truncate;
+}
+
+.acompanhamento-resumo-status-ok {
+  @apply text-success;
+}
+
+.acompanhamento-resumo-status-pendente {
+  @apply text-warning;
+}
+
+/* ============================================================
+   STATUS VISUAL
+   ============================================================ */
+.acompanhamento-status {
+  @apply text-center w-full max-w-sm;
+}
+
+/* Círculo — reduzido para ficar harmônico */
+.acompanhamento-circle {
+  @apply w-20 h-20 sm:w-24 sm:h-24
+         rounded-full
+         mx-auto mb-4
+         flex items-center justify-center
+         shadow-lg
+         transition-all duration-500;
+}
+
+/* Título — menor */
+.acompanhamento-title {
+  @apply text-2xl font-black mb-1 text-gray-800;
+}
+
+/* Mensagem — menor e com menos margem */
+.acompanhamento-message {
+  @apply text-base font-medium mb-5;
+}
+
+/* ============================================================
+   PÁGINA
+   ============================================================ */
+.acompanhamento-page {
+  @apply min-h-dvh bg-gray-50
+         flex flex-col items-center
+         px-4 py-6 font-sans antialiased
+         relative;
+
+  padding-top: max(1.5rem, env(safe-area-inset-top, 0px));
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+}
+
+/* Link "Sobre" no canto superior direito */
+.page-sobre-link {
+  @apply absolute top-4 right-4
+         inline-flex items-center gap-1
+         text-xs font-bold
+         text-gray-400
+         hover:text-primary-600
+         transition-colors
+         px-2.5 py-1.5
+         rounded-lg
+         hover:bg-white
+         touch-manipulation select-none
+         z-10;
+  top: max(1rem, env(safe-area-inset-top, 0px));
+}

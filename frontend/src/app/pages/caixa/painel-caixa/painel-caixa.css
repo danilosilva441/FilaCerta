@@ -764,3 +764,30 @@
   padding-top: max(1rem, env(safe-area-inset-top, 0px));
   padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
 }
+
+.caixa-page {
+  @apply min-h-dvh bg-gray-100 font-sans antialiased relative;
+
+  padding-top: max(1.5rem, env(safe-area-inset-top, 0px));
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+}
+
+/* ============================================================
+   BOTÃO SOBRE — Integrado ao header do caixa
+   ============================================================ */
+.caixa-btn-sobre {
+  @apply inline-flex items-center justify-center gap-1.5
+         px-3 py-2.5
+         rounded-lg
+         font-bold text-xs
+         text-white
+         bg-primary-800/50
+         hover:bg-primary-800
+         ring-1 ring-white/20
+         shadow-sm
+         transition-all
+         active:scale-95
+         touch-manipulation select-none
+         flex-shrink-0
+         min-h-[44px];
+}

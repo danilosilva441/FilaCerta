@@ -12,6 +12,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
+import { RouterModule } from '@angular/router';
 
 import { FilaCozinhaResponse } from '../../../core/models/cozinha.model';
 import { CaixaService } from '../../../core/services/caixa.service';
@@ -27,7 +28,7 @@ type StatusItem = 'PENDENTE' | 'PREPARANDO' | 'PRONTO';
 @Component({
   selector: 'app-fila-cozinha',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './fila-cozinha.html',
   styleUrls: ['./fila-cozinha.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,

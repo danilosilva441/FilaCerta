@@ -372,3 +372,32 @@
   padding-top: max(1rem, env(safe-area-inset-top, 0px));
   padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
 }
+
+.page-cozinha {
+  @apply min-h-dvh bg-gray-200 font-sans antialiased relative;
+
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+  padding-top: max(1rem, env(safe-area-inset-top, 0px));
+
+  @apply sm:pb-0;
+}
+
+/* ============================================================
+   BOTÃO SOBRE — Integrado ao header da cozinha
+   ============================================================ */
+.cozinha-btn-sobre {
+  @apply inline-flex items-center justify-center gap-1.5
+         px-3 sm:px-4 py-2
+         rounded-lg
+         font-bold text-xs sm:text-sm
+         text-white
+         bg-primary-800/50
+         hover:bg-primary-800
+         ring-1 ring-white/20
+         shadow-sm
+         transition-all
+         active:scale-95
+         touch-manipulation select-none
+         flex-shrink-0
+         min-h-[40px];
+}

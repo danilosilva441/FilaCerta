@@ -212,3 +212,28 @@
          hover:bg-white/60
          touch-manipulation select-none;
 }
+
+/* ============================================================
+   HEADER SUPERIOR — Home do Cliente
+   ============================================================ */
+.home-top-header {
+  @apply flex justify-between items-center
+         p-4
+         max-w-2xl mx-auto;
+}
+
+.home-top-header-title {
+  @apply text-xl font-black text-gray-900 tracking-tight;
+}
+
+.home-top-header-link {
+  @apply inline-flex items-center gap-1
+         text-sm font-bold
+         text-primary-600
+         hover:text-primary-700
+         transition-colors
+         px-3 py-2 rounded-lg
+         hover:bg-primary-50
+         touch-manipulation select-none
+         active:scale-95;
+}

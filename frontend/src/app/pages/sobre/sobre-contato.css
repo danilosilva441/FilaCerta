@@ -1,0 +1,183 @@
+/* ============================================================
+   SOBRE-CONTATO.CSS — Sobre / Contato da Loja
+   Mobile-first, paleta do projeto
+   ============================================================ */
+
+/* ============================================================
+   PÁGINA
+   ============================================================ */
+.sobre-page {
+  @apply min-h-dvh bg-gray-50
+         flex flex-col
+         p-4 md:p-8
+         font-sans;
+
+  padding-top: max(1rem, env(safe-area-inset-top, 0px));
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+}
+
+/* ============================================================
+   BOTÃO VOLTAR
+   ============================================================ */
+.sobre-voltar {
+  @apply inline-flex items-center gap-2
+         text-sm font-medium
+         text-gray-500
+         hover:text-primary-600
+         transition-colors
+         mb-4
+         w-fit
+         touch-manipulation select-none;
+}
+
+/* ============================================================
+   CARD PRINCIPAL
+   ============================================================ */
+.sobre-card {
+  @apply max-w-md w-full mx-auto
+         bg-white
+         rounded-2xl
+         shadow-sm
+         border border-gray-100
+         overflow-hidden
+         flex-1;
+}
+
+/* ============================================================
+   CAPA
+   ============================================================ */
+.sobre-capa {
+  @apply bg-primary-600
+         p-6
+         text-center;
+}
+
+.sobre-logo {
+  @apply w-20 h-20
+         bg-white
+         rounded-full
+         mx-auto mb-3
+         flex items-center justify-center
+         shadow-md
+         text-2xl;
+}
+
+.sobre-titulo {
+  @apply text-2xl font-bold text-white;
+}
+
+.sobre-slogan {
+  @apply text-primary-100 text-sm mt-1;
+}
+
+/* ============================================================
+   CONTEÚDO
+   ============================================================ */
+.sobre-conteudo {
+  @apply p-6 space-y-6;
+}
+
+.sobre-section-titulo {
+  @apply text-sm font-semibold
+         text-gray-400
+         uppercase tracking-wider
+         mb-3;
+}
+
+/* ============================================================
+   HORÁRIOS
+   ============================================================ */
+.sobre-horarios {
+  @apply text-gray-700 space-y-2 text-sm;
+}
+
+.sobre-horario-item {
+  @apply flex justify-between
+         border-b border-gray-50
+         pb-1;
+}
+
+.sobre-horario-hora {
+  @apply font-medium;
+}
+
+.sobre-horario-fechado {
+  @apply text-gray-400;
+}
+
+/* ============================================================
+   ENDEREÇO
+   ============================================================ */
+.sobre-endereco {
+  @apply flex items-start gap-3
+         text-gray-700 text-sm;
+}
+
+.sobre-endereco-icon {
+  @apply w-5 h-5
+         text-primary-600
+         mt-0.5
+         flex-shrink-0;
+}
+
+/* ============================================================
+   BOTÕES DE CONTATO
+   ============================================================ */
+.sobre-contatos {
+  @apply space-y-3 pt-2;
+}
+
+.sobre-btn {
+  @apply w-full
+         flex items-center justify-center gap-2
+         font-medium
+         py-3 px-4
+         rounded-xl
+         transition-colors
+         touch-manipulation select-none
+         min-h-[48px];
+}
+
+.sobre-btn-whatsapp {
+  @apply bg-green-500 hover:bg-green-600
+         text-white;
+}
+
+.sobre-btn-instagram {
+  @apply bg-pink-50 hover:bg-pink-100
+         text-pink-600
+         border border-pink-100;
+}
+
+/* ============================================================
+   FOOTER / ASSINATURA
+   ============================================================ */
+.sobre-footer {
+  @apply mt-8
+         text-center
+         text-xs
+         text-gray-400
+         pb-4;
+}
+
+.sobre-footer-link {
+  @apply font-semibold
+         text-gray-500
+         hover:text-primary-600
+         transition-colors;
+}
+
+.sobre-voltar {
+  @apply inline-flex items-center gap-2
+         text-sm font-medium
+         text-gray-500
+         hover:text-primary-600
+         transition-colors
+         mb-4
+         w-fit
+         touch-manipulation select-none
+         bg-transparent
+         border-none
+         cursor-pointer
+         p-0;
+}
