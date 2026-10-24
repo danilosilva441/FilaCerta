@@ -1,10 +1,10 @@
 package com.filacerta.domain.enums;
 
 public enum StatusItemPedido {
-    PENDENTE, 
+	PENDENTE, 
     PREPARANDO, 
     AGUARDANDO,
     PRONTO, 
-    CANCELADO, 
-    ENTREGUE
+    ENTREGUE,
+    CANCELADO    
 }

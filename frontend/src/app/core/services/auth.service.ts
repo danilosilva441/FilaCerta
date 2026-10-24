@@ -1,7 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { Observable, of, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { delay } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -53,5 +54,16 @@ export class AuthService {
           this.salvarToken(novoToken);
         }),
       );
+  }
+
+  public verificarToken(): Observable<boolean> {
+    // Ajuste 'token' para a chave exata que você usa no seu localStorage
+    const token = localStorage.getItem('token');
+
+    // Verifica se o token existe (aqui você pode adicionar a verificação de expiração se tiver)
+    const isValido = !!token;
+
+    // Retorna com um delay de 600ms para a tela de carregamento agir antes de mostrar o painel
+    return of(isValido).pipe(delay(600));
   }
 }

@@ -1,0 +1,66 @@
+/* ============================================================
+   NAO-ENCONTRADO.CSS — Página 404
+   Mobile-first, paleta do projeto
+   ============================================================ */
+
+/* ============================================================
+     PÁGINA
+     ============================================================ */
+.nao-encontrado-page {
+  @apply min-h-dvh bg-gray-50
+           flex flex-col items-center justify-center
+           p-4 text-center
+           font-sans;
+
+  padding-top: max(1rem, env(safe-area-inset-top, 0px));
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+}
+
+/* ============================================================
+     CÓDIGO 404
+     ============================================================ */
+.nao-encontrado-codigo {
+  @apply text-8xl sm:text-9xl
+           font-extrabold
+           text-gray-200
+           leading-none
+           select-none;
+}
+
+/* ============================================================
+     TÍTULO
+     ============================================================ */
+.nao-encontrado-titulo {
+  @apply text-xl sm:text-2xl
+           font-bold
+           text-gray-800
+           mt-4;
+}
+
+/* ============================================================
+     MENSAGEM
+     ============================================================ */
+.nao-encontrado-mensagem {
+  @apply text-sm sm:text-base
+           text-gray-500
+           mt-2 mb-8
+           max-w-md
+           leading-relaxed;
+}
+
+/* ============================================================
+     BOTÃO VOLTAR
+     ============================================================ */
+.nao-encontrado-btn {
+  @apply inline-flex items-center justify-center gap-2
+           bg-primary-600 hover:bg-primary-700
+           text-white
+           font-bold
+           py-3 px-6
+           rounded-xl
+           transition-all
+           active:scale-95
+           touch-manipulation select-none
+           min-h-[48px]
+           shadow-md shadow-primary-600/25;
+}

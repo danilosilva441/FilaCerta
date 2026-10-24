@@ -142,13 +142,33 @@ export class FilaCozinhaComponent implements OnInit, OnDestroy {
         next: () => {
           // Já atualizou, o WebSocket vai mandar a versão oficial em instantes
         },
-        error: () => {
-          this.notificationService.erro(
-            'Erro ao atualizar item',
-            'Não foi possível atualizar o status. Tente novamente.',
-          );
-          // Reverte se deu erro
-          this.atualizarItemLocal(pedidoId, itemId, statusAtual as StatusItem);
+        error: (err) => {
+          // Tenta ler a mensagem exata de erro que o Spring Boot (Java) enviou
+          let mensagemDoBackend = 'Não foi possível atualizar o status. Tente novamente.';
+
+          if (err.error) {
+            try {
+              const erroFormatado =
+                typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+
+              // Busca a mensagem dependendo de como o seu Controller Advice do Java está configurado
+              if (erroFormatado?.mensagem) {
+                mensagemDoBackend = erroFormatado.mensagem;
+              } else if (erroFormatado?.message) {
+                mensagemDoBackend = erroFormatado.message;
+              } else if (typeof err.error === 'string') {
+                mensagemDoBackend = err.error;
+              }
+            } catch (e) {
+              console.error('Falha ao ler o erro do backend', e);
+            }
+          }
+
+          // Exibe a mensagem real que o Java bloqueou
+          this.notificationService.erro('Ação Bloqueada', mensagemDoBackend);
+
+          // Reverte a atualização otimista (UI volta ao estado anterior)
+          this.atualizarItemLocal(pedidoId, itemId, statusAtual as any);
         },
       });
   }

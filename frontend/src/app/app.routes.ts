@@ -66,6 +66,9 @@ export const routes: Routes = [
     ],
   },
 
-  // Redireciona qualquer rota que não existe para a Home
-  { path: '**', redirectTo: '' },
+  {
+    path: '**',
+    loadComponent: () =>
+      import('./pages/nao-encontrado/nao-encontrado').then((m) => m.NaoEncontradoComponent),
+  },
 ];

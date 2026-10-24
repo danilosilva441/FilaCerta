@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -30,6 +30,8 @@ export class AppComponent {
 
   mostrarNavbar = false;
 
+  isVerificandoSessao = signal<boolean>(true);
+
   constructor() {
     this.router.events
       .pipe(
@@ -47,5 +49,15 @@ export class AppComponent {
 
         this.mostrarNavbar = isRotaAdmin || (isCardapio && isDono);
       });
+  }
+
+  ngOnInit() {
+    this.authService.verificarToken().subscribe({
+      next: (valido: boolean) => {
+        // Se for inválido, o seu AuthGuard já deve fazer o redirecionamento
+        this.isVerificandoSessao.set(false); // Esconde o carregamento e mostra o sistema
+      },
+      error: () => this.isVerificandoSessao.set(false),
+    });
   }
 }

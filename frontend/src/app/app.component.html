@@ -2,17 +2,25 @@
 <app-toast></app-toast>
 <app-confirm-modal></app-confirm-modal>
 
-<!-- 
-  ⚠️ A classe `has-bottom-nav` adiciona padding-bottom SOMENTE 
-  quando a navbar está visível (evita espaço extra em telas sem nav)
--->
-<div class="min-h-screen flex flex-col bg-gray-50" [class.has-bottom-nav]="mostrarNavbar">
-  @if (mostrarNavbar) {
-    <app-navbar></app-navbar>
-  }
+@if (isVerificandoSessao()) {
+  <!-- CORTINA DE CARREGAMENTO -->
+  <div class="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+    <div
+      class="animate-spin rounded-full h-12 w-12 border-4 border-orange-500 border-t-transparent"
+    ></div>
+    <p class="mt-4 text-gray-500 font-medium">Verificando credenciais...</p>
+  </div>
+} @else {
+  <!-- SISTEMA REAL (Só aparece quando terminar a verificação) -->
+  <div class="min-h-screen flex flex-col bg-gray-50" [class.has-bottom-nav]="mostrarNavbar">
+    @if (mostrarNavbar) {
+      <app-navbar></app-navbar>
+    }
 
-  <main class="flex-1">
-    <router-outlet></router-outlet>
-    <app-lgpd-banner />
-  </main>
-</div>
+    <main class="flex-1">
+      <!-- O ÚNICO ROUTER OUTLET -->
+      <router-outlet></router-outlet>
+      <app-lgpd-banner />
+    </main>
+  </div>
+}
