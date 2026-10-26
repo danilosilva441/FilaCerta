@@ -8,7 +8,8 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
-import { NotificationService, ToastMessage } from '../../../core/services/notification.service';
+import { NotificationService } from '../../../core/services/notification.service';
+import { ToastMessage, TipoToast } from '../../../core/models/notification.modal';
 
 interface ToastItem extends ToastMessage {
   id: number;

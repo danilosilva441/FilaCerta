@@ -13,7 +13,8 @@ import {
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
-import { ModalService, ModalConfig, ModalTipo } from '../../../core/services/modal.service';
+import { ModalService } from '../../../core/services/modal.service';
+import { ModalConfig, ModalTipo } from '../../../core/models/modal.config';
 
 @Component({
   selector: 'app-confirm-modal',

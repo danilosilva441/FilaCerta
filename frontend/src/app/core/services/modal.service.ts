@@ -1,16 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
+import { ModalConfig, ModalTipo } from '../models/modal.config';
 
-export type ModalTipo = 'aviso' | 'perigo' | 'info' | 'sucesso';
-
-export interface ModalConfig {
-  titulo: string;
-  mensagem: string;
-  textoConfirmar?: string;
-  textoCancelar?: string;
-  tipo?: ModalTipo;
-  onConfirm: () => void;
-}
 
 @Injectable({
   providedIn: 'root',

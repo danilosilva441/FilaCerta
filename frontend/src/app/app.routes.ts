@@ -61,9 +61,13 @@ export const routes: Routes = [
       {
         path: 'painel',
         loadComponent: () =>
-          import('./pages/admin/painel-produtos').then((m) => m.PainelProdutosComponent),
+          import('./pages/admin/estoque/painel-produtos').then((m) => m.PainelProdutosComponent),
       },
     ],
+  },
+  {
+    path: 'configuracoes',
+    loadComponent: () => import('./pages/admin/config/alterar-senha').then(m => m.AlterarSenhaComponent)
   },
 
   {

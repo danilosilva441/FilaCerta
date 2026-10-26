@@ -1,7 +1,6 @@
 package com.filacerta.application.service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -9,6 +8,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,10 +28,12 @@ import com.filacerta.domain.entity.ItemPedido;
 import com.filacerta.domain.entity.Pedido;
 import com.filacerta.domain.entity.Produto;
 import com.filacerta.domain.enums.FormaPagamento;
+import com.filacerta.domain.enums.StatusCaixa;
 import com.filacerta.domain.enums.StatusItemPedido;
 import com.filacerta.domain.enums.StatusPagamento;
 import com.filacerta.domain.enums.StatusPedido;
 import com.filacerta.domain.exception.NegocioException;
+import com.filacerta.infrastructure.repository.CaixaDiarioRepository;
 import com.filacerta.infrastructure.repository.ItemPedidoRepository;
 import com.filacerta.infrastructure.repository.PedidoRepository;
 import com.filacerta.infrastructure.repository.ProdutoRepository;
@@ -46,30 +50,40 @@ public class PedidoService {
 	private final ProdutoRepository produtoRepository;
 	private final ItemPedidoRepository itemPedidoRepository;
 	private final SimpMessagingTemplate messagingTemplate;
+	private final CaixaDiarioRepository caixaDiarioRepository;
 
+	// ---> CONFIGURAÇÃO DO RETRY <---
+	// Se der erro de concorrência (ObjectOptimisticLockingFailureException),
+	// tenta até 3 vezes, esperando 200 milissegundos entre cada tentativa.
+	@Retryable(value = ObjectOptimisticLockingFailureException.class, maxAttempts = 3, backoff = @Backoff(delay = 200))
 	@Transactional
 	public PedidoResponse criarPedido(CriarPedidoRequest request) {
 
-		// 1. Validar caixa aberto
-		CaixaDiario caixa = caixaDiarioService.buscarCaixaAberto();
+		// 1. Busca o caixa atual aberto e gera o número com Trava Otimista (@Version)
+		CaixaDiario caixa = caixaDiarioRepository.findByStatus(StatusCaixa.ABERTO)
+				.orElseThrow(() -> new NegocioException("Não há caixa aberto."));
 
+		Integer novoNumero = caixa.getUltimoNumeroPedido() + 1;
+		caixa.setUltimoNumeroPedido(novoNumero);
+		caixaDiarioRepository.save(caixa);
+
+		// 2. Verifica se a cozinha está pausada (permitindo apenas pedidos manuais do
+		// caixa)
 		if (Boolean.TRUE.equals(caixa.getCozinhaPausada())) {
 			if (request.getOrigem() == null || !request.getOrigem().name().equals("MANUAL")) {
-				throw new NegocioException("A cozinha está Pausada no momento. Não é possĩvel aceitar novos pedidos.");
+				throw new NegocioException("A cozinha está Pausada no momento. Não é possível aceitar novos pedidos.");
 			}
 		}
 
-		// 2. Instanciar pedido com dados básicos
+		// 3. Instanciar pedido com dados básicos
 		Pedido pedido = new Pedido();
+		pedido.setNumero(novoNumero); // ---> USA O NÚMERO SEGURO AQUI E PRONTO! <---
 		pedido.setNomeCliente(request.getNomeCliente());
 		pedido.setTipo(request.getTipo());
 		pedido.setOrigem(request.getOrigem());
-
-		// Garante que o pedido caia direto no radar da cozinha
 		pedido.setStatus(StatusPedido.RECEBIDO);
-
-		// ---> A LINHA QUE HAVIA SUMIDO VOLTOU AQUI <---
 		pedido.setDataHoraPedido(LocalDateTime.now());
+		pedido.setCaixaDiario(caixa);
 
 		// Salvando a forma de pagamento e status
 		pedido.setFormaPagamento(
@@ -80,12 +94,6 @@ public class PedidoService {
 		} else {
 			pedido.setStatusPagamento(StatusPagamento.AGUARDANDO);
 		}
-
-		// 3. Gerar número sequencial do dia
-		LocalDateTime inicioDoDia = LocalDate.now().atStartOfDay();
-		LocalDateTime fimDoDia = LocalDate.now().plusDays(1).atStartOfDay();
-		Integer maxNumero = pedidoRepository.findMaxNumeroByData(inicioDoDia, fimDoDia).orElse(0);
-		pedido.setNumero(maxNumero + 1);
 
 		// GERA UM CÓDIGO ÚNICO DE 8 LETRAS/NÚMEROS (Ex: 8F3A2B19)
 		String codigo = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
@@ -110,8 +118,6 @@ public class PedidoService {
 
 			pedido.getItens().add(item);
 		}
-
-		pedido.setCaixaDiario(caixa);
 
 		// 5. Calcular valor total e salvar
 		pedido.calcularValorTotal();
@@ -240,14 +246,14 @@ public class PedidoService {
 		if (novoStatus.ordinal() < pedido.getStatusPagamento().ordinal()) {
 			throw new NegocioException("Não é permitido desfazer um pagamento já confirmado.");
 		}
-	    
+
 		// 3. SE PASSAR PELA TRAVA, atualiza e salva
 		pedido.setStatusPagamento(novoStatus);
 		pedidoRepository.save(pedido);
 
 		messagingTemplate.convertAndSend("/topic/pedidos", "ATUALIZOU");
 	}
-	
+
 	@Transactional
 	public void avancarStatusPedido(Long pedidoId) {
 		Pedido pedido = pedidoRepository.findById(pedidoId)

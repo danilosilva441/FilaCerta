@@ -8,7 +8,7 @@ export interface CriarPedidoRequest {
   nomeCliente: string;
   tipo: 'LEVAR' | 'COMER_AQUI';
   origem: 'QR_CODE' | 'MANUAL';
-  formaPagamento: 'PIX' | 'CARTAO' | 'DINHEIRO' | 'NAO_INFORMADO';
+  formaPagamento: 'PIX' | 'CARTÃO' | 'DINHEIRO' | 'NAO_INFORMADO';
   itens: ItemPedidoRequest[];
   statusPagamento: string;
 }
@@ -30,7 +30,7 @@ export interface PedidoResponse {
   tipo: 'LEVAR' | 'COMER_AQUI';
   status: string;
   statusPagamento: string;
-  formaPagamento: 'PIX' | 'CARTAO' | 'DINHEIRO' | 'NAO_INFORMADO';
+  formaPagamento: 'PIX' | 'CARTÃO' | 'DINHEIRO' | 'NAO_INFORMADO';
   valorTotal: number;
   dataHoraPedido: string;
   codigoAcompanhamento: string;

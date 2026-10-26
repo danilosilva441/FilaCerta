@@ -23,4 +23,6 @@ public class CaixaDiarioResponse {
     private StatusCaixa status;
     private Boolean cozinhaPausada; 
     private MotivoPausa motivoPausa;
+    private Integer ultimoNumeroPedido;
+    private Long versao;
 }

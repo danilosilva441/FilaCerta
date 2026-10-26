@@ -1,0 +1,188 @@
+<div class="alterar-senha-page">
+  <!-- =========================
+       BOTÃO VOLTAR
+       ========================= -->
+  <button
+    type="button"
+    (click)="voltar()"
+    class="alterar-senha-voltar"
+    aria-label="Voltar para a página anterior"
+  >
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="w-4 h-4"
+      aria-hidden="true"
+    >
+      <path d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+    </svg>
+    Voltar
+  </button>
+
+  <!-- Cabeçalho -->
+  <div class="alterar-senha-header">
+    <h2 class="alterar-senha-titulo">Alterar Senha</h2>
+    <p class="alterar-senha-subtitulo">
+      Mantenha a sua conta segura atualizando a sua senha.
+    </p>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="alterar-senha-form">
+    <!-- Senha Atual -->
+    <div class="alterar-senha-field">
+      <label for="senhaAtual" class="alterar-senha-label">Senha Atual</label>
+      <div class="alterar-senha-input-wrapper">
+        <input
+          id="senhaAtual"
+          [type]="mostrarSenhaAtual() ? 'text' : 'password'"
+          formControlName="senhaAtual"
+          class="alterar-senha-input alterar-senha-input-with-action"
+          placeholder="Digite a senha atual"
+          autocomplete="current-password"
+          aria-required="true"
+        />
+        <button
+          type="button"
+          (click)="toggleSenhaAtual()"
+          class="alterar-senha-action"
+          [attr.aria-label]="mostrarSenhaAtual() ? 'Ocultar senha atual' : 'Mostrar senha atual'"
+          [attr.aria-pressed]="mostrarSenhaAtual()"
+          tabindex="-1"
+        >
+          @if (mostrarSenhaAtual()) {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"
+                 aria-hidden="true">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"
+                 aria-hidden="true">
+              <path
+                d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          }
+        </button>
+      </div>
+    </div>
+
+    <!-- Nova Senha -->
+    <div class="alterar-senha-field">
+      <label for="novaSenha" class="alterar-senha-label">Nova Senha</label>
+      <div class="alterar-senha-input-wrapper">
+        <input
+          id="novaSenha"
+          [type]="mostrarNovaSenha() ? 'text' : 'password'"
+          formControlName="novaSenha"
+          class="alterar-senha-input alterar-senha-input-with-action"
+          placeholder="Digite a nova senha"
+          autocomplete="new-password"
+          aria-required="true"
+        />
+        <button
+          type="button"
+          (click)="toggleNovaSenha()"
+          class="alterar-senha-action"
+          [attr.aria-label]="mostrarNovaSenha() ? 'Ocultar nova senha' : 'Mostrar nova senha'"
+          [attr.aria-pressed]="mostrarNovaSenha()"
+          tabindex="-1"
+        >
+          @if (mostrarNovaSenha()) {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"
+                 aria-hidden="true">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"
+                 aria-hidden="true">
+              <path
+                d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          }
+        </button>
+      </div>
+      <p class="alterar-senha-hint">Mínimo de 6 caracteres.</p>
+    </div>
+
+    <!-- Confirmar Nova Senha -->
+    <div class="alterar-senha-field">
+      <label for="confirmarSenhaNova" class="alterar-senha-label">
+        Confirmar Nova Senha
+      </label>
+      <div class="alterar-senha-input-wrapper">
+        <input
+          id="confirmarSenhaNova"
+          [type]="mostrarConfirmarSenha() ? 'text' : 'password'"
+          formControlName="confirmarSenhaNova"
+          class="alterar-senha-input alterar-senha-input-with-action"
+          placeholder="Repita a nova senha"
+          autocomplete="new-password"
+          aria-required="true"
+          [attr.aria-invalid]="
+            form.errors?.['senhasDiferentes'] && form.get('confirmarSenhaNova')?.touched
+          "
+          aria-describedby="erro-senhas"
+        />
+        <button
+          type="button"
+          (click)="toggleConfirmarSenha()"
+          class="alterar-senha-action"
+          [attr.aria-label]="
+            mostrarConfirmarSenha() ? 'Ocultar confirmação de senha' : 'Mostrar confirmação de senha'
+          "
+          [attr.aria-pressed]="mostrarConfirmarSenha()"
+          tabindex="-1"
+        >
+          @if (mostrarConfirmarSenha()) {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"
+                 aria-hidden="true">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"
+                 aria-hidden="true">
+              <path
+                d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          }
+        </button>
+      </div>
+
+      @if (form.errors?.['senhasDiferentes'] && form.get('confirmarSenhaNova')?.touched) {
+        <p id="erro-senhas" class="alterar-senha-erro" role="alert">
+          As senhas não coincidem.
+        </p>
+      }
+    </div>
+
+    <!-- Botão Salvar -->
+    <button
+      type="submit"
+      [disabled]="form.invalid || isLoading()"
+      class="alterar-senha-btn"
+      [attr.aria-busy]="isLoading()"
+    >
+      @if (isLoading()) {
+        <span class="alterar-senha-spinner" aria-hidden="true"></span>
+        <span>A atualizar...</span>
+      } @else {
+        <span>Atualizar Senha</span>
+      }
+    </button>
+  </form>
+</div>

@@ -4,11 +4,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
-import { Produto } from '../../core/models/produto.model';
-import { CategoriaService } from '../../core/services/categoria.service';
-import { ModalService } from '../../core/services/modal.service';
-import { NotificationService } from '../../core/services/notification.service';
-import { ProdutoService } from '../../core/services/produto.service';
+import { Produto } from '../../../core/models/produto.model';
+import { CategoriaService } from '../../../core/services/categoria.service';
+import { ModalService } from '../../../core/services/modal.service';
+import { NotificationService } from '../../../core/services/notification.service';
+import { ProdutoService } from '../../../core/services/produto.service';
 
 @Component({
   selector: 'app-painel-produtos',

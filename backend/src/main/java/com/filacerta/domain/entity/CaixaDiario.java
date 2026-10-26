@@ -16,6 +16,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -71,6 +72,14 @@ public class CaixaDiario {
 	@Enumerated(EnumType.STRING)
 	@Column(name = "motivo_pausa")
 	private MotivoPausa motivoPausa;
+	
+	// Controla o número sequencial das comandas daquele turno
+    @Column(nullable = false)
+    private Integer ultimoNumeroPedido = 0;
+
+    // A trava otimista! Se duas threads tentarem atualizar o caixa ao mesmo tempo, uma falha.
+    @Version
+    private Long versao;
 
 	@PrePersist
 	protected void onCreate() {
