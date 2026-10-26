@@ -63,10 +63,18 @@
 		</dependency>
 
 		<!-- Flyway -->
+		<!-- Força a versão mais recente do Flyway -->
 		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-core</artifactId>
-			<version>10.20.1</version>
+			<version>10.15.0</version>
+		</dependency>
+
+		<!-- Adiciona o suporte específico para as versões novas do PostgreSQL -->
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-database-postgresql</artifactId>
+			<version>10.15.0</version>
 		</dependency>
 
 		<!-- Lombok -->
@@ -126,8 +134,9 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-websocket</artifactId>
 		</dependency>
-		
-		<!-- Spring Retry para tentar salvar automaticamente em caso de concorrência -->
+
+		<!-- Spring Retry para tentar salvar automaticamente em caso de
+		concorrência -->
 		<dependency>
 			<groupId>org.springframework.retry</groupId>
 			<artifactId>spring-retry</artifactId>
