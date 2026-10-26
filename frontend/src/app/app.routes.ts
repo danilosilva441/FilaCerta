@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/guards/auth.guard'; // <-- IMPORTANTE
+import { authGuard } from './core/guards/auth.guard';
+import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   // Rotas Públicas (Cliente)
@@ -67,7 +68,16 @@ export const routes: Routes = [
   },
   {
     path: 'configuracoes',
-    loadComponent: () => import('./pages/admin/config/alterar-senha').then(m => m.AlterarSenhaComponent)
+    loadComponent: () =>
+      import('./pages/admin/config/alterar-senha').then((m) => m.AlterarSenhaComponent),
+  },
+
+  {
+    path: 'usuarios',
+    loadComponent: () =>
+      import('./pages/admin/usuarios/usuarios.component').then((m) => m.UsuariosComponent),
+    // AQUI ESTÁ A MÁGICA: Só passa se for ADMIN
+    canActivate: [roleGuard(['ADMIN'])],
   },
 
   {

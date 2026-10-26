@@ -6,7 +6,7 @@ import { environment } from '../../../environments/environment';
 import { AlterarSenhaRequest } from '../models/usuario.modal';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class UsuarioService {
   private readonly http = inject(HttpClient);
@@ -15,5 +15,9 @@ export class UsuarioService {
 
   alterarSenha(request: AlterarSenhaRequest): Observable<void> {
     return this.http.put<void>(`${this.apiUrl}/senha`, request);
+  }
+
+  criarUsuario(value: any) {
+    return this.http.post(`${this.apiUrl}`, value);
   }
 }

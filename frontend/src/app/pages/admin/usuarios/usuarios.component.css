@@ -1,0 +1,137 @@
+/* ============================================================
+   USUARIOS.COMPONENT.CSS — Gestão de Usuários
+   Mobile-first, paleta do projeto
+   ============================================================ */
+
+/* ============================================================
+   CONTAINER
+   ============================================================ */
+.container-usuarios {
+  @apply max-w-md w-full mx-auto
+         bg-white
+         rounded-2xl
+         shadow-sm
+         border border-gray-100
+         p-6 md:p-8
+         font-sans
+         mt-8;
+
+  margin-top: max(2rem, env(safe-area-inset-top, 0px));
+  margin-bottom: max(2rem, env(safe-area-inset-bottom, 0px));
+}
+
+/* ============================================================
+   BOTÃO VOLTAR
+   ============================================================ */
+.usuarios-voltar {
+  @apply inline-flex items-center gap-1.5
+         text-sm font-medium
+         text-gray-500
+         hover:text-primary-600
+         transition-colors
+         mb-4
+         w-fit
+         px-2 py-1
+         rounded-lg
+         hover:bg-primary-50
+         bg-transparent
+         border-none
+         cursor-pointer
+         touch-manipulation select-none
+         active:scale-95;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.usuarios-header {
+  @apply mb-6;
+}
+
+.usuarios-titulo {
+  @apply text-xl font-bold text-gray-800;
+}
+
+.usuarios-subtitulo {
+  @apply text-sm text-gray-500 mt-1;
+}
+
+/* ============================================================
+   FORMULÁRIO
+   ============================================================ */
+.usuarios-form {
+  @apply space-y-4;
+}
+
+.usuarios-field {
+  @apply flex flex-col;
+}
+
+.usuarios-label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
+}
+
+.usuarios-input {
+  @apply w-full
+         px-4 py-2.5
+         border border-gray-200
+         rounded-xl
+         text-gray-800
+         placeholder:text-gray-400
+         focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+         focus:outline-none
+         transition-all
+         bg-white;
+  font-size: 16px; /* anti-zoom iOS */
+}
+
+/* -------- Wrapper para o olhinho -------- */
+.usuarios-input-wrapper {
+  @apply relative;
+}
+
+.usuarios-input-with-action {
+  padding-right: 2.75rem;
+}
+
+/* -------- Botão do olhinho -------- */
+.usuarios-action {
+  @apply absolute right-2 top-1/2 -translate-y-1/2
+         w-8 h-8
+         rounded-lg
+         flex items-center justify-center
+         text-gray-400
+         bg-transparent
+         border-none
+         cursor-pointer
+         transition-colors
+         hover:text-primary-600
+         focus:outline-none focus:ring-2 focus:ring-primary-400
+         touch-manipulation select-none;
+}
+
+.usuarios-action:active {
+  transform: translateY(-50%) scale(0.9);
+}
+
+/* -------- Erro de validação -------- */
+.usuarios-erro {
+  @apply text-danger text-xs font-semibold mt-1;
+}
+
+/* ============================================================
+   BOTÃO SALVAR
+   ============================================================ */
+.usuarios-btn {
+  @apply w-full mt-6
+         bg-primary-600 hover:bg-primary-700
+         disabled:bg-gray-300 disabled:cursor-not-allowed
+         text-white font-bold
+         py-3 px-4
+         rounded-xl
+         transition-all
+         flex items-center justify-center gap-2
+         touch-manipulation select-none
+         min-h-[48px]
+         shadow-md shadow-primary-600/25;
+}

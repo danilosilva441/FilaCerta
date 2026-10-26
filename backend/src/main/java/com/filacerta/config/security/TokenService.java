@@ -13,11 +13,12 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 public class TokenService {
     private final String secret = "mikael-lanches-super-secreto-123";
 
-    // Adicionado o parâmetro 'versao' aqui
-    public String gerarToken(String username, Integer versao) {
+
+    public String gerarToken(String username, Integer versao, String role) {
         return JWT.create().withIssuer("FilaCerta")
                 .withSubject(username)
-                .withClaim("versao", versao) // O CARIMBO da versão vai aqui
+                .withClaim("versao", versao) 
+                .withClaim("role", role) 
                 .withExpiresAt(LocalDateTime.now().plusMinutes(15).toInstant(ZoneOffset.of("-03:00")))
                 .sign(Algorithm.HMAC256(secret));
     }

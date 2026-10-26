@@ -1,0 +1,152 @@
+<div class="container-usuarios">
+  <!-- =========================
+       BOTÃO VOLTAR
+       ========================= -->
+  <button
+    type="button"
+    (click)="voltar()"
+    class="usuarios-voltar"
+    aria-label="Voltar para o painel"
+  >
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="w-4 h-4"
+      aria-hidden="true"
+    >
+      <path d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+    </svg>
+    Voltar
+  </button>
+
+  <!-- =========================
+       HEADER
+       ========================= -->
+  <header class="usuarios-header">
+    <h2 class="usuarios-titulo">Gestão de Usuários</h2>
+    <p class="usuarios-subtitulo">Crie novos acessos para o sistema Fila Certa.</p>
+  </header>
+
+  <!-- =========================
+       FORMULÁRIO
+       ========================= -->
+  <form [formGroup]="usuarioForm" (ngSubmit)="salvarUsuario()" class="usuarios-form">
+    <!-- Campo Username -->
+    <div class="usuarios-field">
+      <label for="username" class="usuarios-label">Nome de Usuário</label>
+      <input
+        id="username"
+        type="text"
+        formControlName="username"
+        class="usuarios-input"
+        placeholder="ex: caixa.manha"
+        autocomplete="username"
+        [attr.aria-invalid]="
+          usuarioForm.get('username')?.invalid && usuarioForm.get('username')?.touched
+        "
+        aria-describedby="erro-username"
+      />
+      @if (usuarioForm.get('username')?.invalid && usuarioForm.get('username')?.touched) {
+        <p id="erro-username" class="usuarios-erro" role="alert">
+          Nome de usuário deve ter pelo menos 4 caracteres.
+        </p>
+      }
+    </div>
+
+    <!-- Campo Senha -->
+    <div class="usuarios-field">
+      <label for="password" class="usuarios-label">Senha</label>
+      <div class="usuarios-input-wrapper">
+        <input
+          id="password"
+          [type]="mostrarSenha() ? 'text' : 'password'"
+          formControlName="password"
+          class="usuarios-input usuarios-input-with-action"
+          placeholder="••••••"
+          autocomplete="new-password"
+          [attr.aria-invalid]="
+            usuarioForm.get('password')?.invalid && usuarioForm.get('password')?.touched
+          "
+          aria-describedby="erro-password"
+        />
+        <button
+          type="button"
+          (click)="toggleSenha()"
+          class="usuarios-action"
+          [attr.aria-label]="mostrarSenha() ? 'Ocultar senha' : 'Mostrar senha'"
+          [attr.aria-pressed]="mostrarSenha()"
+          tabindex="-1"
+        >
+          @if (mostrarSenha()) {
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="w-4 h-4"
+              aria-hidden="true"
+            >
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          } @else {
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="w-4 h-4"
+              aria-hidden="true"
+            >
+              <path
+                d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+              ></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          }
+        </button>
+      </div>
+      @if (usuarioForm.get('password')?.invalid && usuarioForm.get('password')?.touched) {
+        <p id="erro-password" class="usuarios-erro" role="alert">
+          A senha deve ter pelo menos 6 caracteres.
+        </p>
+      }
+    </div>
+
+    <!-- Campo Role (Perfil) -->
+    <div class="usuarios-field">
+      <label for="role" class="usuarios-label">Nível de Acesso</label>
+      <select id="role" formControlName="role" class="usuarios-input">
+        <option value="DONO">Dono (Operação Completa)</option>
+        <option value="ADMIN">Administrador (Suporte Técnico)</option>
+      </select>
+    </div>
+
+    <!-- Botão Salvar -->
+    <button type="submit" [disabled]="usuarioForm.invalid" class="usuarios-btn">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="w-4 h-4"
+        aria-hidden="true"
+      >
+        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+        <polyline points="7 3 7 8 15 8"></polyline>
+      </svg>
+      Criar Usuário
+    </button>
+  </form>
+</div>

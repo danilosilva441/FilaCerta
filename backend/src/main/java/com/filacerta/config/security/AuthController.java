@@ -56,8 +56,8 @@ public class AuthController {
                 usuario.setVersaoToken(novaVersao);
                 usuarioRepository.save(usuario);
                 
-                // 1. Gera o token passando a nova versão
-                String accessToken = tokenService.gerarToken(usuario.getUsername(), novaVersao);
+                // 1. Gera o token passando a nova versão E A ROLE DO USUÁRIO
+                String accessToken = tokenService.gerarToken(usuario.getUsername(), novaVersao, usuario.getRole().name());
                 
                 // 2. Gera o token longo
                 String refreshToken = tokenService.gerarRefreshToken(usuario.getUsername(), novaVersao);
@@ -91,7 +91,7 @@ public class AuthController {
             return ResponseEntity.status(401).body("Refresh Token inválido ou expirado.");
         }
         
-     // Pega o utilizador do banco
+        // Pega o utilizador do banco
         Usuario usuario = usuarioRepository.findByUsername(username).orElse(null);
         Integer versaoNoCookie = tokenService.getVersaoToken(refreshToken);
 
@@ -100,8 +100,8 @@ public class AuthController {
             return ResponseEntity.status(401).body("Sessão encerrada por outro dispositivo.");
         }
         
-        // No momento da renovação, geramos um token fresquinho
-        String novoAccessToken = tokenService.gerarToken(username, usuario.getVersaoToken());
+        // No momento da renovação, geramos um token fresquinho JÁ COM A ROLE INCLUÍDA
+        String novoAccessToken = tokenService.gerarToken(username, usuario.getVersaoToken(), usuario.getRole().name());
         
         return ResponseEntity.ok(novoAccessToken);
     }

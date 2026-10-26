@@ -66,4 +66,33 @@ export class AuthService {
     // Retorna com um delay de 600ms para a tela de carregamento agir antes de mostrar o painel
     return of(isValido).pipe(delay(600));
   }
+
+  // Pega o token do LocalStorage
+  getToken(): string | null {
+    return localStorage.getItem('token');
+  }
+
+  // Decodifica o JWT no frontend para pegar os dados
+  getRoleFromToken(): string | null {
+    const token = this.getToken();
+    if (!token) return null;
+
+    try {
+      // O JWT tem 3 partes separadas por ponto. O payload é a do meio [1].
+      const payload = token.split('.')[1];
+      // Decodifica o Base64
+      const decodedPayload = atob(payload);
+      const parsedToken = JSON.parse(decodedPayload);
+
+      // ESPIÃO: Vamos ver exatamente como o Java montou esse token!
+      console.log('🕵️ Dados dentro do Token:', parsedToken);
+
+      // Retorna a role (assumindo que no Spring o claim se chama 'role' ou 'roles')
+      // Ajuste 'role' para o nome exato da chave que o seu backend coloca no JWT.
+      return parsedToken.role || null;
+    } catch (e) {
+      console.error('Erro ao decodificar o token', e);
+      return null;
+    }
+  }
 }
