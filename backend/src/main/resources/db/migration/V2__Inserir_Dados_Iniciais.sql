@@ -1,6 +1,6 @@
 	-- 1. Categorias Iniciais
 	INSERT INTO categorias (nome) VALUES 
-	('Hambúrgueres'), 
+	('Lanches'), 
 	('Bebidas'), 
 	('Porções');
 	
@@ -19,10 +19,7 @@
 	('Suco de Maracujá', 'Suco natural de maracujá.', 8.00, 2, 2, true, 0, CURRENT_TIMESTAMP),
 	('Suco de Goiaba-Cajú', 'Suco natural de goiaba com cajú.', 8.00, 2, 2, true, 0, CURRENT_TIMESTAMP);
 	
-	-- 3. Usuário Administrativo
-	-- (A tag {noop} indica ao Spring Security provisoriamente que esta senha não está criptografada)
-	INSERT INTO usuarios (username, password, role, versao_token) VALUES ('admin', '$2a$10$nwbGtd6HH4DejfHBc4wlbuXoeTAzPWErFh8dSKr52JlYNOw24v4F6', 'DONO', '0');
-	
+
 	-- 4. Caixa Diário
 	-- Status FECHADO é recomendado para que o dono consiga digitar o "Troco Inicial" pela tela no início do dia.
 	INSERT INTO caixa_diario (data, hora_abertura, status, created_at)

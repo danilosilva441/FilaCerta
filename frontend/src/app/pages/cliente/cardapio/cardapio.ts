@@ -28,7 +28,7 @@ import { WebsocketService } from '../../../core/services/websocket.service';
 export class CardapioComponent implements OnInit, OnDestroy {
   nomeCliente = '';
   tipoPedido: 'LEVAR' | 'COMER_AQUI' = 'COMER_AQUI';
-  formaPagamento: 'PIX' | 'CARTÃO' | 'DINHEIRO' = 'PIX';
+  formaPagamento: 'PIX' | 'CARTAO' | 'DINHEIRO' = 'PIX';
 
   categorias: { id?: number; nome: string }[] = [{ nome: 'Todos' }];
   categoriaSelecionada?: number = undefined;
