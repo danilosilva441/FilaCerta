@@ -508,3 +508,88 @@
          transition-all;
   font-size: 16px; /* anti-zoom iOS */
 }
+
+/* Barra de ações: 2 colunas iguais no mobile, lado a lado no desktop */
+.estoque-header-actions {
+  @apply grid grid-cols-2 gap-2 w-full
+         sm:flex sm:items-center sm:gap-3 sm:w-auto;
+}
+
+/* Base compartilhada */
+.estoque-btn-secondary,
+.estoque-btn-add {
+  @apply inline-flex items-center justify-center gap-2
+         px-3 sm:px-5 py-2.5
+         rounded-lg
+         font-bold text-sm
+         ring-1 ring-white/20
+         shadow-md shadow-black/10
+         transition-all
+         active:scale-95
+         touch-manipulation select-none
+         min-h-[48px];
+}
+
+.estoque-btn-icon {
+  @apply w-5 h-5 flex-shrink-0;
+}
+
+.estoque-btn-label {
+  @apply truncate;
+}
+
+.estoque-btn-secondary {
+  @apply bg-primary-800 text-white hover:bg-primary-900;
+}
+
+.estoque-btn-add {
+  @apply bg-white text-primary-700 ring-white/30 hover:bg-primary-50;
+}
+
+/* Botões do card: mesma altura dos demais (48px → 44px no card) */
+.produto-btn {
+  @apply min-h-[44px];
+}
+
+/* ============================================================
+   MODAL DE CATEGORIAS
+   ============================================================ */
+.estoque-cat-btn {
+  @apply px-4 rounded-xl font-bold text-sm
+         transition-all active:scale-95
+         touch-manipulation select-none
+         min-h-[44px];
+}
+
+.estoque-cat-btn-salvar {
+  @apply bg-primary-600 text-white hover:bg-primary-700
+         disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.estoque-cat-btn-cancelar {
+  @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
+}
+
+.estoque-cat-item {
+  @apply flex items-center justify-between
+         p-3 border-b border-gray-100
+         last:border-0 hover:bg-gray-50;
+}
+
+.estoque-cat-nome {
+  @apply font-bold text-gray-700 truncate;
+}
+
+.estoque-cat-icon-btn {
+  @apply w-10 h-10 flex items-center justify-center
+         rounded-lg transition-all active:scale-95
+         touch-manipulation;
+}
+
+.estoque-cat-icon-editar {
+  @apply text-primary-600 hover:bg-primary-50;
+}
+
+.estoque-cat-icon-excluir {
+  @apply text-danger hover:bg-danger-light;
+}

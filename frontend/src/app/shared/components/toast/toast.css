@@ -192,3 +192,54 @@
 .toast-progress-info {
   @apply bg-info;
 }
+
+/* ------------------------------------------------------------
+   TOAST COMPACTO — só mobile, para sucesso/info sem ações
+   ------------------------------------------------------------ */
+@media (max-width: 767px) {
+  .toast-container {
+    gap: 0.5rem;
+  }
+
+  .toast-compacto {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.75rem;
+    max-width: 19rem;
+    gap: 0;
+  }
+
+  .toast-compacto .toast-row {
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .toast-compacto .toast-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .toast-compacto .toast-icon svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  .toast-compacto .toast-title {
+    font-size: 11px;
+    line-height: 1.2;
+  }
+
+  /* Mensagem limitada a 1 linha */
+  .toast-compacto .toast-message {
+    margin-top: 0;
+    font-size: 12px;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Sem botão X (toque no toast fecha) */
+  .toast-compacto .toast-close {
+    display: none;
+  }
+}

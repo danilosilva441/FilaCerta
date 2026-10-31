@@ -1,5 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -18,6 +25,12 @@ import { PedidoService } from '../../../core/services/pedido.service';
 import { ProdutoService } from '../../../core/services/produto.service';
 import { WebsocketService } from '../../../core/services/websocket.service';
 
+interface ItemCarrinho {
+  produto: Produto;
+  quantidade: number;
+  observacao: string;
+}
+
 @Component({
   selector: 'app-cardapio',
   standalone: true,
@@ -26,28 +39,37 @@ import { WebsocketService } from '../../../core/services/websocket.service';
   styleUrls: ['./cardapio.css'],
 })
 export class CardapioComponent implements OnInit, OnDestroy {
+  // ---------- Cardápio ----------
+  categorias: { id?: number; nome: string }[] = [{ nome: 'Todos' }];
+  categoriaSelecionada?: number = undefined;
+  produtos: Produto[] = [];
+  carregandoProdutos = true;
+  termoBusca = '';
+  readonly skeletons = [1, 2, 3];
+
+  // ---------- Carrinho ----------
+  carrinho: ItemCarrinho[] = [];
+  isCarrinhoAberto = false;
+  etapaAtual: 1 | 2 = 1;
+  tentouEnviar = false;
+
+  // ---------- Identificação ----------
   nomeCliente = '';
   tipoPedido: 'LEVAR' | 'COMER_AQUI' = 'COMER_AQUI';
   formaPagamento: 'PIX' | 'CARTAO' | 'DINHEIRO' = 'PIX';
 
-  categorias: { id?: number; nome: string }[] = [{ nome: 'Todos' }];
-  categoriaSelecionada?: number = undefined;
-  produtos: Produto[] = [];
-
-  carrinho: {
-    produto: Produto;
-    quantidade: number;
-    observacao: string;
-  }[] = [];
-
+  // ---------- Contexto ----------
   isDono = false;
   jaPago = false;
   isModoEdicao = false;
-  isProcessando = false;
-  isCarrinhoAberto = false;
-  tentouEnviar = false;
-  cozinhaDisponivel = false;
   isModoAcrescimo = false;
+  isProcessando = false;
+  cozinhaDisponivel = false;
+
+  @ViewChild('campoNome') campoNome?: ElementRef<HTMLInputElement>;
+
+  private readonly CHAVE_RASCUNHO = 'filacerta_rascunho_pedido';
+  private readonly VALIDADE_RASCUNHO_MS = 6 * 60 * 60 * 1000; // 6h
 
   private monitoramentoSubscription?: Subscription;
   private pedidoSubscription?: Subscription;
@@ -64,13 +86,16 @@ export class CardapioComponent implements OnInit, OnDestroy {
     private readonly websocketService: WebsocketService,
   ) {}
 
+  // ============================================================
+  // CICLO DE VIDA
+  // ============================================================
   ngOnInit(): void {
-    // 1. PRIMEIRA COISA: Descobre se quem abriu o cardápio tem a chave do restaurante
+    // 1. Descobre se quem abriu o cardápio é o dono
     this.isDono = this.authService.isDono();
 
     const pedidoAtivo = localStorage.getItem('filacerta_pedido_ativo');
 
-    // Se não tem pedido, faz a faxina e rasga os crachás antigos
+    // Sem pedido ativo: rasga os crachás antigos
     if (!pedidoAtivo) {
       sessionStorage.removeItem('filacerta_modo_edicao');
       sessionStorage.removeItem('filacerta_modo_acrescimo');
@@ -82,28 +107,25 @@ export class CardapioComponent implements OnInit, OnDestroy {
     this.isModoEdicao = !!modoEdicao;
     this.isModoAcrescimo = !!modoAcrescimo;
 
-    // ---> CORREÇÃO AQUI <---
-    // Se ele tem pedido, NÃO está editando E NÃO está acrescentando:
-    // Expulsa pra fila... MAS SÓ SE FOR CLIENTE (!this.isDono)
+    // Cliente com pedido em andamento e sem intenção de editar → vai para a fila
     if (pedidoAtivo && !modoEdicao && !modoAcrescimo && !this.isDono) {
       void this.router.navigate(['/cliente/acompanhamento', pedidoAtivo]);
       return;
     }
 
-    // Se for o Dono e ele tem um pedido guardado na memória (lixo), limpamos silenciosamente!
+    // Dono com lixo na memória → limpa em silêncio
     if (this.isDono && pedidoAtivo && !modoEdicao && !modoAcrescimo) {
       localStorage.removeItem('filacerta_pedido_ativo');
     }
 
-    // Se for modo edição, carrega o lanche antigo
     if (pedidoAtivo && modoEdicao) {
       this.carregarCarrinhoParaEdicao(pedidoAtivo);
       this.iniciarMonitoramentoPedido(pedidoAtivo);
-    }
-    // Se for acréscimo, puxa o nome do cliente em silêncio e deixa o carrinho limpo
-    else if (pedidoAtivo && modoAcrescimo) {
+    } else if (pedidoAtivo && modoAcrescimo) {
       this.prepararAcrescimo(pedidoAtivo);
       this.iniciarMonitoramentoPedido(pedidoAtivo);
+    } else if (!this.isDono) {
+      this.restaurarRascunho();
     }
 
     this.carregarCategorias();
@@ -116,6 +138,9 @@ export class CardapioComponent implements OnInit, OnDestroy {
     this.pedidoSubscription?.unsubscribe();
   }
 
+  // ============================================================
+  // MODO EDIÇÃO / ACRÉSCIMO
+  // ============================================================
   private carregarCarrinhoParaEdicao(codigo: string): void {
     this.pedidoService.acompanharPedido(codigo).subscribe({
       next: (pedidoAntigo) => {
@@ -123,13 +148,12 @@ export class CardapioComponent implements OnInit, OnDestroy {
         this.tipoPedido = pedidoAntigo.tipo as any;
         this.formaPagamento = pedidoAntigo.formaPagamento as any;
 
-        // Reconstrói o carrinho convertendo os itens do DTO em itens visuais
         this.carrinho = pedidoAntigo.itens.map((item) => ({
           produto: {
             id: item.produtoId,
             nome: item.nomeProduto,
             preco: item.precoUnitario,
-            disponivel: true, // Mock para a tela não quebrar
+            disponivel: true,
             descricao: '',
           } as Produto,
           quantidade: item.quantidade,
@@ -152,12 +176,11 @@ export class CardapioComponent implements OnInit, OnDestroy {
   private prepararAcrescimo(codigo: string): void {
     this.pedidoService.acompanharPedido(codigo).subscribe({
       next: (pedidoAntigo) => {
-        // Puxa o nome e as preferências do banco de dados (o cliente não precisa digitar!)
         this.nomeCliente = pedidoAntigo.nomeCliente;
         this.tipoPedido = pedidoAntigo.tipo as any;
         this.formaPagamento = pedidoAntigo.formaPagamento as any;
 
-        // NOTA: Não preenchemos o this.carrinho aqui de propósito!
+        // Carrinho fica vazio de propósito: aqui só entram os itens novos
 
         this.notificationService.sucesso(
           'Conta Aberta',
@@ -173,6 +196,9 @@ export class CardapioComponent implements OnInit, OnDestroy {
     });
   }
 
+  // ============================================================
+  // CAIXA / DISPONIBILIDADE
+  // ============================================================
   iniciarMonitoramentoCaixa(): void {
     this.atualizarStatusCaixa();
     this.monitoramentoSubscription = this.websocketService.caixa$.subscribe(() => {
@@ -183,25 +209,22 @@ export class CardapioComponent implements OnInit, OnDestroy {
   private atualizarStatusCaixa(): void {
     this.caixaService.buscarCaixaAtual().subscribe({
       next: (caixa) => {
-        // 1. Verifica se a pessoa logada é o dono
-        const isDono = this.authService.isDono(); // ou use this.isDono se já tiver essa variável na classe
+        const isDono = this.authService.isDono();
 
-        // 2. A MÁGICA AQUI: Fica disponível SE ele for o DONO, OU (se for cliente) o caixa estiver aberto e a cozinha rodando
         const disponivel =
           isDono || (!!caixa && caixa.status === 'ABERTO' && caixa.cozinhaPausada !== true);
 
         const mudouEstado = this.cozinhaDisponivel !== disponivel;
-
         this.cozinhaDisponivel = disponivel;
 
         if (mudouEstado) {
           this.cdr.detectChanges();
         }
 
-        // 3. O resto do código continua igual, mas agora o Dono nunca vai cair nestes IFs
         if (!disponivel && this.carrinho.length > 0) {
           this.carrinho = [];
           this.isCarrinhoAberto = false;
+          this.limparRascunho();
           this.notificationService.aviso(
             'Cozinha indisponível',
             'A cozinha foi pausada ou o caixa foi encerrado. Seu carrinho foi limpo.',
@@ -216,6 +239,9 @@ export class CardapioComponent implements OnInit, OnDestroy {
     });
   }
 
+  // ============================================================
+  // CATEGORIAS E PRODUTOS
+  // ============================================================
   carregarCategorias(): void {
     this.categoriaService.listarTodas().subscribe({
       next: (dados) => {
@@ -233,18 +259,59 @@ export class CardapioComponent implements OnInit, OnDestroy {
   }
 
   carregarProdutos(): void {
+    this.carregandoProdutos = true;
     this.produtoService.listar(this.categoriaSelecionada).subscribe({
       next: (data) => {
         this.produtos = data || [];
+        this.reconciliarCarrinho();
+        this.carregandoProdutos = false;
         this.cdr.detectChanges();
       },
       error: () => {
         this.produtos = [];
+        this.carregandoProdutos = false;
         this.cdr.detectChanges();
       },
     });
   }
 
+  /**
+   * Atualiza preço/disponibilidade dos itens do carrinho com os dados frescos
+   * da API. Evita carrinho restaurado com preço antigo.
+   */
+  private reconciliarCarrinho(): void {
+    if (this.carrinho.length === 0) return;
+
+    this.carrinho = this.carrinho.map((item) => {
+      const atual = this.produtos.find((p) => p.id === item.produto.id);
+      return atual ? { ...item, produto: atual } : item;
+    });
+  }
+
+  // ============================================================
+  // BUSCA
+  // ============================================================
+  private normalizar(texto: string): string {
+    return (texto ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+  }
+
+  get produtosFiltrados(): Produto[] {
+    const termo = this.normalizar(this.termoBusca);
+    if (!termo) return this.produtos;
+    return this.produtos.filter(
+      (p) =>
+        this.normalizar(p.nome).includes(termo) ||
+        this.normalizar(p.descricao ?? '').includes(termo),
+    );
+  }
+
+  // ============================================================
+  // CARRINHO
+  // ============================================================
   adicionarItem(produto: Produto): void {
     if (!this.cozinhaDisponivel) {
       this.notificationService.aviso('Cozinha indisponível', 'A cozinha está pausada no momento.');
@@ -281,6 +348,8 @@ export class CardapioComponent implements OnInit, OnDestroy {
     } else {
       this.carrinho.push({ produto, quantidade: 1, observacao: '' });
     }
+
+    this.salvarRascunho();
   }
 
   removerItem(produto: Produto): void {
@@ -291,6 +360,13 @@ export class CardapioComponent implements OnInit, OnDestroy {
       this.carrinho.splice(index, 1);
     } else {
       this.carrinho[index].quantidade--;
+    }
+
+    this.salvarRascunho();
+
+    // Carrinho esvaziou com o modal aberto: fecha para não ficar tela morta
+    if (this.carrinho.length === 0 && this.isCarrinhoAberto) {
+      this.fecharCarrinho();
     }
   }
 
@@ -307,10 +383,58 @@ export class CardapioComponent implements OnInit, OnDestroy {
     return this.carrinho.reduce((acc, item) => acc + item.produto.preco * item.quantidade, 0);
   }
 
-  getItensCarrinho(): { produto: Produto; quantidade: number; observacao: string }[] {
+  getItensCarrinho(): ItemCarrinho[] {
     return this.carrinho;
   }
 
+  abrirCarrinho(): void {
+    if (!this.cozinhaDisponivel) {
+      this.notificationService.aviso('Cozinha indisponível', 'A cozinha está pausada no momento.');
+      return;
+    }
+    if (this.totalItens === 0) {
+      this.notificationService.aviso('Carrinho Vazio', 'Adicione itens antes de fechar o pedido.');
+      return;
+    }
+    this.isCarrinhoAberto = true;
+    this.etapaAtual = 1;
+  }
+
+  fecharCarrinho(): void {
+    this.isCarrinhoAberto = false;
+    this.tentouEnviar = false;
+    this.etapaAtual = 1;
+  }
+
+  permiteObservacao(produto: Produto): boolean {
+    const categoriasBloqueadas = ['Bebidas', 'Acompanhamentos', 'Sobremesas'];
+    const nomeCategoria = produto.categoria?.nome || produto.categoria;
+    return !categoriasBloqueadas.includes(nomeCategoria as string);
+  }
+
+  // ============================================================
+  // WIZARD
+  // ============================================================
+  proximaEtapa(): void {
+    if (this.etapaAtual !== 1) return;
+
+    this.etapaAtual = 2;
+
+    if (!this.nomeCliente.trim()) {
+      this.cdr.detectChanges();
+      setTimeout(() => this.campoNome?.nativeElement.focus(), 50);
+    }
+  }
+
+  voltarEtapa(): void {
+    if (this.etapaAtual === 2) {
+      this.etapaAtual = 1;
+    }
+  }
+
+  // ============================================================
+  // ENVIO DO PEDIDO
+  // ============================================================
   podeEnviar(): boolean {
     return (
       this.cozinhaDisponivel &&
@@ -342,10 +466,10 @@ export class CardapioComponent implements OnInit, OnDestroy {
     }));
 
     const modoEdicao = sessionStorage.getItem('filacerta_modo_edicao');
-    const modoAcrescimo = sessionStorage.getItem('filacerta_modo_acrescimo'); // <-- ADICIONADO AQUI
+    const modoAcrescimo = sessionStorage.getItem('filacerta_modo_acrescimo');
     const codigoAtivo = localStorage.getItem('filacerta_pedido_ativo');
 
-    // 1. MODO EDIÇÃO (PUT) - Substitui os itens
+    // 1. MODO EDIÇÃO (PUT) — substitui os itens
     if (modoEdicao && codigoAtivo) {
       const updateRequest: AtualizarPedidoRequest = { itens };
 
@@ -357,7 +481,7 @@ export class CardapioComponent implements OnInit, OnDestroy {
         error: (err) => this.tratarErroBackend(err),
       });
 
-      // 2. MODO ACRÉSCIMO (POST) - Soma novos itens à conta existente <-- NOVO BLOCO
+      // 2. MODO ACRÉSCIMO (POST) — soma novos itens à conta existente
     } else if (modoAcrescimo && codigoAtivo) {
       const addRequest: AtualizarPedidoRequest = { itens };
 
@@ -369,7 +493,7 @@ export class CardapioComponent implements OnInit, OnDestroy {
         error: (err) => this.tratarErroBackend(err),
       });
 
-      // 3. MODO NOVO PEDIDO (POST) - Começa do zero
+      // 3. MODO NOVO PEDIDO (POST)
     } else {
       const request: CriarPedidoRequest = {
         nomeCliente: this.nomeCliente.trim(),
@@ -382,8 +506,7 @@ export class CardapioComponent implements OnInit, OnDestroy {
 
       this.pedidoService.criarPedido(request).subscribe({
         next: (response) => {
-          // ---> CORREÇÃO AQUI <---
-          // Só salva no localStorage (amarrando o telemóvel ao pedido) se NÃO for o dono!
+          // Só amarra o aparelho ao pedido se NÃO for o dono
           if (response.codigoAcompanhamento && !this.isDono) {
             localStorage.setItem('filacerta_pedido_ativo', response.codigoAcompanhamento);
           }
@@ -395,16 +518,15 @@ export class CardapioComponent implements OnInit, OnDestroy {
     }
   }
 
-  // --- MÉTODOS AUXILIARES PARA LIMPAR O CÓDIGO ---
-
   private finalizarEnvio(codigoAcompanhamento: string): void {
     this.carrinho = [];
     this.nomeCliente = '';
     this.isProcessando = false;
     this.isCarrinhoAberto = false;
+    this.etapaAtual = 1;
+    this.limparRascunho();
 
-    // Se o usuário está logado (tem token), manda direto pra cozinha.
-    // Senão, manda pro acompanhamento do cliente.
+    // Logado (tem token) → cozinha. Cliente → acompanhamento.
     if (this.authService.isLogado()) {
       void this.router.navigate(['/cozinha/painel']);
     } else {
@@ -429,7 +551,8 @@ export class CardapioComponent implements OnInit, OnDestroy {
     this.notificationService.erro(tituloDoBackend, mensagemDoBackend);
     this.isProcessando = false;
     this.cdr.detectChanges();
-    // Se o cliente tentou salvar, deu erro e ele estava editando, expulsa pra rua!
+
+    // Erro ao salvar edição: devolve o cliente para o acompanhamento
     const modoEdicao = sessionStorage.getItem('filacerta_modo_edicao');
     const codigoAtivo = localStorage.getItem('filacerta_pedido_ativo');
 
@@ -439,38 +562,14 @@ export class CardapioComponent implements OnInit, OnDestroy {
     }
   }
 
-  abrirCarrinho(): void {
-    if (!this.cozinhaDisponivel) {
-      this.notificationService.aviso('Cozinha indisponível', 'A cozinha está pausada no momento.');
-      return;
-    }
-    if (this.totalItens === 0) {
-      this.notificationService.aviso('Carrinho Vazio', 'Adicione itens antes de fechar o pedido.');
-      return;
-    }
-    this.isCarrinhoAberto = true;
-    this.etapaAtual = 1; // Reseta para a primeira etapa do wizard
-  }
-
-  fecharCarrinho(): void {
-    this.isCarrinhoAberto = false;
-    this.tentouEnviar = false;
-    this.etapaAtual = 1; // Reseta para a primeira etapa do wizard
-  }
-
-  permiteObservacao(produto: Produto): boolean {
-    const categoriasBloqueadas = ['Bebidas', 'Acompanhamentos', 'Sobremesas'];
-    const nomeCategoria = produto.categoria?.nome || produto.categoria;
-    return !categoriasBloqueadas.includes(nomeCategoria as string);
-  }
-
+  // ============================================================
+  // MONITORAMENTO DO PEDIDO (WEBSOCKET)
+  // ============================================================
   private iniciarMonitoramentoPedido(codigo: string): void {
-    // Toda a vez que a cozinha mexer num pedido, o WebSocket apita
     this.pedidoSubscription = this.websocketService.pedidos$.subscribe(() => {
-      // Vamos verificar como está o nosso pedido
       this.pedidoService.acompanharPedido(codigo).subscribe({
         next: (pedidoAtualizado) => {
-          // REGRA 1 (EDIÇÃO): Se o cliente tentar alterar um lanche, mas a cozinha já começou (saiu de RECEBIDO), expulsa!
+          // REGRA 1 (EDIÇÃO): cozinha já começou → não pode mais editar
           if (this.isModoEdicao && pedidoAtualizado.status !== 'RECEBIDO') {
             this.notificationService.aviso(
               'Edição Encerrada',
@@ -480,8 +579,7 @@ export class CardapioComponent implements OnInit, OnDestroy {
             void this.router.navigate(['/cliente/acompanhamento', codigo]);
           }
 
-          // REGRA 2 (COMANDA/ACRÉSCIMO): O cliente PODE pedir mais coisas mesmo com o pedido na mesa (SERVIDO).
-          // Ele só é expulso se o Seu Mikael fechar a conta (ENTREGUE ou CANCELADO).
+          // REGRA 2 (ACRÉSCIMO): só trava quando o caixa fecha a conta
           if (
             this.isModoAcrescimo &&
             (pedidoAtualizado.status === 'ENTREGUE' || pedidoAtualizado.status === 'CANCELADO')
@@ -495,7 +593,6 @@ export class CardapioComponent implements OnInit, OnDestroy {
           }
         },
         error: (err) => {
-          // Se o pedido foi apagado da base de dados, limpa tudo e joga para a Home
           if (err.status === 404 || err.status === 400 || err.status === 500) {
             sessionStorage.removeItem('filacerta_modo_edicao');
             sessionStorage.removeItem('filacerta_modo_acrescimo');
@@ -508,21 +605,48 @@ export class CardapioComponent implements OnInit, OnDestroy {
   }
 
   // ============================================================
-  // CONTROLE DE ETAPAS DO CARRINHO (Wizard)
-  // 1 = Itens | 2 = Identificação
+  // RASCUNHO (localStorage)
   // ============================================================
-  etapaAtual: 1 | 2 = 1;
+  salvarRascunho(): void {
+    if (this.isDono || this.isModoEdicao || this.isModoAcrescimo) return;
 
-  // Métodos auxiliares (só para o wizard, nada de negócio)
-  proximaEtapa(): void {
-    if (this.etapaAtual === 1) {
-      this.etapaAtual = 2;
+    if (this.carrinho.length === 0 && !this.nomeCliente.trim()) {
+      localStorage.removeItem(this.CHAVE_RASCUNHO);
+      return;
+    }
+
+    localStorage.setItem(
+      this.CHAVE_RASCUNHO,
+      JSON.stringify({
+        nomeCliente: this.nomeCliente,
+        tipoPedido: this.tipoPedido,
+        carrinho: this.carrinho,
+        salvoEm: Date.now(),
+      }),
+    );
+  }
+
+  private restaurarRascunho(): void {
+    const bruto = localStorage.getItem(this.CHAVE_RASCUNHO);
+    if (!bruto) return;
+
+    try {
+      const r = JSON.parse(bruto);
+
+      if (!r?.salvoEm || Date.now() - r.salvoEm > this.VALIDADE_RASCUNHO_MS) {
+        this.limparRascunho();
+        return;
+      }
+
+      this.nomeCliente = r.nomeCliente ?? '';
+      this.tipoPedido = r.tipoPedido ?? 'COMER_AQUI';
+      this.carrinho = Array.isArray(r.carrinho) ? r.carrinho : [];
+    } catch {
+      this.limparRascunho();
     }
   }
 
-  voltarEtapa(): void {
-    if (this.etapaAtual === 2) {
-      this.etapaAtual = 1;
-    }
+  private limparRascunho(): void {
+    localStorage.removeItem(this.CHAVE_RASCUNHO);
   }
 }

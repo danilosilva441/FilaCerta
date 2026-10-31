@@ -554,3 +554,103 @@
          z-10;
   top: max(1rem, env(safe-area-inset-top, 0px));
 }
+
+/* Página */
+.acompanhamento-page {
+  @apply min-h-dvh bg-gray-50
+         flex flex-col items-center
+         px-4 py-6 font-sans antialiased relative;
+
+  padding-top: max(1.5rem, env(safe-area-inset-top, 0px));
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+}
+
+/* Status visual (versão compacta) */
+.acompanhamento-status {
+  @apply text-center w-full max-w-sm;
+}
+
+.acompanhamento-circle {
+  @apply w-20 h-20 sm:w-24 sm:h-24
+         rounded-full mx-auto mb-4
+         flex items-center justify-center
+         shadow-lg transition-all duration-500;
+}
+
+.acompanhamento-title {
+  @apply text-2xl font-black mb-1 text-gray-800;
+}
+
+.acompanhamento-message {
+  @apply text-base font-medium mb-5;
+}
+
+/* Link Sobre (44px de toque, contraste melhor) */
+.page-sobre-link {
+  @apply absolute right-4 z-10
+         inline-flex items-center justify-center gap-1.5
+         px-3 rounded-lg
+         text-xs font-bold text-gray-600
+         bg-white ring-1 ring-gray-200 shadow-sm
+         hover:text-primary-700 hover:bg-primary-50
+         transition-all active:scale-95
+         touch-manipulation select-none
+         min-h-[44px];
+
+  top: max(1rem, env(safe-area-inset-top, 0px));
+}
+
+/* Botões: mesma altura, raio e espaçamento */
+.acompanhamento-btn,
+.acompanhamento-btn-cancelar,
+.acompanhamento-btn-novo {
+  @apply w-full max-w-sm mt-4
+         px-6 py-3.5
+         rounded-xl
+         font-bold text-sm
+         transition-all active:scale-95
+         touch-manipulation select-none
+         min-h-[52px]
+         flex items-center justify-center gap-2;
+}
+
+.acompanhamento-btn-primary {
+  @apply bg-white text-primary-600
+         ring-2 ring-primary-100 shadow-sm
+         hover:bg-primary-50 hover:ring-primary-200;
+}
+
+.acompanhamento-btn-cancelar {
+  @apply text-danger bg-danger-light
+         ring-2 ring-danger/40
+         hover:bg-danger/20 hover:ring-danger/60;
+}
+
+/* CTA principal: único com destaque maior */
+.acompanhamento-btn-novo {
+  @apply mt-6 bg-primary-600 text-white
+         text-base
+         shadow-md shadow-primary-600/25
+         hover:bg-primary-700
+         focus:outline-none focus:ring-4 focus:ring-primary-300
+         min-h-[56px];
+}
+
+/* Header do card de itens com área de toque de 44px */
+.acompanhamento-card-header {
+  @apply min-h-[44px];
+}
+
+.produto-skeleton-lista {
+  @apply space-y-3;
+}
+
+.produto-skeleton {
+  @apply flex items-center gap-4 p-4
+         bg-white rounded-xl ring-1 ring-gray-100
+         animate-pulse;
+}
+
+.skeleton-linha {
+  @apply bg-gray-200 rounded-md;
+}

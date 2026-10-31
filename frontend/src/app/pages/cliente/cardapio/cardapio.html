@@ -42,12 +42,14 @@
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
-            class="w-4 h-4"
+            class="w-5 h-5"
             aria-hidden="true"
           >
-            <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
           </svg>
-          <span class="cardapio-header-sobre-label">Sobre</span>
+          <span>Sobre</span>
         </a>
 
         <!-- Status (modo edição / normal) -->
@@ -76,6 +78,58 @@
   </header>
 
   <!-- =========================
+       BUSCA
+       ========================= -->
+  <div class="busca-wrap">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="busca-icon"
+      aria-hidden="true"
+    >
+      <circle cx="11" cy="11" r="8"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>
+    <input
+      type="search"
+      [(ngModel)]="termoBusca"
+      name="busca"
+      placeholder="Buscar lanche..."
+      aria-label="Buscar produto"
+      autocomplete="off"
+      enterkeyhint="search"
+      class="busca-input"
+    />
+    @if (termoBusca) {
+      <button
+        type="button"
+        (click)="termoBusca = ''"
+        aria-label="Limpar busca"
+        class="busca-limpar"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="3"
+          stroke-linecap="round"
+          class="w-4 h-4"
+          aria-hidden="true"
+        >
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    }
+  </div>
+
+  <!-- =========================
        CATEGORIAS
        ========================= -->
   <nav class="cardapio-categorias" aria-label="Filtrar por categoria">
@@ -98,8 +152,20 @@
        PRODUTOS
        ========================= -->
   <main class="cardapio-main">
-    <!-- ESTADO VAZIO -->
-    @if (produtos.length === 0) {
+    @if (carregandoProdutos) {
+      <div class="produto-skeleton-lista" aria-busy="true" aria-label="Carregando produtos">
+        @for (n of skeletons; track n) {
+          <div class="produto-skeleton">
+            <div class="flex-1 space-y-2">
+              <div class="skeleton-linha w-2/3 h-4"></div>
+              <div class="skeleton-linha w-full h-3"></div>
+              <div class="skeleton-linha w-1/4 h-4"></div>
+            </div>
+            <div class="skeleton-linha w-11 h-11 rounded-full"></div>
+          </div>
+        }
+      </div>
+    } @else if (produtosFiltrados.length === 0) {
       <div class="cardapio-empty">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -118,120 +184,151 @@
           <path d="M4 16h16"></path>
           <path d="M5 20h14"></path>
         </svg>
-        <p class="cardapio-empty-title">Nenhum produto encontrado</p>
-        <p class="cardapio-empty-text">Tente outra categoria ou volte mais tarde.</p>
+        @if (termoBusca.trim()) {
+          <p class="cardapio-empty-title">Nada encontrado para "{{ termoBusca }}"</p>
+          <p class="cardapio-empty-text">Tente outro nome ou limpe a busca.</p>
+          <button type="button" (click)="termoBusca = ''" class="cardapio-empty-btn">
+            Limpar busca
+          </button>
+        } @else {
+          <p class="cardapio-empty-title">Nenhum produto encontrado</p>
+          <p class="cardapio-empty-text">Tente outra categoria ou volte mais tarde.</p>
+        }
       </div>
-    }
+    } @else {
+      @for (produto of produtosFiltrados; track produto.id) {
+        <article
+          class="produto-card"
+          [class.produto-card-indisponivel]="
+            !produto.disponivel || produto.quantidadeDisponivel === 0
+          "
+        >
+          <div class="produto-info">
+            <div class="produto-badges">
+              @if (!produto.disponivel) {
+                <span class="produto-badge produto-badge-pausado">Pausado</span>
+              } @else if (produto.quantidadeDisponivel === 0) {
+                <span class="produto-badge produto-badge-esgotado">Esgotado</span>
+              } @else if (
+                produto.quantidadeDisponivel != null && produto.quantidadeDisponivel <= 5
+              ) {
+                <span class="produto-badge produto-badge-ultimas">
+                  Restam {{ produto.quantidadeDisponivel }}
+                </span>
+              }
+            </div>
 
-    <!-- LISTA -->
-    @for (produto of produtos; track produto.id) {
-      <article
-        class="produto-card"
-        [class.produto-card-indisponivel]="
-          !produto.disponivel || produto.quantidadeDisponivel === 0
-        "
-      >
-        <div class="produto-info">
-          <div class="produto-badges">
-            @if (!produto.disponivel) {
-              <span class="produto-badge produto-badge-pausado">Pausado</span>
-            } @else if (produto.quantidadeDisponivel === 0) {
-              <span class="produto-badge produto-badge-esgotado">Esgotado</span>
-            } @else if (produto.quantidadeDisponivel != null && produto.quantidadeDisponivel <= 5) {
-              <span class="produto-badge produto-badge-ultimas">
-                Restam {{ produto.quantidadeDisponivel }}
-              </span>
+            <h3 class="produto-nome">{{ produto.nome }}</h3>
+            <p class="produto-descricao">{{ produto.descricao }}</p>
+
+            <div class="produto-meta">
+              <p class="produto-preco">R$ {{ produto.preco | number: '1.2-2' }}</p>
+              <span class="produto-tempo">{{ produto.tempoPreparoMinutos }}min</span>
+            </div>
+          </div>
+
+          <div class="produto-controles">
+            @if (getQuantidade(produto) === 0) {
+              <!-- Sem itens: só um botão + -->
+              <button
+                type="button"
+                (click)="adicionarItem(produto)"
+                [disabled]="!produto.disponivel || produto.quantidadeDisponivel === 0"
+                [attr.aria-label]="'Adicionar ' + produto.nome"
+                class="produto-btn-add"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="3"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="w-5 h-5"
+                  aria-hidden="true"
+                >
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              </button>
+            } @else {
+              <!-- Com itens: − qtd + -->
+              <div
+                class="produto-stepper"
+                role="group"
+                [attr.aria-label]="'Quantidade de ' + produto.nome"
+              >
+                <button
+                  type="button"
+                  (click)="removerItem(produto)"
+                  [attr.aria-label]="'Remover ' + produto.nome"
+                  class="produto-btn-remove"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="w-4 h-4"
+                    aria-hidden="true"
+                  >
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                </button>
+
+                <span class="produto-qtd-num" aria-live="polite">{{ getQuantidade(produto) }}</span>
+
+                <button
+                  type="button"
+                  (click)="adicionarItem(produto)"
+                  [disabled]="!produto.disponivel || produto.quantidadeDisponivel === 0"
+                  [attr.aria-label]="'Adicionar ' + produto.nome"
+                  class="produto-btn-add produto-btn-add-sm"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="w-4 h-4"
+                    aria-hidden="true"
+                  >
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                </button>
+              </div>
             }
           </div>
-
-          <h3 class="produto-nome">{{ produto.nome }}</h3>
-          <p class="produto-descricao">{{ produto.descricao }}</p>
-
-          <div class="produto-meta">
-            <p class="produto-preco">R$ {{ produto.preco | number: '1.2-2' }}</p>
-            <span class="produto-tempo">{{ produto.tempoPreparoMinutos }}min</span>
-          </div>
-        </div>
-
-        <div class="produto-controles">
-          <button
-            type="button"
-            (click)="adicionarItem(produto)"
-            [disabled]="!produto.disponivel || produto.quantidadeDisponivel === 0"
-            [attr.aria-label]="'Adicionar ' + produto.nome"
-            class="produto-btn-add"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="3"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="w-5 h-5"
-            >
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-          </button>
-
-          @if (getQuantidade(produto) > 0) {
-            <span class="produto-qtd-num">{{ getQuantidade(produto) }}</span>
-            <button
-              type="button"
-              (click)="removerItem(produto)"
-              [attr.aria-label]="'Remover ' + produto.nome"
-              class="produto-btn-remove"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="3"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="w-5 h-5"
-              >
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-            </button>
-          }
-        </div>
-      </article>
+        </article>
+      }
     }
   </main>
 </div>
 
-<!-- ============================================================
-     CARRINHO FLUTUANTE
-     ============================================================ -->
+<!-- =========================
+     BARRA INFERIOR DO CARRINHO
+     ========================= -->
 @if (totalItens > 0) {
-  <button
-    type="button"
-    (click)="abrirCarrinho()"
-    aria-label="Abrir carrinho"
-    class="carrinho-fab"
-    [class.carrinho-fab-com-navbar]="isDono"
-  >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      class="w-7 h-7"
+  <div class="carrinho-bar" [class.carrinho-bar-com-navbar]="isDono">
+    <button
+      type="button"
+      (click)="abrirCarrinho()"
+      class="carrinho-bar-btn"
+      [attr.aria-label]="'Ver pedido: ' + totalItens + ' itens'"
     >
-      <circle cx="9" cy="21" r="1"></circle>
-      <circle cx="20" cy="21" r="1"></circle>
-      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-    </svg>
-
-    <span class="carrinho-fab-badge">{{ totalItens }}</span>
-  </button>
+      <span class="carrinho-bar-count">{{ totalItens }}</span>
+      <span class="carrinho-bar-label">Ver pedido</span>
+      <span class="carrinho-bar-total">R$ {{ total | number: '1.2-2' }}</span>
+    </button>
+  </div>
 }
 
 <!-- ============================================================
@@ -365,6 +462,7 @@
                         [id]="'obs-' + item.produto.id"
                         type="text"
                         [(ngModel)]="item.observacao"
+                        (ngModelChange)="salvarRascunho()"
                         placeholder="Ex: Sem cebola, molho à parte..."
                         class="carrinho-obs-input"
                         enterkeyhint="next"
@@ -401,6 +499,7 @@
                 <span class="carrinho-obrigatorio">*</span>
               </label>
               <input
+                #campoNome
                 id="nome-cliente"
                 type="text"
                 [(ngModel)]="nomeCliente"
@@ -408,6 +507,8 @@
                 placeholder="Seu nome ou como devemos lhe chamar"
                 autocomplete="given-name"
                 enterkeyhint="done"
+                (keydown.enter)="enviarPedido()"
+                (ngModelChange)="salvarRascunho()"
                 class="carrinho-input"
                 [ngClass]="{
                   'carrinho-input-erro':
@@ -447,7 +548,7 @@
               <div class="carrinho-tipo">
                 <button
                   type="button"
-                  (click)="tipoPedido = 'COMER_AQUI'"
+                  (click)="tipoPedido = 'COMER_AQUI'; salvarRascunho()"
                   [attr.aria-pressed]="tipoPedido === 'COMER_AQUI'"
                   class="carrinho-tipo-btn"
                   [class.carrinho-tipo-btn-ativo]="tipoPedido === 'COMER_AQUI'"
@@ -471,7 +572,7 @@
 
                 <button
                   type="button"
-                  (click)="tipoPedido = 'LEVAR'"
+                  (click)="tipoPedido = 'LEVAR'; salvarRascunho()"
                   [attr.aria-pressed]="tipoPedido === 'LEVAR'"
                   class="carrinho-tipo-btn"
                   [class.carrinho-tipo-btn-ativo]="tipoPedido === 'LEVAR'"

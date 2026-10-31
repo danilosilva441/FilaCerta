@@ -33,33 +33,16 @@
             <h1 class="cozinha-title">Fila da Cozinha</h1>
             <p class="cozinha-subtitle">Acompanhe e marque o progresso</p>
           </div>
-
-          <span class="cozinha-badge">
-            {{ totalPedidos() }} {{ totalPedidos() === 1 ? 'pedido' : 'pedidos' }}
-          </span>
         </div>
+
+        <span class="cozinha-badge">
+          {{ totalPedidos() }} {{ totalPedidos() === 1 ? 'pedido' : 'pedidos' }}
+        </span>
       </div>
 
-      <!-- LINK SOBRE (integrado ao header) -->
-      <a routerLink="/sobre" class="cozinha-btn-sobre" aria-label="Sobre nós">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="w-4 h-4"
-          aria-hidden="true"
-        >
-          <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
-        <span class="hidden xs:inline">Sobre</span>
-      </a>
-
-      <!-- LINHA 2: Ações (som + QR Code) -->
+      <!-- LINHA 2: Barra de ações (3 botões iguais) -->
       <div class="cozinha-actions">
-        <!-- Toggle de som (mesmo estilo do QR Code) -->
+        <!-- SOM -->
         <button
           type="button"
           (click)="alternarSom()"
@@ -74,7 +57,6 @@
           }"
         >
           @if (somAtivado()) {
-            <!-- Som LIGADO: ícone com ondas sonoras -->
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -83,16 +65,14 @@
               stroke-width="2"
               stroke-linecap="round"
               stroke-linejoin="round"
-              class="w-5 h-5"
+              class="cozinha-btn-icon"
               aria-hidden="true"
             >
               <path d="M11 5 6 9H2v6h4l5 4V5z"></path>
               <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
               <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
             </svg>
-            <span class="hidden xs:inline">Som</span>
           } @else {
-            <!-- Som DESLIGADO: ícone com X -->
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -101,18 +81,18 @@
               stroke-width="2"
               stroke-linecap="round"
               stroke-linejoin="round"
-              class="w-5 h-5"
+              class="cozinha-btn-icon"
               aria-hidden="true"
             >
               <path d="M11 5 6 9H2v6h4l5 4V5z"></path>
               <line x1="23" y1="9" x2="17" y2="15"></line>
               <line x1="17" y1="9" x2="23" y2="15"></line>
             </svg>
-            <span class="hidden xs:inline">Som</span>
           }
+          <span class="cozinha-btn-label">{{ somAtivado() ? 'Som' : 'Mudo' }}</span>
         </button>
 
-        <!-- QR Code -->
+        <!-- QR CODE -->
         <button
           type="button"
           (click)="exibirModalQrCode.set(true)"
@@ -127,7 +107,7 @@
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
-            class="w-5 h-5"
+            class="cozinha-btn-icon"
             aria-hidden="true"
           >
             <rect x="3" y="3" width="7" height="7"></rect>
@@ -138,8 +118,28 @@
             <line x1="17" y1="14" x2="21" y2="14"></line>
             <line x1="21" y1="17" x2="21" y2="21"></line>
           </svg>
-          <span class="hidden xs:inline">QR Code</span>
+          <span class="cozinha-btn-label">QR Code</span>
         </button>
+
+        <!-- SOBRE -->
+        <a routerLink="/sobre" class="cozinha-btn-sobre" aria-label="Sobre nós">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="cozinha-btn-icon"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <span class="cozinha-btn-label">Sobre</span>
+        </a>
       </div>
     </header>
 
@@ -279,7 +279,7 @@
                 <button
                   type="button"
                   (click)="cancelarItem(pedido.pedidoId, item)"
-                  class="flex-shrink-0 flex items-center justify-center w-12 bg-white border border-gray-200 text-danger hover:bg-danger-light hover:border-danger/40 rounded-lg transition-all active:scale-95"
+                  class="cozinha-item-excluir"
                   title="Cancelar Lanche"
                   aria-label="Cancelar Lanche"
                 >

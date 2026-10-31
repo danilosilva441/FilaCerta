@@ -3,7 +3,7 @@
      Status visual + resumo + pagamento + ações
      ============================================================ -->
 
-<div class="acompanhamento-page" aria-live="polite" aria-atomic="true">
+<div class="acompanhamento-page">
   <!-- =========================
        LINK SOBRE (discreto)
        ========================= -->
@@ -15,12 +15,14 @@
       stroke-width="2"
       stroke-linecap="round"
       stroke-linejoin="round"
-      class="w-4 h-4"
+      class="w-5 h-5"
       aria-hidden="true"
     >
-      <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="16" x2="12" y2="12"></line>
+      <line x1="12" y1="8" x2="12.01" y2="8"></line>
     </svg>
-    Sobre
+    <span>Sobre</span>
   </a>
   <!-- =========================
        CARREGANDO
@@ -30,7 +32,6 @@
       <svg
         class="w-8 h-8 animate-spin"
         viewBox="0 0 24 24"
-        RECEB
         fill="none"
         stroke="currentColor"
         stroke-width="2.5"
@@ -156,6 +157,7 @@
       <h1 class="acompanhamento-title">Pedido #{{ p.numero }}</h1>
       <p
         class="acompanhamento-message"
+        aria-live="polite"
         [ngClass]="{
           'acompanhamento-message-success': p.status === 'PRONTO' || p.status === 'SERVIDO',
           'acompanhamento-message-danger': p.status === 'CANCELADO',
@@ -222,6 +224,7 @@
         id="lista-itens"
         class="acompanhamento-itens"
         [class.acompanhamento-itens-recolhido]="!itensExpandidos"
+        [attr.aria-hidden]="!itensExpandidos"
       >
         @for (item of p.itens; track item.id) {
           <div class="acompanhamento-item">

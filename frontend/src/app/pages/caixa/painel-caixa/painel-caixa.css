@@ -791,3 +791,71 @@
          flex-shrink-0
          min-h-[44px];
 }
+
+/* Título + status empilhados ao lado do logo */
+.caixa-header-top {
+  @apply flex items-center gap-3;
+}
+
+.caixa-header-title {
+  @apply text-lg sm:text-xl lg:text-2xl font-black tracking-tight truncate mb-1;
+}
+
+/* Barra de ações: 2 colunas iguais no mobile, lado a lado no desktop */
+.caixa-actions {
+  @apply grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-3;
+}
+
+/* Base compartilhada */
+.caixa-btn-pausar,
+.caixa-btn-sobre {
+  @apply inline-flex items-center justify-center gap-2
+         px-2 sm:px-5 py-2.5
+         rounded-lg
+         font-bold text-sm
+         ring-1 ring-white/20
+         shadow-md shadow-black/10
+         transition-all
+         active:scale-95
+         disabled:opacity-50
+         touch-manipulation select-none
+         min-h-[48px];
+}
+
+.caixa-btn-icon {
+  @apply w-5 h-5 flex-shrink-0;
+}
+
+.caixa-btn-label {
+  @apply truncate;
+}
+
+/* Cores */
+.caixa-btn-sobre,
+.caixa-btn-pausar-inativo {
+  @apply bg-primary-800 text-white hover:bg-primary-900;
+}
+
+.caixa-btn-pausar-ativo {
+  @apply bg-warning text-white ring-warning hover:bg-amber-600;
+}
+
+/* Botão ocultar/mostrar valores (mesmo padrão visual) */
+.fin-controle-btn {
+  @apply inline-flex items-center justify-center gap-2
+         px-4 py-2.5
+         rounded-lg
+         text-sm font-bold
+         bg-white text-gray-700
+         ring-1 ring-gray-200
+         shadow-sm
+         hover:bg-gray-50
+         transition-all
+         active:scale-95
+         touch-manipulation select-none
+         min-h-[48px];
+}
+
+.fin-controle-btn-ativo {
+  @apply bg-primary-600 text-white ring-primary-600 hover:bg-primary-700;
+}

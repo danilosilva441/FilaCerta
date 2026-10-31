@@ -73,27 +73,64 @@
            flex-shrink-0;
 }
 
-/* Linha 2: ações */
+/* Barra de ações: 3 colunas iguais no mobile, lado a lado no desktop */
 .cozinha-actions {
-  @apply flex items-center gap-2 flex-wrap;
+  @apply grid grid-cols-3 gap-2 sm:flex sm:items-center sm:gap-3;
 }
 
 /* ============================================================
      BOTÕES DO HEADER (Som + QR Code)
      ============================================================ */
 
-/* Base compartilhada para os dois botões */
+/* Base compartilhada pelos 3 botões */
 .cozinha-btn-som,
-.cozinha-btn-qr {
+.cozinha-btn-qr,
+.cozinha-btn-sobre {
   @apply inline-flex items-center justify-center gap-2
-           px-3 sm:px-4 py-3
-           rounded-lg
-           font-bold text-sm
-           transition-all
-           active:scale-95
-           touch-manipulation select-none
-           min-h-[48px]
-           ring-1;
+         px-2 sm:px-5 py-2.5
+         rounded-lg
+         font-bold text-sm
+         ring-1 ring-white/20
+         shadow-md shadow-black/10
+         transition-all
+         active:scale-95
+         touch-manipulation select-none
+         min-h-[48px];
+}
+
+.cozinha-btn-icon {
+  @apply w-5 h-5 flex-shrink-0;
+}
+
+.cozinha-btn-label {
+  @apply truncate;
+}
+
+/* Cores */
+.cozinha-btn-qr,
+.cozinha-btn-sobre,
+.cozinha-btn-som-inativo {
+  @apply bg-primary-800 text-white hover:bg-primary-900;
+}
+
+/* Som ligado: destaque branco */
+.cozinha-btn-som-ativo {
+  @apply bg-white text-primary-700 ring-white/30 hover:bg-primary-50;
+}
+
+/* Linha de cada item (botão principal + lixeira) */
+.cozinha-item-row {
+  @apply flex items-stretch gap-2 w-full;
+}
+
+.cozinha-item-excluir {
+  @apply flex-shrink-0 flex items-center justify-center
+         w-12 rounded-lg
+         bg-white border border-gray-200
+         text-danger
+         hover:bg-danger-light hover:border-danger/40
+         transition-all active:scale-95
+         touch-manipulation select-none;
 }
 
 /* ATIVO (som ligado) — branco destacado */

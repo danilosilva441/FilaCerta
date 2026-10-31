@@ -1,20 +1,20 @@
 /* ============================================================
    CARDAPIO.CSS — Cardápio + Carrinho (wizard 2 etapas)
-   Padrão: paleta semântica, mobile-first, safe-areas
+   Mobile-first, safe-areas, paleta semântica
    ============================================================ */
 
 /* ============================================================
-     PÁGINA
-     ============================================================ */
+   1. PÁGINA
+   ============================================================ */
 .cardapio-page {
   @apply min-h-dvh bg-gray-50 font-sans antialiased;
+  /* Espaço para a barra do carrinho + safe-area */
   padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px));
-  padding-top: env(safe-area-inset-top, 0px);
 }
 
 /* ============================================================
-     HEADER
-     ============================================================ */
+   2. HEADER
+   ============================================================ */
 .cardapio-header {
   @apply bg-primary-600 text-white
          px-4 py-3
@@ -24,7 +24,8 @@
 }
 
 .cardapio-header-inner {
-  @apply flex justify-between items-center max-w-2xl mx-auto;
+  @apply flex justify-between items-center gap-2
+         max-w-2xl mx-auto;
 }
 
 .cardapio-header-brand {
@@ -43,6 +44,20 @@
   @apply text-lg sm:text-xl font-black tracking-tight truncate;
 }
 
+.cardapio-header-actions {
+  @apply flex items-center gap-2 flex-shrink-0;
+}
+
+.cardapio-header-sobre {
+  @apply inline-flex items-center justify-center gap-1.5
+         min-h-[44px] px-3 rounded-lg
+         text-xs font-bold text-gray-600
+         bg-white ring-1 ring-gray-200 shadow-sm
+         hover:text-primary-700 hover:bg-primary-50
+         active:scale-95 transition-all
+         touch-manipulation select-none;
+}
+
 .cardapio-header-status {
   @apply text-xs sm:text-sm
          text-primary-100 font-medium
@@ -56,11 +71,44 @@
 }
 
 /* ============================================================
-     CATEGORIAS
-     ============================================================ */
+   3. BUSCA
+   ============================================================ */
+.busca-wrap {
+  @apply relative mb-3 px-4
+         max-w-2xl mx-auto;
+}
+
+.busca-icon {
+  @apply absolute left-7 top-1/2 -translate-y-1/2
+         w-5 h-5 text-gray-400 pointer-events-none;
+}
+
+.busca-input {
+  @apply w-full min-h-[48px] pl-11 pr-12
+         bg-white rounded-xl
+         ring-1 ring-gray-200 shadow-sm
+         text-base text-gray-800 placeholder:text-gray-400
+         focus:outline-none focus:ring-2 focus:ring-primary-500
+         transition-all;
+  font-size: 16px;
+}
+
+.busca-limpar {
+  @apply absolute right-5 top-1/2 -translate-y-1/2
+         w-10 h-10 rounded-full
+         flex items-center justify-center
+         text-gray-500 hover:bg-gray-100
+         active:scale-90 transition-all
+         touch-manipulation;
+}
+
+/* ============================================================
+   4. CATEGORIAS
+   ============================================================ */
 .cardapio-categorias {
   @apply bg-white shadow-sm mb-4 sticky z-10;
-  top: calc(env(safe-area-inset-top, 0px) + 3.25rem);
+  /* Altura do header = max(0.75rem, safe-top) + 2.75rem */
+  top: calc(max(0.75rem, env(safe-area-inset-top, 0px)) + 2.75rem);
 }
 
 .cardapio-categorias-scroll {
@@ -68,7 +116,8 @@
          px-4 py-3
          overflow-x-auto
          snap-x snap-mandatory
-         overscroll-x-contain;
+         overscroll-x-contain
+         max-w-2xl mx-auto;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -94,8 +143,8 @@
 }
 
 /* ============================================================
-     MAIN
-     ============================================================ */
+   5. MAIN + ESTADOS
+   ============================================================ */
 .cardapio-main {
   @apply px-3 sm:px-4 pb-4
          max-w-2xl mx-auto
@@ -114,9 +163,34 @@
   @apply text-sm mt-1;
 }
 
+.cardapio-empty-btn {
+  @apply mt-4 inline-flex items-center justify-center
+         min-h-[44px] px-5 rounded-xl
+         bg-white text-primary-700
+         ring-1 ring-primary-200 shadow-sm
+         text-sm font-bold
+         hover:bg-primary-50 active:scale-95
+         transition-all touch-manipulation;
+}
+
+/* -------- Skeleton -------- */
+.produto-skeleton-lista {
+  @apply space-y-3;
+}
+
+.produto-skeleton {
+  @apply flex items-center gap-4 p-4
+         bg-white rounded-xl ring-1 ring-gray-100
+         animate-pulse;
+}
+
+.skeleton-linha {
+  @apply bg-gray-200 rounded-md;
+}
+
 /* ============================================================
-     CARD DE PRODUTO
-     ============================================================ */
+   6. CARD DE PRODUTO
+   ============================================================ */
 .produto-card {
   @apply bg-white
          p-3 sm:p-4
@@ -186,80 +260,94 @@
          inline-flex items-center gap-1;
 }
 
+/* -------- Controles (botão + / stepper) -------- */
 .produto-controles {
-  @apply flex flex-col items-center gap-1.5
-         bg-gray-50
-         p-1.5 sm:p-2
-         rounded-lg
-         border border-gray-100
-         min-w-[3.5rem] sm:min-w-[4rem]
-         flex-shrink-0;
-}
-
-.produto-btn-add,
-.produto-btn-remove {
-  @apply w-9 h-9 sm:w-10 sm:h-10
-         rounded-full
-         transition-all
-         touch-manipulation select-none
-         flex items-center justify-center
-         active:scale-90;
+  @apply flex-shrink-0 flex items-center justify-end;
 }
 
 .produto-btn-add {
-  @apply bg-primary-600 text-white
+  @apply w-11 h-11 rounded-full
+         bg-primary-600 text-white
+         shadow-md shadow-primary-600/25
+         flex items-center justify-center
+         transition-all active:scale-90
+         touch-manipulation select-none
          hover:bg-primary-700
-         shadow-sm shadow-primary-600/20
          disabled:bg-gray-300 disabled:cursor-not-allowed disabled:shadow-none;
 }
 
+.produto-btn-add-sm {
+  @apply w-9 h-9 shadow-none;
+}
+
+.produto-stepper {
+  @apply inline-flex items-center gap-1
+         h-11 p-1
+         bg-primary-50 ring-1 ring-primary-100
+         rounded-full;
+  animation: popIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 .produto-btn-remove {
-  @apply bg-gray-200 text-gray-600 hover:bg-gray-300;
+  @apply w-9 h-9 rounded-full
+         bg-white text-primary-700
+         ring-1 ring-primary-100
+         flex items-center justify-center
+         transition-all active:scale-90
+         touch-manipulation select-none
+         hover:bg-gray-50;
 }
 
 .produto-qtd-num {
-  @apply font-bold text-gray-800 text-sm sm:text-base tabular-nums;
+  @apply min-w-[1.5rem] text-center
+         font-black text-primary-700 text-base tabular-nums;
 }
 
 /* ============================================================
-     FAB DO CARRINHO
-     ============================================================ */
-.carrinho-fab {
-  @apply fixed right-4 z-30
-         w-16 h-16
-         rounded-full
+   7. BARRA INFERIOR DO CARRINHO
+   ============================================================ */
+.carrinho-bar {
+  @apply fixed inset-x-0 z-30 px-4 pointer-events-none;
+  bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Navbar do dono visível: sobe 64px */
+.carrinho-bar-com-navbar {
+  bottom: calc(64px + 0.75rem + env(safe-area-inset-bottom, 0px));
+}
+
+.carrinho-bar-btn {
+  @apply pointer-events-auto
+         w-full max-w-2xl mx-auto
+         min-h-[56px] px-4
+         flex items-center gap-3
          bg-primary-600 text-white
-         flex items-center justify-center
-         shadow-2xl shadow-primary-600/30
+         rounded-2xl
+         shadow-xl shadow-primary-600/30
          hover:bg-primary-700
-         active:scale-95
+         active:scale-[0.98]
          transition-all
          touch-manipulation select-none;
-
-  /* Padrão: colado no fundo da tela */
-  bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+  animation: barUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Variante: quando a navbar está visível, sobe para não colidir */
-.carrinho-fab-com-navbar {
-  /* 64px (altura da navbar) + 1.5rem de respiro + safe-area */
-  bottom: calc(64px + 1.5rem + env(safe-area-inset-bottom, 0px));
-}
-
-.carrinho-fab-badge {
-  @apply absolute -top-1 -right-1
-         bg-danger text-white
-         text-xs font-black
-         w-7 h-7
-         rounded-full
+.carrinho-bar-count {
+  @apply w-7 h-7 rounded-full bg-white/20
          flex items-center justify-center
-         border-2 border-white
-         shadow-sm;
+         text-sm font-black tabular-nums;
+}
+
+.carrinho-bar-label {
+  @apply flex-1 text-left font-bold text-base;
+}
+
+.carrinho-bar-total {
+  @apply font-black text-base tabular-nums;
 }
 
 /* ============================================================
-     MODAL DO CARRINHO — WIZARD
-     ============================================================ */
+   8. MODAL DO CARRINHO
+   ============================================================ */
 .carrinho-backdrop {
   @apply fixed inset-0 z-50
          flex items-end sm:items-center justify-center
@@ -273,6 +361,7 @@
          rounded-t-3xl sm:rounded-2xl
          shadow-2xl
          flex flex-col
+         overflow-hidden
          overscroll-contain;
   max-height: 92dvh;
   animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -281,7 +370,8 @@
 .carrinho-header {
   @apply p-4 sm:p-5
          flex justify-between items-center gap-3
-         border-b border-gray-100;
+         border-b border-gray-100
+         flex-shrink-0;
 }
 
 .carrinho-header-title {
@@ -330,7 +420,7 @@
 .carrinho-body {
   @apply p-4 sm:p-5
          overflow-y-auto overscroll-contain
-         flex-1;
+         flex-1 min-h-0;
 }
 
 .carrinho-etapa {
@@ -338,9 +428,7 @@
   animation: fadeSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ============================================================
-     ETAPA 1 — ITENS
-     ============================================================ */
+/* -------- Etapa 1: itens -------- */
 .carrinho-itens {
   @apply space-y-3;
 }
@@ -406,7 +494,6 @@
 .carrinho-obs-input {
   @apply w-full
          px-3 py-2
-         text-xs md:text-sm
          bg-gray-50
          border border-gray-200
          rounded-lg
@@ -435,9 +522,7 @@
          text-primary-600 tabular-nums;
 }
 
-/* ============================================================
-     ETAPA 2 — IDENTIFICAÇÃO
-     ============================================================ */
+/* -------- Etapa 2: identificação -------- */
 .carrinho-resumo {
   @apply flex justify-between items-center
          bg-primary-50
@@ -575,14 +660,12 @@
   @apply bg-success text-white shadow;
 }
 
-/* ============================================================
-     FOOTER DO MODAL
-     ============================================================ */
+/* -------- Footer do modal -------- */
 .carrinho-footer {
   @apply p-4 sm:p-5
          border-t border-gray-100
          bg-gray-50
-         rounded-b-2xl;
+         flex-shrink-0;
   padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
 }
 
@@ -623,7 +706,7 @@
 }
 
 /* ============================================================
-   ANIMAÇÕES LOCAIS
+   9. ANIMAÇÕES
    ============================================================ */
 @keyframes fadeSlide {
   from {
@@ -636,34 +719,24 @@
   }
 }
 
-/* ============================================================
-   HEADER — Ações (Sobre + Status)
-   ============================================================ */
-.cardapio-header-actions {
-  @apply flex items-center gap-2 flex-shrink-0;
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
-/* Link "Sobre nós" */
-.cardapio-header-sobre {
-  @apply inline-flex items-center gap-1.5
-         text-xs sm:text-sm font-bold
-         text-primary-100
-         hover:text-white
-         hover:bg-white/15
-         transition-colors
-         px-2.5 py-2
-         rounded-lg
-         touch-manipulation select-none
-         active:scale-95;
-}
-
-.cardapio-header-sobre-label {
-  @apply hidden xs:inline;
-}
-
-/* Esconde o label em telas muito pequenas (só o ícone) */
-@media (max-width: 400px) {
-  .cardapio-header-sobre-label {
-    display: none;
+@keyframes barUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

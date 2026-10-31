@@ -104,35 +104,33 @@
             </a>
           </li>
 
-<!-- Ajustes (dropdown) -->
-<li class="bottom-nav-item bottom-nav-item-dropdown">
-  <button
-    type="button"
-    (click)="toggleMenu()"
-    [class.bottom-nav-active]="menuAberto()"
-    class="bottom-nav-link"
-    aria-label="Menu de Configurações"
-    [attr.aria-expanded]="menuAberto()"
-    aria-haspopup="menu"
-  >
-    <!-- Ícone: 3 barrinhas verticais (kebab menu) -->
-<svg
-  class="bottom-nav-icon"
-  viewBox="0 0 283.426 283.426"
-  fill="currentColor"
-  aria-hidden="true"
->
-  <rect x="0" y="40.84" width="283.426" height="47.735"></rect>
-  <rect x="0" y="117.282" width="283.426" height="47.735"></rect>
-  <rect x="0" y="194.851" width="283.426" height="47.735"></rect>
-</svg>
-    <span class="bottom-nav-label">Mais</span>
-  </button>
+          <!-- Ajustes (dropdown) -->
+          <li class="bottom-nav-item bottom-nav-item-dropdown">
+            <button
+              type="button"
+              (click)="toggleMenu()"
+              [class.bottom-nav-active]="menuAberto()"
+              class="bottom-nav-link"
+              aria-label="Menu de Configurações"
+              [attr.aria-expanded]="menuAberto()"
+              aria-haspopup="menu"
+            >
+              <!-- Ícone: 3 barrinhas verticais (kebab menu) -->
+              <svg
+                class="bottom-nav-icon"
+                viewBox="0 0 283.426 283.426"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <rect x="0" y="40.84" width="283.426" height="47.735"></rect>
+                <rect x="0" y="117.282" width="283.426" height="47.735"></rect>
+                <rect x="0" y="194.851" width="283.426" height="47.735"></rect>
+              </svg>
+              <span class="bottom-nav-label">Mais</span>
+            </button>
 
             <!-- Dropdown -->
             @if (menuAberto()) {
-              <div class="dropdown-overlay" (click)="fecharMenu()"></div>
-
               <div class="dropdown-menu" role="menu">
                 <!-- Estoque -->
                 <a

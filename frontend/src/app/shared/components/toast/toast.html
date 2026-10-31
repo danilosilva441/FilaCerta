@@ -6,6 +6,7 @@
   @for (item of toasts; track item.id) {
     <div
       class="toast"
+      (click)="item.textoAcao ? null : removerToast(item.id)"
       [ngClass]="{
         'toast-sucesso': item.tipo === 'sucesso',
         'toast-erro': item.tipo === 'erro',
@@ -13,6 +14,7 @@
         'toast-info': item.tipo === 'info',
         'toast-entrando': !item.saindo,
         'toast-saindo': item.saindo,
+        'toast-compacto': (item.tipo === 'sucesso' || item.tipo === 'info') && !item.textoAcao,
       }"
       [attr.role]="item.tipo === 'erro' ? 'alert' : 'status'"
       [attr.aria-live]="item.tipo === 'erro' ? 'assertive' : 'polite'"

@@ -4,14 +4,15 @@
    ============================================================ */
 
 /* ------------------------------------------------------------
-     BACKDROP — Fundo escuro com blur
-     ------------------------------------------------------------ */
+   1. BACKDROP — Fundo escuro com blur
+   ------------------------------------------------------------ */
 .modal-backdrop {
   @apply fixed inset-0 z-50
-         flex items-center justify-center
+         flex
          bg-black/60 backdrop-blur-sm
+         overflow-y-auto overscroll-contain
          p-4
-         overflow-y-auto;
+         transition-opacity duration-200;
 
   padding-top: max(1rem, env(safe-area-inset-top, 0px));
   padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
@@ -26,17 +27,16 @@
 }
 
 /* ------------------------------------------------------------
-     CARD BASE
-     ------------------------------------------------------------ */
+   2. CARD BASE
+   ------------------------------------------------------------ */
 .modal-card {
-  @apply bg-white rounded-2xl shadow-2xl
-         w-full max-w-sm
+  @apply w-full max-w-md
+         m-auto
+         bg-white rounded-2xl shadow-2xl
          overflow-hidden
-         transition-all duration-200;
-}
-
-.modal-card-alert {
-  @apply max-w-md;
+         flex flex-col
+         max-h-[85dvh]
+         transition duration-200 ease-out;
 }
 
 .modal-card-visivel {
@@ -48,19 +48,20 @@
 }
 
 /* ------------------------------------------------------------
-     BODY — Padding interno
-     ------------------------------------------------------------ */
+   3. BODY — Padding interno + scroll próprio
+   ------------------------------------------------------------ */
 .modal-body {
-  @apply p-5 sm:p-6;
+  @apply p-5 sm:p-6
+         overflow-y-auto overscroll-contain;
 }
 
 /* ------------------------------------------------------------
-     ÍCONE CIRCULAR
-     ------------------------------------------------------------ */
+   4. ÍCONE CIRCULAR
+   ------------------------------------------------------------ */
 .modal-icon {
   @apply w-12 h-12 rounded-full
          flex items-center justify-center
-         mb-4;
+         mb-4 flex-shrink-0;
 }
 
 .modal-icon-aviso {
@@ -77,72 +78,80 @@
 }
 
 /* ------------------------------------------------------------
-     TÍTULO / MENSAGEM
-     ------------------------------------------------------------ */
+   5. TÍTULO / MENSAGEM
+   ------------------------------------------------------------ */
 .modal-title {
-  @apply text-lg font-black text-gray-900 mb-2;
-}
-
-.modal-title-alert {
-  @apply sm:text-xl pr-6;
+  @apply text-lg sm:text-xl font-black text-gray-900
+         mb-2 text-balance;
 }
 
 .modal-message {
   @apply text-sm sm:text-base
          text-gray-600 font-medium
-         break-words leading-relaxed;
+         leading-relaxed
+         whitespace-pre-line break-words;
 }
 
 /* ------------------------------------------------------------
-     AÇÕES
-     ------------------------------------------------------------ */
+   6. AÇÕES — barra fixa no rodapé do card
+   ------------------------------------------------------------ */
 .modal-actions {
-  @apply flex gap-2 sm:gap-3;
-}
-
-.modal-actions-alert {
-  @apply flex-col-reverse sm:flex-row
-         justify-end
+  @apply flex flex-col-reverse sm:flex-row
+         gap-2 sm:gap-3
+         sm:justify-end
          bg-gray-50
          px-5 sm:px-6 py-4
-         border-t border-gray-100;
+         flex-shrink-0;
 }
 
 /* ------------------------------------------------------------
-     BOTÕES
-     ------------------------------------------------------------ */
+   7. BOTÕES
+   ------------------------------------------------------------ */
 .modal-btn-cancel {
   @apply w-full sm:w-auto
-         px-5 py-3 sm:py-2.5
-         rounded-lg
-         font-bold text-gray-600
-         hover:bg-gray-200
+         min-h-[48px] px-5 py-3
+         rounded-xl
+         font-bold text-sm text-gray-700
+         bg-white ring-1 ring-gray-200
+         hover:bg-gray-100
          active:scale-95
-         transition-all
+         transition
          touch-manipulation select-none
-         min-h-[48px]
-         focus:outline-none focus:ring-2 focus:ring-gray-400;
+         focus-visible:outline-none
+         focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2;
 }
 
 .modal-btn-confirm {
   @apply w-full sm:w-auto
-         px-5 py-3 sm:py-2.5
-         rounded-lg
-         font-bold text-white
+         min-h-[48px] px-5 py-3
+         rounded-xl
+         font-bold text-sm text-white
          shadow-md
          active:scale-95
-         transition-all
+         transition
          touch-manipulation select-none
-         min-h-[48px]
-         focus:outline-none focus:ring-2 focus:ring-offset-2;
+         focus-visible:outline-none
+         focus-visible:ring-2 focus-visible:ring-offset-2;
 }
 
 .modal-btn-primary {
   @apply bg-primary-600 hover:bg-primary-700
-         focus:ring-primary-400;
+         focus-visible:ring-primary-500;
 }
 
 .modal-btn-perigo {
-  @apply bg-danger hover:bg-red-700
-         focus:ring-red-400;
+  @apply bg-danger hover:bg-danger/90
+         focus-visible:ring-danger;
+}
+
+/* ------------------------------------------------------------
+   8. MOVIMENTO REDUZIDO
+   ------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  .modal-backdrop,
+  .modal-card,
+  .modal-btn-cancel,
+  .modal-btn-confirm {
+    transition: none;
+  }
 }

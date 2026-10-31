@@ -4,42 +4,42 @@
    ============================================================ */
 
 /* ------------------------------------------------------------
-     PÁGINA — Container principal
-     ------------------------------------------------------------ */
+   1. PÁGINA
+   ------------------------------------------------------------ */
 .login-page {
   @apply min-h-dvh bg-gradient-to-br from-primary-50 via-gray-50 to-primary-100
-           flex items-center justify-center
-           p-4 font-sans;
-
-  /* Safe-areas mobile (notch e home indicator) */
-  padding-top: max(1rem, env(safe-area-inset-top, 0px));
-  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+         flex font-sans antialiased;
+  padding: max(1rem, env(safe-area-inset-top, 0px)) 1rem max(1rem, env(safe-area-inset-bottom, 0px));
 }
 
 /* ------------------------------------------------------------
-     CARD PRINCIPAL
-     ------------------------------------------------------------ */
+   2. CARD PRINCIPAL
+   ------------------------------------------------------------ */
 .login-card {
-  @apply w-full max-w-sm bg-white p-7 sm:p-8 rounded-3xl
-           shadow-card-hover border border-gray-200/80
-           animate-fade-in;
+  @apply w-full max-w-sm
+         bg-white p-7 sm:p-8
+         rounded-3xl
+         shadow-card-hover
+         border border-gray-200/80
+         m-auto;
+  animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ------------------------------------------------------------
-     HEADER — Logo + título + subtítulo
-     ------------------------------------------------------------ */
+   3. HEADER — Logo + título + subtítulo
+   ------------------------------------------------------------ */
 .login-header {
   @apply text-center mb-7;
 }
 
 .login-logo {
   @apply w-20 h-20 rounded-2xl
-           bg-gradient-to-br from-primary-500 to-primary-700
-           flex items-center justify-center mx-auto mb-4
-           shadow-lg shadow-primary-500/30
-           text-white
-           ring-4 ring-white
-           animate-bounce-in;
+         bg-gradient-to-br from-primary-500 to-primary-700
+         flex items-center justify-center mx-auto mb-4
+         shadow-lg shadow-primary-500/30
+         text-white
+         ring-4 ring-white;
+  animation: bounceIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .login-title {
@@ -51,20 +51,20 @@
 }
 
 /* ------------------------------------------------------------
-     ERRO — Mensagem com shake animation
-     ------------------------------------------------------------ */
+   4. ERRO
+   ------------------------------------------------------------ */
 .login-error {
   @apply flex items-center gap-2
-           bg-danger-light text-danger
-           p-3 rounded-xl text-sm font-semibold
-           border border-red-200
-           mb-5
-           animate-shake;
+         bg-danger-light text-danger
+         p-3 rounded-xl text-sm font-semibold
+         border border-danger/20
+         mb-5;
+  animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
 }
 
 /* ------------------------------------------------------------
-     FORMULÁRIO
-     ------------------------------------------------------------ */
+   5. FORMULÁRIO
+   ------------------------------------------------------------ */
 .login-form {
   @apply space-y-5;
 }
@@ -83,112 +83,139 @@
 
 .input-icon {
   @apply absolute left-3.5 text-gray-400 pointer-events-none
-           flex items-center justify-center transition-colors;
+         flex items-center justify-center
+         transition-colors;
 }
 
 /* Input principal */
 .form-input {
   @apply w-full pl-11 pr-4 py-3.5
-           bg-gray-50 border border-gray-300 rounded-xl
-           font-medium text-gray-900
-           placeholder:text-gray-400
-           focus:bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500
-           transition-all duration-200 outline-none;
-
+         bg-gray-50 border border-gray-300 rounded-xl
+         font-medium text-gray-900
+         placeholder:text-gray-400
+         focus:bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+         transition-all duration-200 outline-none;
   /* Evita zoom automático no iOS */
   font-size: 16px;
 }
 
-/* Ícone fica vermelho quando o input está focado */
+/* Reserva espaço à direita para o botão do olhinho */
+.form-input-with-action {
+  @apply pr-11;
+}
+
+/* Ícone ganha destaque quando o input está em foco */
 .input-wrapper:focus-within .input-icon {
   @apply text-primary-600;
 }
 
 /* ------------------------------------------------------------
-     BOTÃO LOGIN
-     ------------------------------------------------------------ */
+   6. BOTÃO LOGIN
+   ------------------------------------------------------------ */
 .btn-login {
-  @apply w-full mt-4 py-4 px-6
-           bg-primary-600 text-white rounded-xl
-           font-black text-base tracking-wide uppercase
-           shadow-lg shadow-primary-600/25
-           hover:bg-primary-700 active:scale-[0.98]
-           disabled:opacity-70 disabled:cursor-not-allowed
-           transition-all duration-200
-           flex justify-center items-center gap-2
-           min-h-[56px]
-           touch-manipulation;
+  @apply w-full py-4 px-6
+         bg-primary-600 text-white rounded-xl
+         font-black text-base tracking-wide uppercase
+         shadow-lg shadow-primary-600/25
+         hover:bg-primary-700 active:scale-[0.98]
+         disabled:opacity-70 disabled:cursor-not-allowed
+         transition-all duration-200
+         flex justify-center items-center gap-2
+         min-h-[56px]
+         touch-manipulation select-none;
 }
 
 /* ------------------------------------------------------------
-     FOOTER — Link "Voltar para a loja"
-     ------------------------------------------------------------ */
+   7. FOOTER — Link "Voltar para a loja"
+   ------------------------------------------------------------ */
 .login-footer {
   @apply mt-6 text-center;
 }
 
 .link-back {
   @apply inline-flex items-center gap-1.5
-           text-sm font-bold text-gray-400
-           hover:text-primary-600 transition-colors
-           px-3 py-2 rounded-lg
-           active:scale-95
-           touch-manipulation;
+         min-h-[44px] px-3
+         text-sm font-bold text-gray-400
+         hover:text-primary-600 hover:bg-gray-50
+         rounded-lg
+         transition-colors
+         active:scale-95
+         touch-manipulation select-none;
 }
 
 /* ------------------------------------------------------------
-   INPUT DE SENHA COM AÇÃO (olhinho discreto)
+   8. BOTÃO DO OLHINHO (senha)
    ------------------------------------------------------------ */
-
-/* Reserva espaço à direita para o botão */
-.form-input-with-action {
-  padding-right: 2.75rem;
-}
-
-/* Botão do olhinho — integrado ao input, sem borda, discreto */
 .input-action {
-  position: absolute;
-  right: 0.5rem;
-  top: 50%;
-  transform: translateY(-50%);
-
-  width: 2rem;
-  height: 2rem;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  color: #9ca3af; /* gray-400 — discreto */
-  background: transparent;
-  border: none;
-  border-radius: 0.5rem;
-
-  cursor: pointer;
-  transition:
-    color 0.2s,
-    background-color 0.2s,
-    transform 0.15s;
+  @apply absolute right-2 top-1/2 -translate-y-1/2
+         w-8 h-8
+         flex items-center justify-center
+         rounded-lg
+         text-gray-400
+         bg-transparent
+         transition-colors
+         touch-manipulation
+         hover:text-primary-600
+         active:scale-90
+         focus-visible:outline-none
+         focus-visible:ring-2 focus-visible:ring-primary-500;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Hover: só intensifica a cor (sem fundo pesado) */
-.input-action:hover {
-  color: #dc2626; /* primary-600 */
-}
-
-/* Press: leve feedback de escala */
-.input-action:active {
-  transform: translateY(-50%) scale(0.9);
-}
-
-/* Focus visível (para navegação por teclado via mouse) */
-.input-action:focus-visible {
-  outline: 2px solid #dc2626;
-  outline-offset: 2px;
-}
-
-/* Quando o input está em foco, o olhinho ganha destaque sutil */
+/* Quando o input está em foco, o olhinho fica mais visível */
 .input-wrapper:focus-within .input-action {
-  color: #6b7280; /* gray-500 — mais visível que o padrão */
+  @apply text-gray-500;
+}
+
+/* ------------------------------------------------------------
+   9. ANIMAÇÕES
+   ------------------------------------------------------------ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounceIn {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(6px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+/* Respeita quem pediu menos movimento no sistema */
+@media (prefers-reduced-motion: reduce) {
+  .login-card,
+  .login-logo,
+  .login-error {
+    animation: none;
+  }
 }

@@ -4,22 +4,46 @@
    ============================================================ */
 
 /* ------------------------------------------------------------
-     PÁGINA — Container principal
-     ------------------------------------------------------------ */
+   1. PÁGINA
+   ------------------------------------------------------------ */
 .home-page {
   @apply min-h-dvh bg-gray-100
-           flex flex-col items-center justify-center
-           px-4 py-6
-           font-sans relative antialiased;
+         flex flex-col
+         font-sans antialiased;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
 
-  /* Safe-areas mobile (notch e home indicator) */
-  padding-top: max(1.5rem, env(safe-area-inset-top, 0px));
-  padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+/* Área central: ocupa o resto da tela e centraliza o conteúdo */
+.home-content {
+  @apply flex-1 w-full
+         flex flex-col items-center justify-center
+         px-4 py-6;
 }
 
 /* ------------------------------------------------------------
-     HEADER — Logo + título + slogan
-     ------------------------------------------------------------ */
+   2. BARRA SUPERIOR
+   ------------------------------------------------------------ */
+.home-top-header {
+  @apply flex items-center justify-end
+         w-full max-w-2xl mx-auto
+         px-4 py-3
+         flex-shrink-0;
+}
+
+.home-top-header-link {
+  @apply inline-flex items-center gap-1.5
+         min-h-[44px] px-3 rounded-lg
+         text-sm font-bold text-primary-600
+         hover:text-primary-700 hover:bg-primary-50
+         active:scale-95
+         transition-colors
+         touch-manipulation select-none;
+}
+
+/* ------------------------------------------------------------
+   3. HEADER — Logo + título + slogan
+   ------------------------------------------------------------ */
 .home-header {
   @apply text-center mb-8 sm:mb-10;
   animation: slideDown 0.5s cubic-bezier(0.16, 1, 0.3, 1);
@@ -27,13 +51,13 @@
 
 .home-logo {
   @apply w-20 h-20 sm:w-28 sm:h-28
-           bg-gradient-to-br from-primary-500 to-primary-700
-           rounded-full
-           flex items-center justify-center mx-auto mb-4
-           shadow-xl shadow-primary-500/25
-           border-4 border-white
-           text-white
-           ring-2 ring-primary-500/20;
+         bg-gradient-to-br from-primary-500 to-primary-700
+         rounded-full
+         flex items-center justify-center mx-auto mb-4
+         shadow-xl shadow-primary-500/25
+         border-4 border-white
+         text-white
+         ring-2 ring-primary-500/20;
 }
 
 .home-title {
@@ -45,22 +69,20 @@
 }
 
 /* ------------------------------------------------------------
-     MAIN — Container do card de status
-     ------------------------------------------------------------ */
+   4. MAIN — Container do card de status
+   ------------------------------------------------------------ */
 .home-main {
   @apply w-full max-w-sm transition-all duration-300;
 }
 
 /* ------------------------------------------------------------
-     CARD BASE — Todos os estados
-     ------------------------------------------------------------ */
+   5. CARD BASE — Todos os estados
+   ------------------------------------------------------------ */
 .home-card {
   @apply bg-white p-6 rounded-2xl shadow-xl
-           border-t-8 text-center
-           transition-transform duration-200
-           animate-fade-in;
-
-  /* Borda superior colorida por variante (definida abaixo) */
+         border-t-8 text-center
+         transition-transform duration-200;
+  animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Hover apenas em dispositivos com mouse (não trava no touch) */
@@ -71,8 +93,8 @@
 }
 
 /* ------------------------------------------------------------
-     VARIANTES DO CARD
-     ------------------------------------------------------------ */
+   6. VARIANTES DO CARD
+   ------------------------------------------------------------ */
 .home-card-loading {
   @apply flex flex-col items-center text-gray-500 shadow-md border-t-0;
 }
@@ -90,8 +112,8 @@
 }
 
 /* ------------------------------------------------------------
-     TÍTULOS E TEXTOS
-     ------------------------------------------------------------ */
+   7. TÍTULOS E TEXTOS
+   ------------------------------------------------------------ */
 .home-card-title {
   @apply text-2xl font-bold text-gray-800 mb-2;
 }
@@ -105,15 +127,15 @@
 }
 
 /* ------------------------------------------------------------
-     BADGE DE STATUS (ESTAMOS ABERTOS, FECHADOS, etc.)
-     ------------------------------------------------------------ */
+   8. BADGE DE STATUS
+   ------------------------------------------------------------ */
 .home-badge {
   @apply inline-flex items-center gap-1.5
-           px-4 py-1.5
-           rounded-full
-           text-sm font-black
-           mb-4
-           tracking-wider;
+         px-4 py-1.5
+         rounded-full
+         text-sm font-black
+         mb-4
+         tracking-wider;
 }
 
 .home-badge-dot {
@@ -122,7 +144,7 @@
 
 /* Dot com pulso (usado no estado "aberto") */
 .home-badge-dot-pulse {
-  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: pulseDot 1.5s ease-in-out infinite;
 }
 
 /* Variantes de cor do badge */
@@ -148,45 +170,45 @@
 }
 
 /* ------------------------------------------------------------
-     BOTÕES
-     ------------------------------------------------------------ */
+   9. BOTÕES
+   ------------------------------------------------------------ */
 .home-btn {
   @apply w-full
-           py-4
-           rounded-xl
-           font-black text-lg
-           transition-all duration-200
-           text-center
-           touch-manipulation select-none
-           min-h-[56px]
-           flex items-center justify-center gap-2;
+         py-4
+         rounded-xl
+         font-black text-lg
+         transition-all duration-200
+         text-center
+         touch-manipulation select-none
+         min-h-[56px]
+         flex items-center justify-center gap-2;
 }
 
 .home-btn-primary {
   @apply bg-primary-600 text-white
-           shadow-md shadow-primary-600/25
-           hover:bg-primary-700
-           active:scale-95;
+         shadow-md shadow-primary-600/25
+         hover:bg-primary-700
+         active:scale-95;
 }
 
 .home-btn-disabled {
   @apply bg-gray-300 text-gray-500
-           shadow-inner
-           cursor-not-allowed;
+         shadow-inner
+         cursor-not-allowed;
 }
 
 /* ------------------------------------------------------------
-     HORÁRIO (estado "fechado")
-     ------------------------------------------------------------ */
+   10. HORÁRIO (estado "fechado")
+   ------------------------------------------------------------ */
 .home-hours {
   @apply bg-gray-50 rounded-xl
-           p-4 text-sm text-gray-700
-           border border-gray-200;
+         p-4 text-sm text-gray-700
+         border border-gray-200;
 }
 
 .home-hours-title {
   @apply font-black text-gray-800 mb-2
-           flex items-center justify-center gap-2;
+         flex items-center justify-center gap-2;
 }
 
 .home-hours-day {
@@ -198,8 +220,8 @@
 }
 
 /* ------------------------------------------------------------
-     ACESSO RESTRITO — Link discreto para login
-     ------------------------------------------------------------ */
+   11. ACESSO RESTRITO — Link discreto para login
+   ------------------------------------------------------------ */
 .home-login-link {
   @apply inline-flex items-center gap-1.5
          mt-8
@@ -213,27 +235,48 @@
          touch-manipulation select-none;
 }
 
-/* ============================================================
-   HEADER SUPERIOR — Home do Cliente
-   ============================================================ */
-.home-top-header {
-  @apply flex justify-between items-center
-         p-4
-         max-w-2xl mx-auto;
+/* ------------------------------------------------------------
+   12. ANIMAÇÕES
+   ------------------------------------------------------------ */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.home-top-header-title {
-  @apply text-xl font-black text-gray-900 tracking-tight;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.home-top-header-link {
-  @apply inline-flex items-center gap-1
-         text-sm font-bold
-         text-primary-600
-         hover:text-primary-700
-         transition-colors
-         px-3 py-2 rounded-lg
-         hover:bg-primary-50
-         touch-manipulation select-none
-         active:scale-95;
+@keyframes pulseDot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.85);
+  }
+}
+
+/* Respeita quem pediu menos movimento no sistema */
+@media (prefers-reduced-motion: reduce) {
+  .home-header,
+  .home-card,
+  .home-badge-dot-pulse {
+    animation: none;
+  }
 }

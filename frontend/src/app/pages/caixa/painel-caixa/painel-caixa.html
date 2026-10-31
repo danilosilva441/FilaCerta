@@ -131,7 +131,7 @@
      HEADER DO PAINEL
      ========================= -->
       <header class="caixa-header">
-        <!-- LINHA 1: ÍCONE + TÍTULO (destaque) -->
+        <!-- LINHA 1: Ícone + título + status -->
         <div class="caixa-header-top">
           <div class="caixa-header-logo" aria-hidden="true">
             <svg
@@ -150,25 +150,26 @@
             </svg>
           </div>
 
-          <h1 class="caixa-header-title">Painel de Gerenciamento</h1>
+          <div class="min-w-0 flex-1">
+            <h1 class="caixa-header-title">Painel de Gerenciamento</h1>
+
+            @if (isPausado()) {
+              <span class="caixa-status caixa-status-pausado">
+                <span class="caixa-status-dot caixa-status-dot-pulse"></span>
+                COZINHA PAUSADA
+              </span>
+            } @else {
+              <span class="caixa-status caixa-status-ativo">
+                <span class="caixa-status-dot"></span>
+                RECEBENDO PEDIDOS
+              </span>
+            }
+          </div>
         </div>
 
-        <!-- LINHA 2: STATUS + AÇÃO (lado a lado) -->
-        <div class="caixa-header-actions">
-          <!-- Badge de status -->
-          @if (isPausado()) {
-            <span class="caixa-status caixa-status-pausado">
-              <span class="caixa-status-dot caixa-status-dot-pulse"></span>
-              COZINHA PAUSADA
-            </span>
-          } @else {
-            <span class="caixa-status caixa-status-ativo">
-              <span class="caixa-status-dot"></span>
-              RECEBENDO PEDIDOS
-            </span>
-          }
-
-          <!-- Botão pausar / retomar -->
+        <!-- LINHA 2: Barra de ações (2 botões iguais) -->
+        <div class="caixa-actions">
+          <!-- PAUSAR / RETOMAR -->
           <button
             type="button"
             (click)="pausarCozinha()"
@@ -184,46 +185,47 @@
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="currentColor"
-                class="w-4 h-4"
+                class="caixa-btn-icon"
                 aria-hidden="true"
               >
                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
               </svg>
-              <span class="hidden xs:inline">Retomar Pedidos</span>
-              <span class="xs:hidden">Retomar</span>
+              <span class="caixa-btn-label">Retomar</span>
             } @else {
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="currentColor"
-                class="w-4 h-4"
+                class="caixa-btn-icon"
                 aria-hidden="true"
               >
                 <rect x="6" y="4" width="4" height="16"></rect>
                 <rect x="14" y="4" width="4" height="16"></rect>
               </svg>
-              <span class="hidden xs:inline">Pausar Cozinha</span>
-              <span class="xs:hidden">Pausar</span>
+              <span class="caixa-btn-label">Pausar</span>
             }
           </button>
-        </div>
 
-        <!-- LINK SOBRE (integrado ao header) -->
-        <a routerLink="/sobre" class="caixa-btn-sobre" aria-label="Sobre nós">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="w-4 h-4"
-            aria-hidden="true"
-          >
-            <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          <span class="hidden xs:inline">Sobre</span>
-        </a>
+          <!-- SOBRE -->
+          <a routerLink="/sobre" class="caixa-btn-sobre" aria-label="Sobre nós">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="caixa-btn-icon"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            <span class="caixa-btn-label">Sobre</span>
+          </a>
+        </div>
       </header>
 
       <!-- -------- ABAS -------- -->

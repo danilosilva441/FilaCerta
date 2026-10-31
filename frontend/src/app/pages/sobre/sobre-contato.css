@@ -4,47 +4,53 @@
    ============================================================ */
 
 /* ============================================================
-   PÁGINA
+   1. PÁGINA
    ============================================================ */
 .sobre-page {
   @apply min-h-dvh bg-gray-50
          flex flex-col
-         p-4 md:p-8
-         font-sans;
+         px-4 md:px-8
+         font-sans antialiased;
 
   padding-top: max(1rem, env(safe-area-inset-top, 0px));
   padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
 }
 
 /* ============================================================
-   BOTÃO VOLTAR
+   2. BOTÃO VOLTAR
    ============================================================ */
 .sobre-voltar {
   @apply inline-flex items-center gap-2
-         text-sm font-medium
-         text-gray-500
-         hover:text-primary-600
-         transition-colors
-         mb-4
          w-fit
-         touch-manipulation select-none;
+         min-h-[44px]
+         -ml-3 px-3
+         rounded-lg
+         text-sm font-bold
+         text-gray-500
+         bg-transparent
+         hover:text-primary-600 hover:bg-white
+         active:scale-95
+         transition-colors
+         touch-manipulation select-none
+         cursor-pointer;
 }
 
 /* ============================================================
-   CARD PRINCIPAL
+   3. CARD PRINCIPAL
    ============================================================ */
 .sobre-card {
-  @apply max-w-md w-full mx-auto
+  @apply w-full max-w-md mx-auto
          bg-white
          rounded-2xl
          shadow-sm
-         border border-gray-100
-         overflow-hidden
-         flex-1;
+         ring-1 ring-gray-200/70
+         overflow-hidden;
+
+  animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ============================================================
-   CAPA
+   4. CAPA
    ============================================================ */
 .sobre-capa {
   @apply bg-primary-600
@@ -59,46 +65,46 @@
          mx-auto mb-3
          flex items-center justify-center
          shadow-md
-         text-2xl;
+         text-primary-600;
 }
 
 .sobre-titulo {
-  @apply text-2xl font-bold text-white;
+  @apply text-2xl font-black text-white tracking-tight;
 }
 
 .sobre-slogan {
-  @apply text-primary-100 text-sm mt-1;
+  @apply text-sm font-medium text-primary-50 mt-1;
 }
 
 /* ============================================================
-   CONTEÚDO
+   5. CONTEÚDO
    ============================================================ */
 .sobre-conteudo {
   @apply p-6 space-y-6;
 }
 
 .sobre-section-titulo {
-  @apply text-sm font-semibold
+  @apply text-xs font-bold
          text-gray-400
-         uppercase tracking-wider
+         uppercase tracking-widest
          mb-3;
 }
 
 /* ============================================================
-   HORÁRIOS
+   6. HORÁRIOS
    ============================================================ */
 .sobre-horarios {
-  @apply text-gray-700 space-y-2 text-sm;
+  @apply text-sm text-gray-700
+         divide-y divide-gray-100;
 }
 
 .sobre-horario-item {
-  @apply flex justify-between
-         border-b border-gray-50
-         pb-1;
+  @apply flex items-center justify-between gap-4
+         py-2.5;
 }
 
 .sobre-horario-hora {
-  @apply font-medium;
+  @apply font-bold text-gray-900 tabular-nums;
 }
 
 .sobre-horario-fechado {
@@ -106,11 +112,11 @@
 }
 
 /* ============================================================
-   ENDEREÇO
+   7. ENDEREÇO
    ============================================================ */
 .sobre-endereco {
   @apply flex items-start gap-3
-         text-gray-700 text-sm;
+         text-sm text-gray-700 leading-relaxed;
 }
 
 .sobre-endereco-icon {
@@ -121,7 +127,7 @@
 }
 
 /* ============================================================
-   BOTÕES DE CONTATO
+   8. BOTÕES DE CONTATO
    ============================================================ */
 .sobre-contatos {
   @apply space-y-3 pt-2;
@@ -130,34 +136,34 @@
 .sobre-btn {
   @apply w-full
          flex items-center justify-center gap-2
-         font-medium
-         py-3 px-4
+         min-h-[52px] px-4 py-3
          rounded-xl
-         transition-colors
+         font-bold text-sm
+         transition-all duration-200
          touch-manipulation select-none
-         min-h-[48px];
+         active:scale-[0.98];
 }
 
 .sobre-btn-whatsapp {
-  @apply bg-green-500 hover:bg-green-600
-         text-white;
+  @apply bg-green-600 hover:bg-green-700
+         text-white
+         shadow-md shadow-green-600/25;
 }
 
 .sobre-btn-instagram {
-  @apply bg-pink-50 hover:bg-pink-100
+  @apply bg-white hover:bg-pink-50
          text-pink-600
-         border border-pink-100;
+         ring-1 ring-pink-200;
 }
 
 /* ============================================================
-   FOOTER / ASSINATURA
+   9. FOOTER / ASSINATURA
    ============================================================ */
 .sobre-footer {
-  @apply mt-8
+  @apply mt-auto pt-8 pb-4
          text-center
          text-xs
-         text-gray-400
-         pb-4;
+         text-gray-400;
 }
 
 .sobre-footer-link {
@@ -167,17 +173,22 @@
          transition-colors;
 }
 
-.sobre-voltar {
-  @apply inline-flex items-center gap-2
-         text-sm font-medium
-         text-gray-500
-         hover:text-primary-600
-         transition-colors
-         mb-4
-         w-fit
-         touch-manipulation select-none
-         bg-transparent
-         border-none
-         cursor-pointer
-         p-0;
+/* ============================================================
+   10. ANIMAÇÕES
+   ============================================================ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sobre-card {
+    animation: none;
+  }
 }

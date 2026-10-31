@@ -9,20 +9,17 @@
       'modal-backdrop-oculto': saindo,
     }"
     (click)="onBackdropClick($event)"
-    (keydown.escape)="fechar()"
-    tabindex="-1"
-    role="presentation"
   >
     <!-- ============================================================
          CARD
          ============================================================ -->
     <div
-      class="modal-card modal-card-alert"
+      #modalCard
+      class="modal-card"
       [ngClass]="{
         'modal-card-visivel': !saindo,
         'modal-card-saindo': saindo,
       }"
-      (click)="$event.stopPropagation()"
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="modal-titulo"
@@ -119,7 +116,7 @@
         </div>
 
         <!-- TÍTULO -->
-        <h3 id="modal-titulo" class="modal-title modal-title-alert">
+        <h3 id="modal-titulo" class="modal-title">
           {{ config.titulo }}
         </h3>
 
@@ -134,7 +131,7 @@
       <!-- =========================
            AÇÕES
            ========================= -->
-      <div class="modal-actions modal-actions-alert">
+      <div class="modal-actions">
         <button type="button" (click)="fechar()" class="modal-btn-cancel">
           {{ config.textoCancelar || 'Cancelar' }}
         </button>
