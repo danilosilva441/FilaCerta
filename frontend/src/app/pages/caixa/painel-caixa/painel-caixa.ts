@@ -347,4 +347,16 @@ export class PainelCaixaComponent implements OnInit, OnDestroy {
     this.valoresVisiveis.set(novoEstado);
     localStorage.setItem('filacerta_valores_visiveis', String(novoEstado));
   }
+
+  // ============================================================
+  // HELPER DE FORMA DE PAGAMENTO (Balcão)
+  // ============================================================
+  obterFormaPagamento(pedido: PedidoResponse): 'PIX' | 'CARTAO' | 'DINHEIRO' | 'NAO_INFORMADO' {
+    const bruto = (pedido.formaPagamento || pedido.metodoPagamento || 'NAO_INFORMADO').toUpperCase();
+
+    if (bruto === 'PIX') return 'PIX';
+    if (bruto.includes('CARTAO')) return 'CARTAO';
+    if (bruto === 'DINHEIRO') return 'DINHEIRO';
+    return 'NAO_INFORMADO';
+  }
 }

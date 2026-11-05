@@ -27,10 +27,11 @@ export interface PedidoResponse {
   id: number;
   numero: number;
   nomeCliente: string;
-  tipo: 'LEVAR' | 'COMER_AQUI';
+  tipo: 'COMER_AQUI' | 'LEVAR' | string;
   status: string;
-  statusPagamento: string;
-  formaPagamento: 'PIX' | 'CARTAO' | 'DINHEIRO' | 'NAO_INFORMADO';
+  statusPagamento: 'AGUARDANDO' | 'PAGO' | string;
+  formaPagamento?: 'PIX' | 'CARTAO' | 'DINHEIRO' | 'NAO_INFORMADO' | string;
+  metodoPagamento?: 'PIX' | 'CARTAO_CREDITO' | 'CARTAO_DEBITO' | 'DINHEIRO' | string;
   valorTotal: number;
   dataHoraPedido: string;
   codigoAcompanhamento: string;
