@@ -288,4 +288,24 @@ export class AcompanhamentoComponent implements OnInit, OnDestroy {
     sessionStorage.setItem('filacerta_modo_acrescimo', 'true');
     void this.router.navigate(['/cliente/cardapio']);
   }
+
+  getStepClass(statusAtual: string, passo: number): string {
+    // Normalizamos o status para bater com as 4 etapas
+    let status = statusAtual.toUpperCase();
+    if (status === 'AGUARDANDO') status = 'RECEBIDO';
+    if (status === 'SERVIDO') status = 'ENTREGUE';
+    if (status === 'CANCELADO') return 'step-cancelled';
+
+    const ordem = ['RECEBIDO', 'PREPARANDO', 'PRONTO', 'ENTREGUE'];
+    const indexAtual = ordem.indexOf(status);
+    const indexPasso = passo - 1;
+
+    if (indexPasso < indexAtual) {
+      return 'step-completed'; // Verde
+    } else if (indexPasso === indexAtual) {
+      return 'step-current'; // Laranja
+    } else {
+      return 'step-pending'; // Cinzento claro
+    }
+  }
 }
