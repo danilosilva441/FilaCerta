@@ -1,255 +1,187 @@
 /* ============================================================
-   COZINHA.CSS — Painel da Cozinha
-   Grid responsivo, estado vazio, checklist por item
+   COZINHA.CSS — Painel da Cozinha (v2 — refatorado)
+   Foco: mobile-first, toque, clareza para usuários leigos
    ============================================================ */
 
 /* ============================================================
-     PÁGINA
-     ============================================================ */
+   PÁGINA
+   ============================================================ */
 .page-cozinha {
-  @apply min-h-dvh bg-gray-200 font-sans antialiased;
-
-  /* Safe-area mobile + espaço para a bottom-nav */
+  @apply min-h-dvh bg-gray-100 font-sans antialiased relative;
   padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
-  padding-top: max(1rem, env(safe-area-inset-top, 0px));
-
-  /* Desktop: nav vira top, então libera o padding-bottom */
-  @apply sm:pb-0;
 }
-
 .page-cozinha-inner {
-  @apply p-4 max-w-[1800px] mx-auto;
+  @apply max-w-[1800px] mx-auto;
 }
 
 /* ============================================================
-     HEADER
-     ============================================================ */
-.cozinha-header {
-  @apply bg-gradient-to-br from-primary-600 to-primary-700
-           text-white
-           p-4 sm:p-5
-           rounded-xl
-           mb-6
-           shadow-lg shadow-primary-600/20
-           ring-1 ring-white/10;
+   HEADER + TABS FIXAS (sticky)
+   ============================================================ */
+.cozinha-top-container {
+  @apply sticky top-0 z-40 bg-gray-100 border-b border-gray-200;
+  padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-bottom: 0.5rem;
 }
 
-/* Linha 1: título + badge */
+.cozinha-header {
+  @apply bg-gradient-to-br from-primary-600 to-primary-700
+         text-white p-3 rounded-xl mb-3
+         shadow-md;
+}
+
 .cozinha-header-row {
-  @apply flex items-center justify-between gap-3
-           mb-3 sm:mb-4;
+  @apply w-full flex items-center justify-between gap-2;
 }
 
 .cozinha-title-group {
-  @apply flex items-center gap-3 min-w-0 flex-1;
+  @apply flex items-center gap-2 min-w-0;
 }
 
 .cozinha-logo {
-  @apply w-12 h-12
-           bg-primary-800
-           rounded-full
-           flex items-center justify-center
-           flex-shrink-0
-           ring-1 ring-white/20;
+  @apply w-10 h-10 bg-primary-800 rounded-full
+         flex items-center justify-center flex-shrink-0
+         ring-1 ring-white/20;
 }
 
 .cozinha-title {
-  @apply text-xl sm:text-2xl font-black truncate text-white;
+  @apply text-xl font-black truncate text-white;
 }
 
-.cozinha-subtitle {
-  @apply text-xs text-primary-100;
-}
-
-.cozinha-badge {
-  @apply bg-primary-800/70
-           backdrop-blur-sm
-           text-white
-           px-3 py-1.5
-           rounded-full
-           font-bold text-sm
-           whitespace-nowrap
-           ring-1 ring-white/15
-           flex-shrink-0;
-}
-
-/* Barra de ações: 3 colunas iguais no mobile, lado a lado no desktop */
 .cozinha-actions {
-  @apply grid grid-cols-3 gap-2 sm:flex sm:items-center sm:gap-3;
+  @apply flex items-center gap-2 flex-shrink-0;
 }
 
-/* ============================================================
-     BOTÕES DO HEADER (Som + QR Code)
-     ============================================================ */
-
-/* Base compartilhada pelos 3 botões */
-.cozinha-btn-som,
-.cozinha-btn-qr,
-.cozinha-btn-sobre {
-  @apply inline-flex items-center justify-center gap-2
-         px-2 sm:px-5 py-2.5
-         rounded-lg
-         font-bold text-sm
-         ring-1 ring-white/20
-         shadow-md shadow-black/10
-         transition-all
-         active:scale-95
-         touch-manipulation select-none
-         min-h-[48px];
-}
-
-.cozinha-btn-icon {
-  @apply w-5 h-5 flex-shrink-0;
-}
-
-.cozinha-btn-label {
-  @apply truncate;
-}
-
-/* Cores */
-.cozinha-btn-qr,
-.cozinha-btn-sobre,
-.cozinha-btn-som-inativo {
-  @apply bg-primary-800 text-white hover:bg-primary-900;
-}
-
-/* Som ligado: destaque branco */
-.cozinha-btn-som-ativo {
-  @apply bg-white text-primary-700 ring-white/30 hover:bg-primary-50;
-}
-
-/* Linha de cada item (botão principal + lixeira) */
-.cozinha-item-row {
-  @apply flex items-stretch gap-2 w-full;
-}
-
-.cozinha-item-excluir {
-  @apply flex-shrink-0 flex items-center justify-center
-         w-12 rounded-lg
-         bg-white border border-gray-200
-         text-danger
-         hover:bg-danger-light hover:border-danger/40
+/* Botões de ação do header — alvo mínimo 44px (Apple HIG) */
+.cozinha-btn-icon-only {
+  @apply w-11 h-11 rounded-lg
+         flex items-center justify-center
+         shadow-sm ring-1 ring-black/10
          transition-all active:scale-95
          touch-manipulation select-none;
 }
 
-/* ATIVO (som ligado) — branco destacado */
-.cozinha-btn-som-ativo {
-  @apply bg-white text-primary-700
-           ring-white/30
-           shadow-md shadow-black/10
-           hover:bg-primary-50;
+/* ============================================================
+   TABS (navegação)
+   ============================================================ */
+.cozinha-tabs {
+  @apply flex items-center bg-gray-200 p-1 rounded-xl shadow-inner gap-1;
 }
 
-/* INATIVO (som desligado) */
-.cozinha-btn-som-inativo {
-  @apply bg-primary-800 text-white
-           ring-white/20
-           shadow-md shadow-black/10
-           hover:bg-primary-900;
+.cozinha-tab {
+  @apply flex-1 min-h-[44px] py-2.5
+         flex items-center justify-center gap-2
+         text-sm font-bold text-gray-500 rounded-lg
+         transition-all touch-manipulation select-none
+         active:scale-[0.97];
 }
 
-/* QR Code */
-.cozinha-btn-qr {
-  @apply bg-primary-800 text-white
-           ring-white/20
-           shadow-md shadow-black/10
-           hover:bg-primary-900;
+.cozinha-tab.tab-active {
+  @apply bg-white text-primary-700 shadow-sm ring-1 ring-black/5;
+}
+
+.tab-badge {
+  @apply bg-gray-300 text-white text-[10px]
+         px-2 py-0.5 rounded-full font-black
+         min-w-[20px] text-center;
+}
+.tab-active .tab-badge {
+  @apply ring-1 ring-black/5;
 }
 
 /* ============================================================
-     ESTADO VAZIO
-     ============================================================ */
+   CONTEÚDO
+   ============================================================ */
+.cozinha-content {
+  @apply p-4 max-w-7xl mx-auto;
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+}
+
+.cozinha-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4;
+}
+
+/* Estado vazio — com ícone opcional */
 .cozinha-empty {
   @apply flex flex-col items-center justify-center
-           py-20 text-gray-400;
-}
-
-.cozinha-empty-title {
-  @apply text-2xl font-bold;
-}
-
-.cozinha-empty-sub {
-  @apply text-sm mt-1;
+         py-20 text-gray-400 font-bold italic text-center;
 }
 
 /* ============================================================
-     GRID DE PEDIDOS
-     ============================================================ */
-.cozinha-grid {
-  @apply grid grid-cols-1
-           md:grid-cols-2
-           lg:grid-cols-3
-           xl:grid-cols-4
-           gap-4;
+   CARDS — UMA definição por classe (sem duplicatas!)
+   ============================================================ */
+
+/* Card compacto (aba Recebidos) */
+.cozinha-card-compacto {
+  @apply bg-white rounded-xl shadow-sm
+         flex flex-col overflow-hidden
+         border border-gray-200;
+  border-top-width: 4px;
+  border-top-color: theme('colors.info.DEFAULT'); /* sobrescrito por utilitário se preciso */
 }
 
-/* ============================================================
-     CARD DO PEDIDO
-     ============================================================ */
+/* Card detalhado (abas Preparando / Prontos) */
 .cozinha-card {
-  @apply bg-white rounded-xl
-           shadow-md border-t-8
-           flex flex-col overflow-hidden
-           transition-shadow duration-200
-           hover:shadow-card-hover;
+  @apply bg-white rounded-xl shadow-md
+         flex flex-col overflow-hidden
+         border border-gray-100;
+  border-top-width: 8px;
 }
 
-.cozinha-card-chapa {
-  @apply border-chapa;
-}
+/* Cores da borda superior via utilitários Tailwind aplicados no HTML:
+   border-t-warning, border-t-success, border-t-info  ✅
+   (Não criar .cozinha-card-chapa / .cozinha-card-info — usar utilitários) */
 
-.cozinha-card-info {
-  @apply border-info;
-}
-
-/* -------- Header do card -------- */
 .cozinha-card-header {
-  @apply p-4 border-b border-gray-100
-           flex justify-between items-center
-           bg-gray-50;
+  @apply p-3 border-b border-gray-100
+         flex justify-between items-center gap-2
+         bg-gray-50/80;
 }
 
 .cozinha-card-numero {
-  @apply font-black text-2xl text-gray-800;
+  @apply font-black text-xl text-gray-900;
 }
 
 .cozinha-card-cliente {
-  @apply ml-2 font-semibold text-gray-600 text-sm truncate;
+  @apply ml-2 font-bold text-gray-600 text-sm truncate;
 }
 
 .cozinha-card-tempo {
-  @apply flex items-center gap-1.5
-           text-xs font-bold text-gray-500
-           bg-white px-2.5 py-1.5 rounded
-           shadow-sm border border-gray-200
-           flex-shrink-0;
+  @apply flex items-center gap-1
+         text-xs font-bold text-gray-500
+         bg-white px-2 py-1 rounded
+         shadow-sm border border-gray-200
+         flex-shrink-0;
 }
 
-/* -------- Lista de itens -------- */
+.cozinha-resumo-lista {
+  @apply p-3 text-sm text-gray-700 space-y-1
+         bg-gray-50/30 flex-1;
+}
+
+/* ============================================================
+   ITENS (checklist)
+   ============================================================ */
 .cozinha-card-itens {
   @apply p-2 flex-1 space-y-2;
 }
 
-/* -------- Item -------- */
 .cozinha-item {
   @apply w-full flex items-center justify-between
-           p-3 rounded-lg
-           transition-all
-           border text-left
-           touch-manipulation select-none
-           min-h-[56px]
-           active:scale-[0.98];
+         p-3 rounded-lg transition-all
+         border text-left
+         touch-manipulation select-none
+         min-h-[56px]
+         active:scale-[0.98];
 }
 
 .cozinha-item-pendente {
   @apply bg-white border-gray-200 hover:bg-gray-50;
 }
-
 .cozinha-item-preparando {
   @apply bg-warning-light border-warning/40;
 }
-
 .cozinha-item-pronto {
   @apply bg-success-light border-success/40 opacity-70;
 }
@@ -258,103 +190,72 @@
   @apply flex items-center gap-3 min-w-0;
 }
 
-/* -------- Checkbox circular -------- */
+/* Check circular */
 .cozinha-item-check {
   @apply w-9 h-9 rounded-full border-2
-           flex items-center justify-center
-           transition-colors flex-shrink-0;
+         flex items-center justify-center
+         transition-colors flex-shrink-0;
 }
 
-.cozinha-item-check-pendente {
-  @apply border-gray-300;
-}
-
-.cozinha-item-check-preparando {
-  @apply border-warning bg-warning/15 text-warning animate-pulse;
-}
-
-.cozinha-item-check-pronto {
-  @apply border-success bg-success text-white;
-}
-
-/* -------- Texto do item -------- */
 .cozinha-item-text {
   @apply flex flex-col min-w-0;
 }
 
-.cozinha-item-nome {
-  @apply font-bold text-gray-800 text-base sm:text-lg;
-}
-
-.cozinha-item-obs {
-  @apply text-xs text-danger font-bold
-           bg-danger-light
-           px-1.5 py-0.5 rounded
-           inline-block mt-1 break-words;
-}
-
-/* -------- Ações do card -------- */
+/* ============================================================
+   AÇÕES DO CARD
+   ============================================================ */
 .cozinha-card-actions {
   @apply p-3 border-t border-gray-100 mt-auto space-y-2;
 }
 
-/* -------- Status "PRONTO" -------- */
 .cozinha-status-pronto {
   @apply w-full py-3
-           bg-success-light
-           border border-success/40
-           text-success
-           rounded-xl
-           font-bold text-sm
-           flex items-center justify-center gap-2;
+         bg-success-light border border-success/40
+         text-success rounded-xl font-bold text-sm
+         flex items-center justify-center gap-2;
 }
 
-/* -------- Botão cancelar -------- */
 .cozinha-btn-cancelar {
-  @apply w-full py-2.5
-           bg-danger-light text-danger
-           hover:bg-red-100
-           rounded-lg
-           font-bold text-sm
-           transition-colors
-           border border-danger/30
-           touch-manipulation select-none
-           min-h-[44px]
-           flex items-center justify-center gap-2;
+  @apply w-full py-2.5 min-h-[44px]
+         bg-danger-light text-danger
+         hover:bg-red-100
+         rounded-lg font-bold text-sm
+         transition-colors border border-danger/30
+         touch-manipulation select-none
+         flex items-center justify-center gap-2
+         active:scale-95;
+}
+
+/* Botão "Começar a Preparar" (aba Recebidos) */
+.btn-iniciar-preparo {
+  @apply min-h-[52px] touch-manipulation select-none;
 }
 
 /* ============================================================
-     MODAL: QR CODE DO CARDÁPIO
-     ============================================================ */
+   MODAL QR CODE
+   ============================================================ */
+.cozinha-modal-backdrop {
+  @apply fixed inset-0 z-50
+         flex items-center justify-center
+         bg-black/60 backdrop-blur-sm
+         p-4 overflow-y-auto;
+  padding-top: max(1rem, env(safe-area-inset-top, 0px));
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+}
+
 .cozinha-modal-qr {
-  @apply bg-white
-         w-full max-w-sm
-         rounded-2xl
-         shadow-2xl
-         overflow-hidden
-         p-6
-         text-center
-         flex flex-col items-center;
-
-  /* ✅ FORÇA o modal a ficar por cima de tudo */
-  position: relative;
+  @apply bg-white w-full max-w-sm
+         rounded-2xl shadow-2xl overflow-hidden
+         p-6 text-center
+         flex flex-col items-center relative;
   z-index: 51;
-
-  /* Animação de entrada */
   animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-
-  /* ✅ Safe-area (usa padding, não margin) */
-  margin-top: max(1rem, env(safe-area-inset-top, 0px));
-  margin-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
 }
 
 .cozinha-modal-qr-icon {
-  @apply w-14 h-14
-           bg-primary-50 text-primary-600
-           rounded-full
-           flex items-center justify-center
-           mb-3
-           ring-4 ring-primary-100;
+  @apply w-14 h-14 bg-primary-50 text-primary-600
+         rounded-full flex items-center justify-center
+         mb-3 ring-4 ring-primary-100;
 }
 
 .cozinha-modal-qr-title {
@@ -365,76 +266,44 @@
   @apply text-gray-500 text-xs mb-4;
 }
 
-/* -------- QR Code image -------- */
 .cozinha-modal-qr-code {
-  @apply bg-gray-50
-           p-4 rounded-xl
-           border border-gray-200
-           inline-block mb-4
-           shadow-inner;
+  @apply bg-gray-50 p-4 rounded-xl
+         border border-gray-200 inline-block
+         mb-4 shadow-inner;
 }
 
-/* -------- Link -------- */
 .cozinha-modal-qr-link {
-  @apply text-[11px] text-gray-400
-           break-all
-           bg-gray-100
-           p-2 rounded
-           mb-5
-           font-mono
-           w-full;
+  @apply text-[11px] text-gray-400 break-all
+         bg-gray-100 p-2 rounded mb-5
+         font-mono w-full;
 }
 
-/* -------- Botão fechar -------- */
 .cozinha-modal-qr-btn {
-  @apply w-full py-3
-           bg-gray-900 text-white
-           rounded-xl
-           font-bold
-           hover:bg-gray-800
-           transition-all
-           active:scale-95
-           touch-manipulation
-           min-h-[48px];
+  @apply w-full py-3 min-h-[48px]
+         bg-gray-900 text-white rounded-xl
+         font-bold hover:bg-gray-800
+         transition-all active:scale-95
+         touch-manipulation;
 }
 
-/* modal.css */
-.cozinha-modal-backdrop {
-  @apply fixed inset-0 z-50
-         flex items-center justify-center
-         bg-black/60 backdrop-blur-sm
-         p-4
-         overflow-y-auto; /* permite scroll se o modal for grande */
-
-  padding-top: max(1rem, env(safe-area-inset-top, 0px));
-  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
-}
-
-.page-cozinha {
-  @apply min-h-dvh bg-gray-200 font-sans antialiased relative;
-
-  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
-  padding-top: max(1rem, env(safe-area-inset-top, 0px));
-
-  @apply sm:pb-0;
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* ============================================================
-   BOTÃO SOBRE — Integrado ao header da cozinha
+   Acessibilidade — respeitar preferência de movimento reduzido
    ============================================================ */
-.cozinha-btn-sobre {
-  @apply inline-flex items-center justify-center gap-1.5
-         px-3 sm:px-4 py-2
-         rounded-lg
-         font-bold text-xs sm:text-sm
-         text-white
-         bg-primary-800/50
-         hover:bg-primary-800
-         ring-1 ring-white/20
-         shadow-sm
-         transition-all
-         active:scale-95
-         touch-manipulation select-none
-         flex-shrink-0
-         min-h-[40px];
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

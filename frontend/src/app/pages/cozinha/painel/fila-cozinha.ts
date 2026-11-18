@@ -24,6 +24,7 @@ import { AudioService } from '../../../core/services/audio.service';
 import { WebsocketService } from '../../../core/services/websocket.service';
 
 type StatusItem = 'PENDENTE' | 'PREPARANDO' | 'PRONTO';
+type AbaCozinha = 'RECEBIDOS' | 'PREPARANDO' | 'PRONTOS';
 
 @Component({
   selector: 'app-fila-cozinha',
@@ -34,7 +35,6 @@ type StatusItem = 'PENDENTE' | 'PREPARANDO' | 'PRONTO';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FilaCozinhaComponent implements OnInit, OnDestroy {
-  // ====== Injeções ======
   private readonly cozinhaService = inject(CozinhaService);
   private readonly caixaService = inject(CaixaService);
   private readonly pedidoService = inject(PedidoService);
@@ -45,45 +45,45 @@ export class FilaCozinhaComponent implements OnInit, OnDestroy {
   private readonly websocketService = inject(WebsocketService);
   private readonly cdr = inject(ChangeDetectorRef);
 
-  // ====== Signals ======
   readonly filaPedidos = signal<FilaCozinhaResponse[]>([]);
   readonly somAtivado = signal(false);
 
-  // ====== Computed ======
+  // ---> CONTROLE DE NAVEGAÇÃO DA TELA <---
+  readonly abaAtiva = signal<AbaCozinha>('RECEBIDOS');
+
+  // ====== Computed Principais ======
   readonly totalPedidos = computed(() => this.filaPedidos().length);
 
-  // ====== Controle interno ======
+  readonly pedidosRecebidos = computed(() =>
+    this.filaPedidos().filter((p) => p.status === 'RECEBIDO' || p.status === 'AGUARDANDO')
+  );
+  readonly pedidosEmPreparo = computed(() =>
+    this.filaPedidos().filter((p) => p.status === 'PREPARANDO')
+  );
+  readonly pedidosProntos = computed(() =>
+    this.filaPedidos().filter((p) => p.status === 'PRONTO')
+  );
+
   private quantidadeAnterior = 0;
   private pedidosSubscription?: Subscription;
 
-  // ====== Lifecycle ======
   ngOnInit(): void {
-    // 1. Busca inicial ao abrir a tela
     this.carregarFila();
-
-    // 2. Sintoniza no rádio: Atualiza imediatamente quando o Java avisar
     this.pedidosSubscription = this.websocketService.pedidos$.subscribe(() => {
       this.carregarFila();
     });
   }
 
   ngOnDestroy(): void {
-    // Desliga a antena ao sair da página
     this.pedidosSubscription?.unsubscribe();
   }
 
-  // ====== Som ======
   alternarSom(): void {
     const novoEstado = !this.somAtivado();
     this.somAtivado.set(novoEstado);
-
     if (novoEstado) {
       this.audioService.desbloquear();
     }
-  }
-
-  testarSom(): void {
-    this.audioService.tocarSino();
   }
 
   private tocarSino(): void {
@@ -91,7 +91,6 @@ export class FilaCozinhaComponent implements OnInit, OnDestroy {
     this.audioService.tocarSino();
   }
 
-  // ====== Carregamento ======
   carregarFila(): void {
     this.cozinhaService
       .listarFila()
@@ -99,27 +98,21 @@ export class FilaCozinhaComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (pedidos) => {
           this.processarFila(pedidos);
-          this.cdr.detectChanges(); // Força a tela a desenhar na hora!
+          this.cdr.detectChanges();
         },
         error: (err) => console.error('Erro ao carregar fila', err),
       });
   }
 
   private processarFila(pedidos: FilaCozinhaResponse[]): void {
-    // 1. O FILTRO MÁGICO: Remove os itens cancelados assim que chegam do backend
     const pedidosLimpos = pedidos
-      .map((pedido) => {
-        return {
-          ...pedido,
-          itens: pedido.itens.filter((i) => i.status !== 'CANCELADO'),
-        };
-      })
-      // 2. Se um pedido ficou sem nenhum item (tudo foi cancelado), ele some da tela da cozinha
+      .map((pedido) => ({
+        ...pedido,
+        itens: pedido.itens.filter((i) => i.status !== 'CANCELADO'),
+      }))
       .filter((pedido) => pedido.itens.length > 0);
 
     const novaQtd = pedidosLimpos.length;
-
-    // Toca sino se a fila AUMENTOU (chegou pedido novo)
     if (novaQtd > this.quantidadeAnterior) {
       this.tocarSino();
     }
@@ -128,46 +121,33 @@ export class FilaCozinhaComponent implements OnInit, OnDestroy {
     this.filaPedidos.set(pedidosLimpos);
   }
 
-  // ====== Ações nos itens ======
   marcarItem(pedidoId: number, itemId: number, statusAtual: string): void {
     const proximo = this.proximoStatus(statusAtual);
-
-    // Atualização otimista (UI muda na hora, sem esperar o Java)
     this.atualizarItemLocal(pedidoId, itemId, proximo);
+
+    // ---> MÁGICA: A tela acompanha o cozinheiro! <---
+    if (proximo === 'PREPARANDO' && this.abaAtiva() === 'RECEBIDOS') {
+      this.abaAtiva.set('PREPARANDO');
+    }
 
     this.cozinhaService
       .atualizarStatusItem(pedidoId, itemId, proximo)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => {
-          // Já atualizou, o WebSocket vai mandar a versão oficial em instantes
-        },
+        next: () => {},
         error: (err) => {
-          // Tenta ler a mensagem exata de erro que o Spring Boot (Java) enviou
           let mensagemDoBackend = 'Não foi possível atualizar o status. Tente novamente.';
-
           if (err.error) {
             try {
-              const erroFormatado =
-                typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
-
-              // Busca a mensagem dependendo de como o seu Controller Advice do Java está configurado
-              if (erroFormatado?.mensagem) {
-                mensagemDoBackend = erroFormatado.mensagem;
-              } else if (erroFormatado?.message) {
-                mensagemDoBackend = erroFormatado.message;
-              } else if (typeof err.error === 'string') {
-                mensagemDoBackend = err.error;
-              }
+              const erroFormatado = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+              if (erroFormatado?.mensagem) mensagemDoBackend = erroFormatado.mensagem;
+              else if (erroFormatado?.message) mensagemDoBackend = erroFormatado.message;
+              else if (typeof err.error === 'string') mensagemDoBackend = err.error;
             } catch (e) {
-              console.error('Falha ao ler o erro do backend', e);
+              console.error('Falha ao ler o erro', e);
             }
           }
-
-          // Exibe a mensagem real que o Java bloqueou
           this.notificationService.erro('Ação Bloqueada', mensagemDoBackend);
-
-          // Reverte a atualização otimista (UI volta ao estado anterior)
           this.atualizarItemLocal(pedidoId, itemId, statusAtual as any);
         },
       });
@@ -179,68 +159,30 @@ export class FilaCozinhaComponent implements OnInit, OnDestroy {
     return 'PENDENTE';
   }
 
-  /**
-   * Atualiza imutavelmente — cria nova referência para o signal disparar.
-   */
   private atualizarItemLocal(pedidoId: number, itemId: number, novoStatus: StatusItem): void {
     this.filaPedidos.update((fila) =>
       fila.map((pedido) => {
-        if (pedido.pedidoId !== pedidoId) return pedido;
+        if (pedido.pedidoId !== pedidoId && pedido.id !== pedidoId) return pedido;
 
         const itensAtualizados = pedido.itens.map((item) =>
           item.itemId === itemId ? { ...item, status: novoStatus } : item,
         );
-
         const todosProntos = itensAtualizados.every((i) => i.status === 'PRONTO');
+        const statusPedido = todosProntos ? 'PRONTO' : 'PREPARANDO';
 
         return {
           ...pedido,
           itens: itensAtualizados,
-          status: todosProntos ? 'PRONTO' : 'PREPARANDO',
+          status: statusPedido,
         };
       }),
     );
   }
 
-  // ====== Helpers ======
   temHamburguer(pedido: FilaCozinhaResponse): boolean {
-    return pedido.itens.some((i) => i.categoria === 'HAMBURGUER');
+    return pedido.itens.some((i) => i.categoria === 'HAMBURGUER' || i.categoria === 'Hamburguer');
   }
 
-  isPedidoPronto(pedido: FilaCozinhaResponse): boolean {
-    if (!pedido.itens?.length) return false;
-    return pedido.itens.every((i) => i.status === 'PRONTO');
-  }
-
-  // ====== Entrega ======
-  entregarPedido(pedidoId: number): void {
-    this.modalService.abrir({
-      titulo: 'Entregar pedido?',
-      mensagem: 'Confirme que o lanche foi entregue e o cliente já pagou.',
-      tipo: 'sucesso',
-      textoConfirmar: 'Sim, entregar',
-      textoCancelar: 'Voltar',
-      onConfirm: () => this.executarEntrega(pedidoId),
-    });
-  }
-
-  private executarEntrega(pedidoId: number): void {
-    this.caixaService
-      .finalizarEntrega(pedidoId)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => {
-          this.notificationService.sucesso('Sucesso!', 'Pedido entregue e pago.');
-          // Remove da tela imediatamente
-          this.filaPedidos.update((fila) => fila.filter((p) => p.pedidoId !== pedidoId));
-        },
-        error: () => {
-          this.notificationService.erro('Erro', 'Não foi possível finalizar o pedido.');
-        },
-      });
-  }
-
-  // ====== Cancelamento ======
   cancelarPedido(pedidoId: number): void {
     this.modalService.abrir({
       titulo: 'Cancelar pedido?',
@@ -252,11 +194,10 @@ export class FilaCozinhaComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ====== Cancelamento de Item Individual ======
   cancelarItem(pedidoId: number, item: any): void {
     this.modalService.abrir({
       titulo: 'Cancelar este Lanche?',
-      mensagem: `Tem certeza que deseja remover "${item.quantidade}x ${item.nomeProduto}"? O valor será descontado da conta do cliente e o estoque será devolvido.`,
+      mensagem: `Tem certeza que deseja remover "${item.quantidade}x ${item.nomeProduto}"? O valor será descontado da conta do cliente e o estoque devolvido.`,
       tipo: 'perigo',
       textoConfirmar: 'Sim, remover',
       textoCancelar: 'Voltar',
@@ -270,24 +211,18 @@ export class FilaCozinhaComponent implements OnInit, OnDestroy {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          this.notificationService.sucesso('Item Removido', 'O lanche foi cancelado com sucesso.');
-
-          // Atualização Otimista: Remove o item da tela na hora!
+          this.notificationService.sucesso('Item Removido', 'Lanche cancelado com sucesso.');
           this.filaPedidos.update((fila) =>
             fila
               .map((pedido) => {
-                if (pedido.pedidoId !== pedidoId) return pedido;
-                // Filtra o item cancelado para fora da lista
+                if (pedido.pedidoId !== pedidoId && pedido.id !== pedidoId) return pedido;
                 const novosItens = pedido.itens.filter((i) => i.itemId !== itemId);
                 return { ...pedido, itens: novosItens };
               })
-              // Se o pedido ficar sem itens (removeu tudo), o cartão do pedido inteiro some da cozinha
               .filter((pedido) => pedido.itens.length > 0),
           );
         },
-        error: () => {
-          this.notificationService.erro('Erro', 'Não foi possível cancelar o item.');
-        },
+        error: () => this.notificationService.erro('Erro', 'Não foi possível cancelar o item.'),
       });
   }
 
@@ -298,21 +233,14 @@ export class FilaCozinhaComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.notificationService.sucesso('Cancelado', 'Pedido enviado para o arquivo morto.');
-          this.filaPedidos.update((fila) => fila.filter((p) => p.pedidoId !== pedidoId));
+          this.filaPedidos.update((fila) => fila.filter((p) => p.pedidoId !== pedidoId && p.id !== pedidoId));
         },
-        error: () => {
-          this.notificationService.erro('Erro', 'Não foi possível cancelar o pedido.');
-        },
+        error: () => this.notificationService.erro('Erro', 'Não foi possível cancelar o pedido.'),
       });
   }
 
-  // Controla a visibilidade do modal do QR Code
   readonly exibirModalQrCode = signal<boolean>(false);
-
-  // Pega o endereço atual do cliente (funciona tanto no localhost quanto no IP da rede do celular)
   readonly linkCardapio = window.location.origin + '/';
-
-  // URL geradora de QR Code instantânea
   get urlQrCodeApi(): string {
     return `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(this.linkCardapio)}`;
   }

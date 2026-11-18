@@ -456,4 +456,56 @@ public class PedidoService {
 
 		return PedidoMapper.toResponse(pedidoSalvo);
 	}
+
+	@Transactional
+	public PedidoResponse adicionarItensAoPedidoInterno(Long pedidoId, AtualizarPedidoRequest request) {
+		Pedido pedido = pedidoRepository.findById(pedidoId)
+				.orElseThrow(() -> new NegocioException("Pedido não encontrado: " + pedidoId));
+
+		if (pedido.getStatus() == StatusPedido.ENTREGUE || pedido.getStatus() == StatusPedido.CANCELADO) {
+			throw new NegocioException("Este pedido já foi finalizado e não aceita novos itens.");
+		}
+
+		for (var itemReq : request.itens()) {
+			Produto produto = produtoRepository.findById(itemReq.getProdutoId())
+					.orElseThrow(() -> new NegocioException("Produto não encontrado."));
+
+			if (produto.getQuantidadeDisponivel() != null) {
+				if (produto.getQuantidadeDisponivel() < itemReq.getQuantidade()) {
+					throw new NegocioException("Estoque insuficiente para: " + produto.getNome());
+				}
+				produto.setQuantidadeDisponivel(produto.getQuantidadeDisponivel() - itemReq.getQuantidade());
+			}
+
+			ItemPedido novoItem = new ItemPedido();
+			novoItem.setPedido(pedido);
+			novoItem.setProduto(produto);
+			novoItem.setQuantidade(itemReq.getQuantidade());
+			novoItem.setPrecoUnitario(produto.getPreco());
+			novoItem.setObservacaoItem(itemReq.getObservacaoItem());
+			novoItem.setStatus(StatusItemPedido.PENDENTE);
+
+			itemPedidoRepository.save(novoItem);
+			pedido.getItens().add(novoItem);
+		}
+
+		pedido.calcularValorTotal();
+
+		if (pedido.getStatusPagamento() == StatusPagamento.PAGO) {
+			pedido.setStatusPagamento(StatusPagamento.AGUARDANDO);
+		}
+
+		// O GRANDE TRUQUE: Se a cozinha já tinha terminado (PRONTO) ou já estava na
+		// mesa (SERVIDO),
+		// o pedido volta automaticamente para "Em Preparo" na tela do Kanban!
+		if (pedido.getStatus() == StatusPedido.PRONTO || pedido.getStatus() == StatusPedido.SERVIDO) {
+			pedido.setStatus(StatusPedido.PREPARANDO);
+		}
+
+		Pedido pedidoSalvo = pedidoRepository.save(pedido);
+		messagingTemplate.convertAndSend("/topic/pedidos", "ATUALIZOU");
+		messagingTemplate.convertAndSend("/topic/caixa", "ATUALIZOU");
+
+		return PedidoMapper.toResponse(pedidoSalvo);
+	}
 }

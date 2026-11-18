@@ -71,4 +71,12 @@ public class PedidoController {
             
         return ResponseEntity.ok(pedidoService.adicionarItensAoPedido(codigo, request));
     }
+	
+	@PostMapping("/{id}/itens")
+	public ResponseEntity<PedidoResponse> adicionarItensInterno(
+			@PathVariable Long id, 
+			@RequestBody @Valid AtualizarPedidoRequest request) {
+		PedidoResponse response = pedidoService.adicionarItensAoPedidoInterno(id, request);
+		return ResponseEntity.ok(response);
+	}
 }
